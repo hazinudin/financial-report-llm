@@ -1,0 +1,10 @@
+[project]
+name = "glm-ocr-test"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "glmocr[selfhosted]>=0.1.5",
+    "ollama>=0.6.1",
+]
