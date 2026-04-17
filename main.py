@@ -6,48 +6,54 @@ import os
 
 # Configuration
 MODEL_NAME = "glm-ocr"
-PDF_PATH = "/Users/hannanazinuddin/Downloads/LK_PTPS_Tahunan_2025.pdf"
-OUTPUT_FILE = "./results/parsed_output.md"
+PDF_PATH = "./raw"
+OUTPUT_FILE = "./results"
 
 
 def main():
     if not os.path.exists("./results"):
         os.makedirs("./results")
 
-    print(f"Opening PDF: {PDF_PATH}")
-    doc = fitz.open(PDF_PATH)
+    files = [f for f in os.listdir(PDF_PATH) if f.lower().endswith(".pdf")]
 
-    # Clear previous results
-    if os.path.exists(OUTPUT_FILE):
-        os.remove(OUTPUT_FILE)
+    for filename in files:
+        pdf_file = os.path.join(PDF_PATH, filename)
+        output_file = os.path.join("./results", os.path.splitext(filename)[0] + ".md")
 
-    for page_num in range(len(doc)):
-        print(f"Processing page {page_num + 1}/{len(doc)}...", end=" ", flush=True)
+        if os.path.exists(output_file):
+            print(f"Skipping {filename}, output file already exists.")
+            continue
 
-        try:
-            # Render page to image
-            page = doc.load_page(page_num)
-            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
-            img_bytes = pix.tobytes("png")
+        print(f"Processing PDF: {pdf_file}")
+        doc = fitz.open(pdf_file)
 
-            # Use Ollama to generate OCR text
-            response = ollama.generate(
-                model=MODEL_NAME, prompt="Text Recognition:", images=[img_bytes]
-            )
+        for page_num in range(len(doc)):
+            print(f"Processing page {page_num + 1}/{len(doc)}...", end=" ", flush=True)
 
-            output_text = response["response"]
+            try:
+                # Render page to image
+                page = doc.load_page(page_num)
+                pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+                img_bytes = pix.tobytes("png")
 
-            # Save immediately to file (Append mode)
-            with open(OUTPUT_FILE, "a", encoding="utf-8") as f:
-                f.write(f"## Page {page_num + 1}\n\n{output_text}\n\n")
+                # Use Ollama to generate OCR text
+                response = ollama.generate(
+                    model=MODEL_NAME, prompt="Text Recognition:", images=[img_bytes]
+                )
 
-            print("✅ Done")
-        except Exception as e:
-            print(f"❌ Error: {e}")
-            with open(OUTPUT_FILE, "a", encoding="utf-8") as f:
-                f.write(f"## Page {page_num + 1}\n\n[Error parsing page]\n\n")
+                output_text = response["response"]
 
-    print(f"\nFinished! All pages parsed and saved to {OUTPUT_FILE}")
+                # Save immediately to file (Append mode)
+                with open(output_file, "a", encoding="utf-8") as f:
+                    f.write(f"## Page {page_num + 1}\n\n{output_text}\n\n")
+
+                print("✅ Done")
+            except Exception as e:
+                print(f"❌ Error: {e}")
+                with open(output_file, "a", encoding="utf-8") as f:
+                    f.write(f"## Page {page_num + 1}\n\n[Error parsing page]\n\n")
+
+        print(f"Finished {filename}! Saved to {output_file}")
 
 
 if __name__ == "__main__":
