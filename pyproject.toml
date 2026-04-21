@@ -5,6 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "docling>=2.90.0",
     "glmocr[selfhosted]>=0.1.5",
+    "markitdown[pdf]>=0.1.5",
     "ollama>=0.6.1",
 ]
