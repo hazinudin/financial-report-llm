@@ -1,0 +1,17 @@
+{
+  "strategy": "auto",
+  "identified_reports": {
+    "PTPS/2025_Audit": {
+      "source": "idx_data/reports/PTPS/2025_Audit/LK PTPS Tahunan 2025.pdf",
+      "file_name": "LK PTPS Tahunan 2025.pdf"
+    }
+  },
+  "pipeline_steps": [
+    {
+      "key": "PTPS/2025_Audit",
+      "source": "idx_data/reports/PTPS/2025_Audit/LK PTPS Tahunan 2025.pdf",
+      "destination": "raw/PTPS_Q4_2025.pdf",
+      "action": "copy"
+    }
+  ]
+}
