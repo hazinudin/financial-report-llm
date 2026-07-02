@@ -36,6 +36,7 @@ import os
 import random
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 from curl_cffi import requests as cffi_requests
@@ -53,7 +54,8 @@ BROWSER_HEADERS = {
     ),
 }
 VALID_PERIODS = ("TW1", "TW2", "TW3", "audit")
-DEFAULT_YEARS = list(range(2020, 2026))
+CURRENT_YEAR = datetime.now().year
+DEFAULT_YEARS = list(range(2020, CURRENT_YEAR + 1))
 DEFAULT_PERIODS = ["audit"]
 MAX_RETRIES = 5
 RETRY_BASE_DELAY = 1
@@ -65,10 +67,10 @@ class IDXClient:
     """Client for the Indonesia Stock Exchange (IDX) public API."""
 
     def __init__(self, output_dir: str = "./idx_data", delay: float = DEFAULT_DELAY):
-        self.session = cffi_requests.Session(impersonate="chrome131")
+        self._impersonate = "chrome133a"
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self._initialized = False
+        self._cookies = None
         self._delay = delay
 
     def _throttle(self, label: str = ""):
@@ -80,29 +82,32 @@ class IDXClient:
         time.sleep(wait)
 
     def _ensure_session(self):
-        """Initialize session by fetching the main page to get cookies."""
-        if self._initialized:
+        """Fetch the main page to obtain cookies for subsequent requests."""
+        if self._cookies is not None:
             return
         print("[*] Initializing IDX session...")
-        try:
-            resp = self.session.get(
-                f"{BASE_URL}/id",
-                headers=BROWSER_HEADERS,
-                timeout=30,
-            )
-            resp.raise_for_status()
-            time.sleep(1)
-            resp2 = self.session.get(
-                f"{BASE_URL}/primary/home/GetIndexList",
-                headers={**BROWSER_HEADERS, "X-Requested-With": "XMLHttpRequest"},
-                timeout=30,
-            )
-            resp2.raise_for_status()
-            self._initialized = True
-            print("[*] Session initialized successfully.")
-        except Exception as e:
-            print(f"[!] Failed to initialize session: {e}")
-            raise
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                resp = cffi_requests.get(
+                    f"{BASE_URL}/id",
+                    headers=BROWSER_HEADERS,
+                    impersonate=self._impersonate,
+                    timeout=30,
+                )
+                resp.raise_for_status()
+                self._cookies = resp.cookies
+                print("[*] Session initialized successfully.")
+                return
+            except Exception as e:
+                if attempt >= MAX_RETRIES:
+                    print(f"[!] Failed to initialize session: {e}")
+                    raise
+                delay = min(RETRY_BASE_DELAY * (2 ** (attempt - 1)), 15)
+                print(
+                    f"[!] Init retry {attempt}/{MAX_RETRIES} "
+                    f"(wait {delay:.1f}s): {e}"
+                )
+                time.sleep(delay)
 
     def _fetch(self, url: str, max_attempts: int = MAX_RETRIES) -> dict | None:
         """Fetch JSON from URL with retry logic."""
@@ -112,7 +117,13 @@ class IDXClient:
                     **BROWSER_HEADERS,
                     "X-Requested-With": "XMLHttpRequest",
                 }
-                resp = self.session.get(url, headers=headers, timeout=30)
+                resp = cffi_requests.get(
+                    url,
+                    headers=headers,
+                    impersonate=self._impersonate,
+                    cookies=self._cookies,
+                    timeout=30,
+                )
                 if resp.status_code >= 500:
                     print(
                         f"[!] Server error {resp.status_code}, retry {attempt}/{max_attempts}..."
@@ -277,28 +288,72 @@ class IDXClient:
             "address": profile.get("Alamat", ""),
         }
 
-    def download_pdf(self, url: str, filepath: Path) -> bool:
-        """Download a PDF file from a URL."""
-        try:
-            headers = {**BROWSER_HEADERS}
-            resp = self.session.get(url, headers=headers, timeout=60, stream=True)
-            if resp.status_code == 200:
-                filepath.parent.mkdir(parents=True, exist_ok=True)
-                with open(filepath, "wb") as f:
-                    for chunk in resp.iter_content(chunk_size=8192):
-                        if chunk:
-                            f.write(chunk)
-                return True
-            else:
-                print(f"[!] HTTP {resp.status_code} downloading {url}")
-                return False
-        except Exception as e:
-            print(f"[!] Error downloading {url}: {e}")
-            return False
+    def download_pdf(self, url: str, filepath: Path, max_attempts: int = 3) -> bool:
+        """Download a PDF file from a URL with retry logic."""
+        # Normalize double slashes that sometimes appear in IDX URLs
+        normalized_url = url
+        while "//" in normalized_url.replace("https://", "##"):
+            normalized_url = normalized_url.replace("//", "/")
+        normalized_url = normalized_url.replace("https:/", "https://")
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                headers = {
+                    **BROWSER_HEADERS,
+                }
+                resp = cffi_requests.get(
+                    normalized_url,
+                    headers=headers,
+                    impersonate=self._impersonate,
+                    cookies=self._cookies,
+                    timeout=60,
+                    stream=True,
+                )
+                if resp.status_code == 200:
+                    expected_size = int(resp.headers.get("Content-Length", 0))
+                    filepath.parent.mkdir(parents=True, exist_ok=True)
+                    downloaded = 0
+                    with open(filepath, "wb") as f:
+                        for chunk in resp.iter_content(chunk_size=8192):
+                            if chunk:
+                                f.write(chunk)
+                                downloaded += len(chunk)
+                    if expected_size and downloaded < expected_size:
+                        print(
+                            f"[!] Incomplete download {filepath.name} "
+                            f"({downloaded}/{expected_size} bytes), retry {attempt}/{max_attempts}..."
+                        )
+                        delay = min(RETRY_BASE_DELAY * (2 ** (attempt - 1)), 15)
+                        time.sleep(delay)
+                        continue
+                    return True
+                elif resp.status_code >= 500 or resp.status_code == 429:
+                    print(
+                        f"[!] HTTP {resp.status_code} downloading {normalized_url}, "
+                        f"retry {attempt}/{max_attempts}..."
+                    )
+                    delay = min(RETRY_BASE_DELAY * (2 ** (attempt - 1)), 15)
+                    time.sleep(delay)
+                    continue
+                else:
+                    print(f"[!] HTTP {resp.status_code} downloading {normalized_url}")
+                    return False
+            except Exception as e:
+                if attempt >= max_attempts:
+                    print(f"[!] Error downloading {normalized_url}: {e}")
+                    return False
+                delay = min(RETRY_BASE_DELAY * (2 ** (attempt - 1)), 15)
+                print(
+                    f"[!] Download error {normalized_url}: {e}, "
+                    f"retry {attempt}/{max_attempts} (wait {delay:.1f}s)..."
+                )
+                time.sleep(delay)
+        return False
 
 
 def list_companies(
-    output_dir: str = "./idx_data", delay: float = DEFAULT_DELAY, export: str = "csv"
+    output_dir: str = "./idx_data", delay: float = DEFAULT_DELAY, export: str = "csv",
+    db_conn: "duckdb.DuckDBPyConnection | None" = None,  # type: ignore
 ):
     """Fetch and list all listed companies with their sector/industry classification."""
     client = IDXClient(output_dir=output_dir, delay=delay)
@@ -321,26 +376,31 @@ def list_companies(
         if (idx + 1) % 50 == 0:
             print(f"[*] Progress: {idx + 1}/{len(companies)} companies")
 
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
-
-    csv_file = output_path / "idx_companies.csv"
-    with open(csv_file, "w", encoding="utf-8") as f:
-        f.write(
-            "code,name,sector,sub_sector,industry,sub_industry,board,listing_date,website,email\n"
-        )
+    # Write to DuckDB if available, else JSON/CSV
+    if db_conn is not None:
+        from db import PipelineDB
+        pdb = PipelineDB(db_conn)
         for c in all_data:
+            pdb.upsert_company(c)
+        print(f"\n[*] Saved {len(all_data)} company profiles to DuckDB")
+    else:
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+        csv_file = output_path / "idx_companies.csv"
+        with open(csv_file, "w", encoding="utf-8") as f:
             f.write(
-                f'"{c["code"]}","{c["name"]}","{c["sector"]}","{c["sub_sector"]}","{c["industry"]}","{c["sub_industry"]}","{c["board"]}","{c["listing_date"]}","{c["website"]}","{c["email"]}"\n'
+                "code,name,sector,sub_sector,industry,sub_industry,board,listing_date,website,email\n"
             )
-
-    json_file = output_path / "idx_companies.json"
-    with open(json_file, "w", encoding="utf-8") as f:
-        json.dump(all_data, f, ensure_ascii=False, indent=2)
-
-    print(f"\n[*] Exported {len(all_data)} companies to:")
-    print(f"    CSV:  {csv_file}")
-    print(f"    JSON: {json_file}")
+            for c in all_data:
+                f.write(
+                    f'"{c["code"]}","{c["name"]}","{c["sector"]}","{c["sub_sector"]}","{c["industry"]}","{c["sub_industry"]}","{c["board"]}","{c["listing_date"]}","{c["website"]}","{c["email"]}"\n'
+                )
+        json_file = output_path / "idx_companies.json"
+        with open(json_file, "w", encoding="utf-8") as f:
+            json.dump(all_data, f, ensure_ascii=False, indent=2)
+        print(f"\n[*] Exported {len(all_data)} companies to:")
+        print(f"    CSV:  {csv_file}")
+        print(f"    JSON: {json_file}")
 
     print(f"\n{'Code':<8} {'Name':<45} {'Sector':<25} {'Sub-Sector':<20}")
     print("=" * 100)
@@ -366,8 +426,11 @@ def run(
     dry_run: bool = False,
     output_dir: str = "./idx_data",
     delay: float = 0.5,
+    db_conn: "duckdb.DuckDBPyConnection | None" = None,  # type: ignore
 ):
     """Main download orchestration."""
+    import duckdb as _duckdb
+
     client = IDXClient(output_dir=output_dir, delay=delay)
 
     if years is None:
@@ -472,14 +535,13 @@ def run(
                         else:
                             file_url = file_path
 
+                        client._throttle(f"pre-download {file_name}")
                         print(f"  [DL] {file_name} -> {dest_dir}/")
                         success = client.download_pdf(file_url, dest_file)
                         if success:
                             total_downloaded += 1
                         else:
                             total_failed += 1
-
-                        client._throttle(f"downloaded {file_name}")
 
     if not ratios_only:
         print("\n" + "=" * 60)
@@ -490,37 +552,61 @@ def run(
 
     if not pdf_only:
         print("\n[*] Downloading financial ratio data...")
-        ratio_dir = Path(output_dir) / "ratios"
-        ratio_dir.mkdir(parents=True, exist_ok=True)
 
         for year in years:
             for month in [6, 12]:
                 print(f"  Fetching ratios for {year}-{month:02d}...")
                 ratios = client.get_financial_ratios(year, month)
                 if ratios:
-                    ratio_file = ratio_dir / f"ratios_{year}_{month:02d}.json"
-                    with open(ratio_file, "w", encoding="utf-8") as f:
-                        json.dump(ratios, f, ensure_ascii=False, indent=2)
-                    print(f"    Saved {len(ratios)} records to {ratio_file}")
+                    if db_conn is not None:
+                        from db import PipelineDB
+                        PipelineDB(db_conn).upsert_ratios(ratios)
+                        print(f"    Saved {len(ratios)} records to DuckDB")
+                    else:
+                        ratio_dir = Path(output_dir) / "ratios"
+                        ratio_dir.mkdir(parents=True, exist_ok=True)
+                        ratio_file = ratio_dir / f"ratios_{year}_{month:02d}.json"
+                        with open(ratio_file, "w", encoding="utf-8") as f:
+                            json.dump(ratios, f, ensure_ascii=False, indent=2)
+                        print(f"    Saved {len(ratios)} records to {ratio_file}")
                 else:
                     print(f"    No data for {year}-{month:02d}")
                 client._throttle(f"ratios {year}-{month:02d}")
 
-    metadata_file = Path(output_dir) / "download_metadata.json"
-    with open(metadata_file, "w", encoding="utf-8") as f:
-        json.dump(
-            {
-                "companies_processed": len(companies),
-                "years": years,
-                "periods": periods,
-                "total_reports_found": len(all_metadata),
-                "reports": all_metadata,
-            },
-            f,
-            ensure_ascii=False,
-            indent=2,
-        )
-    print(f"\n[*] Metadata saved to {metadata_file}")
+    if db_conn is not None:
+        from db import PipelineDB
+        pdb = PipelineDB(db_conn)
+
+        # Ensure pipeline_jobs exist for all ticker/year/period combos
+        jobs_created = set()
+        for meta in all_metadata:
+            jid = f"{meta['ticker']}_{meta['year']}_{meta['period']}"
+            if jid not in jobs_created:
+                jobs_created.add(jid)
+                pdb.conn.execute(
+                    "INSERT OR IGNORE INTO pipeline_jobs (job_id, ticker, year, period) VALUES ($1, $2, $3, $4)",
+                    (jid, meta["ticker"], meta["year"], meta["period"]),
+                )
+
+        for meta in all_metadata:
+            pdb.upsert_downloaded_file(meta)
+        print(f"\n[*] Saved {len(all_metadata)} file records to DuckDB")
+    else:
+        metadata_file = Path(output_dir) / "download_metadata.json"
+        with open(metadata_file, "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "companies_processed": len(companies),
+                    "years": years,
+                    "periods": periods,
+                    "total_reports_found": len(all_metadata),
+                    "reports": all_metadata,
+                },
+                f,
+                ensure_ascii=False,
+                indent=2,
+            )
+        print(f"\n[*] Metadata saved to {metadata_file}")
 
 
 def main():
