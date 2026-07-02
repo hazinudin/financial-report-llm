@@ -1,0 +1,21 @@
+---
+tags:
+  - "#CPO"
+  - commodities
+---
+- The [[CPO]] prices are forecasted to stay above the RM4400/tonne well into 2026
+	- https://ukragroconsult.com/en/news/crude-palm-oil-prices-to-hold-above-rm4400-per-tonne-into-2026-says-mpoc/
+	- The previous highest spike is around RM7K/ton in 2022
+		- Should check what cause this, and seems does not spark any CPO stock price movement
+		- This was caused by temporary export ban by Indonesian gov
+- The main driver of this event is Indonesian [[B50]] mandate
+	- [[B50]] means blending diesel fuel with 50% palm oil
+	- Starting from second half of 2026 (need to check on this) - Confirmed
+	- https://ukragroconsult.com/en/news/indonesia-considers-new-restrictions-on-palm-oil-exports-amid-rising-demand-for-biodiesel/
+		- The [[B50]] mandate will increase the domestic consumption by 5.3 million tonnes.
+			- What is the current consumption?
+		- To meet this demand there is a few measures that will be taken by Indonesian gov (still considering)
+			- Palm oil plantation expansion
+			- DMO (Domestic Market Obligations)
+- Interesting stock related to this is [[$PTPS]]
+- **Macro context (Meridian Research):** Weak Rupiah (USDIDR at 17,300) driven by quasi-fiscal programs (MBG), foreign SBN outflows (IDR 38.3Tn), and eroding confidence in government policymaking. CPO exporters benefit from weak Rupiah since they earn in USD but have IDR-denominated costs. However, Meridian warns "odds of winning in the coming type of market is paper-thin low" and advises to trim JCI positions.

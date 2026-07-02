@@ -1,0 +1,215 @@
+{
+  "main": {
+    "id": "7fb01e4266414d48",
+    "type": "split",
+    "children": [
+      {
+        "id": "228dcf7afbc4d8b6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0b3474618a5cab48",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "forecast/ESSA_Q2_2026_Earnings_Forecast.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ESSA_Q2_2026_Earnings_Forecast"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "7abe798923ece4ea",
+    "type": "split",
+    "children": [
+      {
+        "id": "65d7afa099a97de8",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3f0bc3827e31db7e",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "fe0196e8eeba5144",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "f04b1757e7f5036e",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "15ba7866820e21a4",
+    "type": "split",
+    "children": [
+      {
+        "id": "3beefa3b4b9488cf",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d7e5043d199a21a5",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Coking Coal Market Asia-Pacific 2025-2026.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for Coking Coal Market Asia-Pacific 2025-2026"
+            }
+          },
+          {
+            "id": "6fd4d836cab8a35a",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Coking Coal Market Asia-Pacific 2025-2026.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Coking Coal Market Asia-Pacific 2025-2026"
+            }
+          },
+          {
+            "id": "7de06903463e78af",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "009aaa72c26dc089",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "4a35382105baa129",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Coking Coal Market Asia-Pacific 2025-2026.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Coking Coal Market Asia-Pacific 2025-2026"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "0b3474618a5cab48",
+  "lastOpenFiles": [
+    "commodities/Ammonia.md",
+    "forecast/ESSA_Q2_2026_Earnings_Forecast.md",
+    "ESSA Q1 2026 Analysis.md",
+    "ELSA Q1 2026 Analysis.md",
+    "ADMR Q1 2026 Analysis.md",
+    "MEDC Q1 2026 Analysis.md",
+    "PTPS Q4 2025 Analysis.md",
+    "Indonesia Fertilizer Market.md",
+    "MEDC 2025 Full Year Analysis.md",
+    "ARCI Gold Production Seasonality & 2026 Forecast.md",
+    "articles/Harga Emas Melonjak, ARCI Bidik Produksi Naik 15% pada 2026 1.md",
+    "forecast/Gold_May_2026_Update.md",
+    "articles/Harga Emas Melonjak, ARCI Bidik Produksi Naik 15% pada 2026.md",
+    "KAI Analysis.md",
+    "SEAL Q4 2025 Analysis - From PTPS Financial Report.md",
+    "commodities/Gold.md",
+    "articles/ARCI keystats robertgunawan Stockbit post.md",
+    "articles/Rupiah & Ammonia - Meridian Research.md",
+    "Untitled.md",
+    "articles/Harga Emas Tak Selalu Naik Saat Ekonomi Gawat. Mengapa?.md",
+    "articles/Al price forecasts hit $4,000t on Middle East conflict.md",
+    "articles/Aluminium faces 'black swan' supply shock, Mercuria says.md",
+    "Clippings/Harga Emas Tak Selalu Naik Saat Ekonomi Gawat. Mengapa?.md",
+    "Coking Coal Market Asia-Pacific 2025-2026.md",
+    "Clippings",
+    "ESSA Q4 2025 Analysis.md"
+  ]
+}
