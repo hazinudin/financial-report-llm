@@ -1,5 +1,6 @@
 import os
 import time
+import sys
 from docling.document_converter import DocumentConverter
 PDF_PATH = "./raw"
 OUTPUT_DIR = "./results"

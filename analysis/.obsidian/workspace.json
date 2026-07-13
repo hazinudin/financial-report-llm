@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "forecast/ESSA_Q2_2026_Earnings_Forecast.md",
+                "file": "commodities/Gold.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ESSA_Q2_2026_Earnings_Forecast"
+              "title": "Gold"
             }
           }
         ]
@@ -185,8 +185,21 @@
   },
   "active": "0b3474618a5cab48",
   "lastOpenFiles": [
-    "commodities/Ammonia.md",
+    "MHKI Q1 2026 Analysis.md",
+    "ARCI Gold Production Seasonality & 2026 Forecast.md",
+    "articles/Gold & DSI - Meridian Research.md",
+    "commodities/Gold.md",
+    "companies/$INDR.md",
+    "companies/$ARCI.md",
+    "ARCI Q4 2025 Analysis.md",
+    "Gold & DSI - Meridian Research.md",
     "forecast/ESSA_Q2_2026_Earnings_Forecast.md",
+    "articles/ESSA Stockbit Closed Door Meeting.md",
+    "Clippings/Stockbit (Stockbit) on Stockbit.md",
+    "articles/Stockbit (Stockbit) on Stockbit.md",
+    "forecast/Gold_July_2026_Update.md",
+    "Clippings",
+    "commodities/Ammonia.md",
     "ESSA Q1 2026 Analysis.md",
     "ELSA Q1 2026 Analysis.md",
     "ADMR Q1 2026 Analysis.md",
@@ -194,22 +207,10 @@
     "PTPS Q4 2025 Analysis.md",
     "Indonesia Fertilizer Market.md",
     "MEDC 2025 Full Year Analysis.md",
-    "ARCI Gold Production Seasonality & 2026 Forecast.md",
     "articles/Harga Emas Melonjak, ARCI Bidik Produksi Naik 15% pada 2026 1.md",
     "forecast/Gold_May_2026_Update.md",
     "articles/Harga Emas Melonjak, ARCI Bidik Produksi Naik 15% pada 2026.md",
     "KAI Analysis.md",
-    "SEAL Q4 2025 Analysis - From PTPS Financial Report.md",
-    "commodities/Gold.md",
-    "articles/ARCI keystats robertgunawan Stockbit post.md",
-    "articles/Rupiah & Ammonia - Meridian Research.md",
-    "Untitled.md",
-    "articles/Harga Emas Tak Selalu Naik Saat Ekonomi Gawat. Mengapa?.md",
-    "articles/Al price forecasts hit $4,000t on Middle East conflict.md",
-    "articles/Aluminium faces 'black swan' supply shock, Mercuria says.md",
-    "Clippings/Harga Emas Tak Selalu Naik Saat Ekonomi Gawat. Mengapa?.md",
-    "Coking Coal Market Asia-Pacific 2025-2026.md",
-    "Clippings",
-    "ESSA Q4 2025 Analysis.md"
+    "SEAL Q4 2025 Analysis - From PTPS Financial Report.md"
   ]
 }

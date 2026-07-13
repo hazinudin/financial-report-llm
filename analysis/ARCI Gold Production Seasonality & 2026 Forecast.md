@@ -1,6 +1,8 @@
 # ARCI Gold Production Analysis — 2025 Seasonality & 2026 Forecast
 
-[[ARCI Q4 2025 Analysis]] | [[ARCI keystats robertgunawan Stockbit post]] | [[$ARCI]] | [[Harga Emas Melonjak, ARCI Bidik Produksi Naik 15% pada 2026]]
+[[ARCI Q4 2025 Analysis]] | [[ARCI keystats robertgunawan Stockbit post]] | [[$ARCI]] | [[Harga Emas Melonjak, ARCI Bidik Produksi Naik 15% pada 2026]] | [[Gold Market Research Briefing]]
+
+> **Update (Jul 3, 2026):** Revised gold price assumptions to reflect the July 2026 correction. Spot gold has fallen to ~$4,176/oz (from May's ~$4,695) amid a hawkish Fed pivot and Middle East de-escalation. FY 2026 revenue forecasts have been adjusted downward to align with the [[Gold Market Research Briefing]] base case (~$4,200/oz) and bear case (~$3,900/oz).
 
 ---
 
@@ -153,27 +155,27 @@ Per CEO Rudy Suhendra's public presentation (7 May 2026, Kontan), ARCI targets *
 
 **Revised Base Case: ~150–160 koz for FY 2026** (bracketed between management guidance of 140 koz and seasonal extrapolation of 168 koz). Management's +15% target likely embeds conservatism; the actual H1-2026 run rate will be the key differentiator.
 
-### 5.3 Revenue Implication
+### 5.3 Revenue Implication (Revised July 2026)
 
-Management has referenced a **gold price target of US$4,700–5,000/oz** for 2026 (per Kontan article). This is notably above the US$3,800/oz assumed in earlier forecasts. Using two price scenarios:
+Management's previous reference price of US$4,700–5,000/oz (May 2026) has been invalidated by the July 2026 correction. Per the [[Gold Market Research Briefing]], spot gold is now ~$4,176/oz. The ~$500/oz correction from May levels erases ~$80M in expected annual revenue. Revised scenarios:
 
-**At management's reference price (US$4,700/oz mid-point):**
-
-| Metric | FY 2025 Actual | FY 2026 Forecast | Change |
-|--------|---------------|-----------------|--------|
-| Production (koz) | 122 | 150–160 | +23–31% |
-| Avg Gold Price (US$/oz) | ~3,200 | ~4,700 | +47% |
-| Est. Revenue (US$M) | 496 | ~705–752 | +42–52% |
-
-**At conservative price (US$3,800/oz):**
+**At revised base case (US$4,200/oz — current H2 assumption):**
 
 | Metric | FY 2025 Actual | FY 2026 Forecast | Change |
 |--------|---------------|-----------------|--------|
 | Production (koz) | 122 | 150–160 | +23–31% |
-| Avg Gold Price (US$/oz) | ~3,200 | ~3,800 | +19% |
-| Est. Revenue (US$M) | 496 | ~570–608 | +15–23% |
+| Avg Gold Price (US$/oz) | ~3,200 | ~4,200 | +31% |
+| Est. Revenue (US$M) | 496 | ~630–672 | +27–35% |
 
-Revenue growth is driven by a powerful **dual tailwind** of both volume (+23–31%) and price (+19–47%). Even at the conservative +15% production target (140 koz), revenue would still grow meaningfully on gold price alone.
+**At bear case (US$3,900/oz — if Fed hikes materialize):**
+
+| Metric | FY 2025 Actual | FY 2026 Forecast | Change |
+|--------|---------------|-----------------|--------|
+| Production (koz) | 122 | 150–160 | +23–31% |
+| Avg Gold Price (US$/oz) | ~3,200 | ~3,900 | +22% |
+| Est. Revenue (US$M) | 496 | ~585–624 | +18–26% |
+
+Revenue growth is still driven by a **dual tailwind** of volume (+23–31%) and price (+22–31%), though the price contribution has narrowed significantly from the May outlook. The downside risk is margin compression: at $4,200/oz, ARCI remains in the top royalty bracket (16%), but the lower realized price compresses unit margins versus the May scenario.
 
 ---
 
@@ -182,7 +184,7 @@ Revenue growth is driven by a powerful **dual tailwind** of both volume (+23–3
 ### 6.1 Assumptions
 - Seasonal pattern remains consistent with 2025
 - No major operational disruptions (weather, equipment, labor)
-- Gold price remains in the **US$4,000–5,000/oz range** (management reference: US$4,700–5,000/oz)
+- Gold price remains in the **US$3,900–4,500/oz range** (revised July 2026: spot ~$4,176; previous management reference of $4,700+ invalidated by Fed hawkish pivot)
 - No regulatory changes affecting production quotas
 - Plant capacity expansion (4M → 6M tons/yr) construction begins on schedule in H1-2026
 
@@ -195,7 +197,7 @@ Revenue growth is driven by a powerful **dual tailwind** of both volume (+23–3
 
 ### 6.3 Downside Risks
 - **Extreme weather events** — La Niña patterns could extend the rainy season, depressing Q1/Q4 output
-- **Regulatory changes** — Indonesia's progressive royalty regime (7–16%) may incentivize production pacing
+- **Regulatory changes & Margin Compression** — Indonesia's progressive royalty regime (7–16%) hits the top bracket at prices above ~$4,000/oz. With gold currently ~$4,176, ARCI remains in the top bracket, but the lower realized price compresses unit margins significantly versus the May 2026 scenario.
 - **Mine reserve constraints** — Latest published reserves are from 2020 (3,884 koz); depletion risk at 160 koz/yr implies a ~24-year reserve life, but new reserve estimates may differ
 - **Equipment/maintenance issues** — Higher throughput increases wear on processing infrastructure
 - **Execution risk on expansion projects** — Plant upgrade and underground mining represent significant capex and operational complexity
@@ -245,8 +247,8 @@ ARCI's gold production follows a **clear seasonal pattern** with Q1 as the troug
 
 The Q1 2026 actual of 29 koz (+36% YoY) is the strongest Q1 on record and signals a structural step-up in production capacity. **Management has officially guided to minimum +15% growth (~140 koz), while seasonal extrapolation suggests 155–168 koz is achievable. The revised base case is 150–160 koz.**
 
-Two major catalysts underpin long-term growth: the plant capacity expansion from 4M to 6M tons/year (construction starting H1-2026) and new underground mining at Pit Marawuwung. With management's gold price reference of US$4,700–5,000/oz, **revenue could reach US$700–750M in FY 2026** — a potential 42–52% increase over FY 2025's US$496M, driven by a powerful dual tailwind of volume and price.
+Two major catalysts underpin long-term growth: the plant capacity expansion from 4M to 6M tons/year (construction starting H1-2026) and new underground mining at Pit Marawuwung. However, the July 2026 gold price correction (to ~$4,176/oz) has reduced the revenue outlook. At the revised base case price of ~$4,200/oz, **revenue is now projected at ~US$630–670M in FY 2026** (vs. previous ~$700-750M estimates), still representing a 27–35% increase over FY 2025's US$496M, driven primarily by volume growth.
 
 ---
 
-*Data sourced from ARCI quarterly financial reports (Q1–Q4 2025, Q1 2026) in `results/`, and Kontan article "Harga Emas Melonjak, ARCI Bidik Produksi Naik 15% pada 2026" (7 May 2026). All production figures are unaudited cumulative MSM + TTN mine output as reported in the notes to the consolidated financial statements. Analysis date: May 2026. Updated: 11 May 2026.*
+*Data sourced from ARCI quarterly financial reports (Q1–Q4 2025, Q1 2026) in `results/`, and Kontan article "Harga Emas Melonjak, ARCI Bidik Produksi Naik 15% pada 2026" (7 May 2026). All production figures are unaudited cumulative MSM + TTN mine output as reported in the notes to the consolidated financial statements. Analysis date: May 2026. Updated: 3 July 2026.*

@@ -81,15 +81,20 @@ SUPPLEMENTARY_PATTERNS = [
     re.compile(r"(?i)annual\s*report.*att\d"),
     re.compile(r"(?i)inlineXBRL"),
     re.compile(r"(?i)^instance\."),
+    re.compile(r"(?i)surat\s+keluar"),         # outgoing letter (cover letter)
+    re.compile(r"(?i)lk\s+interim"),           # interim report cover letter
+    re.compile(r"(?i)no\.\s*\d+.*surat"),      # numbered outgoing letters
 ]
 
 FULL_REPORT_PATTERNS = [
     re.compile(r"(?i)^LK\s"),
-    re.compile(r"(?i)\bLK\s"),            # "LK" as a standalone word anywhere
+    re.compile(r"(?i)\bLK\s+(Tahunan|TW\s+[IVX]+|Semester)"),  # LK followed by period type
     re.compile(r"(?i)^LAP\s"),            # "LAP" = Laporan (Indonesian report abbreviation)
     re.compile(r"(?i)Laporan\s+Keuangan\s+Konsolidasian"),
     re.compile(r"(?i)_Laporan\s+Keuangan\s+\d"),
     re.compile(r"(?i)Consolidated\s+Financial\s+Statements?"),
+    re.compile(r"(?i)^FS\s"),             # "FS" = Financial Statement (common prefix)
+    re.compile(r"(?i)\bFinancial\s+Statement\b"),
 ]
 
 # XLSX-derived PDFs — useful structured data but NOT the full financial report.
@@ -116,6 +121,8 @@ def report_score(filename: str) -> int:
             score += 20
             break
     if filename.lower().startswith("lk "):
+        score += 15
+    if filename.lower().startswith("fs "):
         score += 15
     for pattern in XLSX_DATA_PATTERNS:
         if pattern.search(filename):
@@ -149,7 +156,8 @@ def identify_financial_report(
             f for f in pdf_files
             if (f["file_name"].lower().startswith("lk ")
                 or "laporan keuangan" in f["file_name"].lower()
-                or re.search(r"\bLK\s", f["file_name"]))   # LK as standalone word
+                or re.search(r"\bLK\s+(Tahunan|TW\s+[IVX]+|Semester)", f["file_name"])
+                or f["file_name"].lower().startswith("fs "))
             and not is_supplementary(f["file_name"])
         ]
         if candidates:
@@ -686,6 +694,8 @@ def run_pipeline(
                     tag = ""
                     if winner["file_name"].lower().startswith("financialstatement-"):
                         tag = " (FinancialStatement)"
+                    elif winner["file_name"].lower().startswith("fs "):
+                        tag = " (FS – Financial Statement)"
                     elif winner["file_name"].lower().startswith("lk "):
                         tag = " (LK – Laporan Keuangan)"
                     elif "laporan keuangan" in winner["file_name"].lower():
