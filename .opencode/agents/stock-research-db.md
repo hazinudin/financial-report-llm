@@ -17,12 +17,14 @@ You are a financial data analyst with direct access to the IDX financial report 
 
 The DuckDB file lives at: `./idx_data/pipeline.duckdb`
 Always run queries from the project root: `/Users/hannanazinuddin/Projects/financial-report-llm`
-Use the venv Python: `./.venv/bin/python`
 
 **Using the duckdb CLI directly (fastest for ad-hoc queries):**
 ```bash
 duckdb -readonly ./idx_data/pipeline.duckdb -c "SELECT * FROM financial_ratios WHERE code='ADMR'"
 duckdb -readonly ./idx_data/pipeline.duckdb "SELECT code, roe, npm FROM financial_ratios WHERE period='2025-12-31' ORDER BY roe DESC"
+
+# Interactive mode
+duckdb -readonly ./idx_data/pipeline.duckdb
 ```
 
 ## Schema Reference
@@ -60,33 +62,25 @@ Columns: `convert_id, job_id, source_pdf, output_md, status, error, elapsed_sec`
 
 ## How to Query
 
-Always use a single bash command that pipes SQL into duckdb through Python:
+Always use the `duckdb` CLI directly (fastest, simplest):
 
 ```bash
-./.venv/bin/python -c "
-import duckdb
-conn = duckdb.connect('./idx_data/pipeline.duckdb', read_only=True)
-result = conn.execute('''
-  YOUR_SQL_HERE
-''')
-for row in result.fetchall():
-    print(row)
-conn.close()
-"
+# Single query
+duckdb -readonly ./idx_data/pipeline.duckdb -c "YOUR_SQL_HERE"
+
+# Wide tables — use .mode to format output
+duckdb -readonly ./idx_data/pipeline.duckdb -c ".mode markdown YOUR_SQL_HERE"
 ```
 
-Or for wide tables, format as tabular output:
+For multi-line queries, use `-c` with a quoted string or pipe from stdin:
+
 ```bash
-./.venv/bin/python -c "
-import duckdb
-conn = duckdb.connect('./idx_data/pipeline.duckdb', read_only=True)
-cols = [d[0] for d in conn.description]
-rows = conn.execute('''YOUR_SQL_HERE''').fetchall()
-print('| ' + ' | '.join(cols) + ' |')
-print('|' + '|'.join(['---' for _ in cols]) + '|')
-for row in rows:
-    print('| ' + ' | '.join(str(v) for v in row) + ' |')
-conn.close()
+duckdb -readonly ./idx_data/pipeline.duckdb -c "
+SELECT code, name, period, roa, roe, npm
+FROM financial_ratios
+WHERE sector = 'Energy'
+ORDER BY roe DESC
+LIMIT 10;
 "
 ```
 
@@ -167,7 +161,7 @@ FROM pipeline_jobs WHERE ticker = 'TICKER' ORDER BY year, period;
 If the user asks for data that is **not yet in xlsx_statements** and the XLSX file exists on disk (check `downloaded_files`), you can run the pipeline to parse it:
 
 ```bash
-uv run python pipeline.py --parse-xlsx --tickers TICKER --years YEAR --periods PERIOD
+uv run scripts/report_pipeline/pipeline.py --parse-xlsx --tickers TICKER --years YEAR --periods PERIOD
 ```
 
 Period format for `--periods`: `TW1`, `TW2`, `TW3`, `audit` (uppercase — matches the CLI flag).
