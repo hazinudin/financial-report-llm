@@ -41,6 +41,9 @@ from pathlib import Path
 
 from curl_cffi import requests as cffi_requests
 
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+_DEFAULT_OUTPUT_DIR = str(_PROJECT_ROOT / "idx_data")
+
 BASE_URL = "https://www.idx.co.id"
 BROWSER_HEADERS = {
     "Accept": "application/json, text/plain, */*",
@@ -66,7 +69,7 @@ JITTER = 0.5
 class IDXClient:
     """Client for the Indonesia Stock Exchange (IDX) public API."""
 
-    def __init__(self, output_dir: str = "./idx_data", delay: float = DEFAULT_DELAY):
+    def __init__(self, output_dir: str = _DEFAULT_OUTPUT_DIR, delay: float = DEFAULT_DELAY):
         self._impersonate = "chrome133a"
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -352,7 +355,7 @@ class IDXClient:
 
 
 def list_companies(
-    output_dir: str = "./idx_data", delay: float = DEFAULT_DELAY, export: str = "csv",
+    output_dir: str = _DEFAULT_OUTPUT_DIR, delay: float = DEFAULT_DELAY, export: str = "csv",
     db_conn: "duckdb.DuckDBPyConnection | None" = None,  # type: ignore
 ):
     """Fetch and list all listed companies with their sector/industry classification."""
@@ -424,7 +427,7 @@ def run(
     ratios_only: bool = False,
     pdf_only: bool = False,
     dry_run: bool = False,
-    output_dir: str = "./idx_data",
+    output_dir: str = _DEFAULT_OUTPUT_DIR,
     delay: float = 0.5,
     db_conn: "duckdb.DuckDBPyConnection | None" = None,  # type: ignore
 ):
@@ -637,8 +640,8 @@ def main():
     parser.add_argument(
         "--output",
         type=str,
-        default="./idx_data",
-        help="Output directory. Default: ./idx_data",
+        default=_DEFAULT_OUTPUT_DIR,
+        help=f"Output directory. Default: {_DEFAULT_OUTPUT_DIR}",
     )
     parser.add_argument(
         "--list-companies",

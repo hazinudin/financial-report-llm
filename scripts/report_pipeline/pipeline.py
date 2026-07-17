@@ -36,21 +36,18 @@ Usage:
 """
 
 import argparse
-import json
-import os
 import re
 import shutil
-import sys
 import time
 from pathlib import Path
 
 from db import get_db, PipelineDB
-from idx_downloader import IDXClient, sanitize_filename, VALID_PERIODS
 
-BASE_DIR = Path("./idx_data")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = PROJECT_ROOT / "idx_data"
 REPORTS_DIR = BASE_DIR / "reports"
-RAW_DIR = Path("./raw")
-RESULTS_DIR = Path("./results")
+RAW_DIR = PROJECT_ROOT / "raw"
+RESULTS_DIR = PROJECT_ROOT / "results"
 DB_PATH = BASE_DIR / "pipeline.duckdb"
 
 SUPPLEMENTARY_PATTERNS = [
@@ -314,15 +311,18 @@ def convert_reports(
                 parts = stem.rsplit("_", 2)
                 if len(parts) == 3:
                     ticker, quarter, year_str = parts
-                    period = PERIOD_REVERSE.get(quarter, quarter.lower())
-                    job_id = f"{ticker}_{year_str}_{period}"
-                    db.upsert_conversion(
-                        job_id=job_id,
-                        source_pdf=str(pdf_path),
-                        output_md=str(output_file),
-                        status="success",
-                        elapsed_sec=elapsed,
-                    )
+                    try:
+                        period = PERIOD_REVERSE.get(quarter, quarter.lower())
+                        job_id = f"{ticker}_{year_str}_{period}"
+                        db.upsert_conversion(
+                            job_id=job_id,
+                            source_pdf=str(pdf_path),
+                            output_md=str(output_file),
+                            status="success",
+                            elapsed_sec=elapsed,
+                        )
+                    except (ValueError, KeyError):
+                        pass
 
         except Exception as e:
             print(f"  [ERROR] {pdf_path.name}: {e}")
@@ -343,11 +343,6 @@ def convert_reports(
 
 
 # ── XLSX Parsing ───────────────────────────────────────────────────────
-
-PERIOD_MAP_FILENAME = {
-    "Tahunan": "audit", "I": "TW1", "II": "TW2", "III": "TW3", "IV": "TW4",
-}
-
 
 def scan_disk_and_register(
     db: PipelineDB,
@@ -536,7 +531,7 @@ def run_pipeline(
     years: list[int] | None = None,
     periods: list[str] | None = None,
     strategy: str = "auto",
-    output_dir: str = "./idx_data",
+    output_dir: str = str(BASE_DIR),
     delay: float = 0.5,
     download: bool = True,
     convert: bool = True,
@@ -763,15 +758,18 @@ def run_pipeline(
                 parts = stem.rsplit("_", 2)
                 if len(parts) == 3:
                     ticker_k, quarter, year_str = parts
-                    period_val = PERIOD_REVERSE.get(quarter, quarter.lower())
-                    jid = db.job_id(ticker_k, int(year_str), period_val)
-                    status = r.get("status", "unknown")
-                    if status == "success":
-                        db.mark_stage(jid, "convert", "completed")
-                    elif status == "error":
-                        db.mark_stage(jid, "convert", "failed", error=r.get("error", ""))
-                    elif status == "skipped":
-                        db.mark_stage(jid, "convert", "completed")
+                    try:
+                        period_val = PERIOD_REVERSE.get(quarter, quarter.lower())
+                        jid = db.job_id(ticker_k, int(year_str), period_val)
+                        status = r.get("status", "unknown")
+                        if status == "success":
+                            db.mark_stage(jid, "convert", "completed")
+                        elif status == "error":
+                            db.mark_stage(jid, "convert", "failed", error=r.get("error", ""))
+                        elif status == "skipped":
+                            db.mark_stage(jid, "convert", "completed")
+                    except (ValueError, KeyError):
+                        pass
 
             print("\n" + "=" * 60)
             print("[*] Pipeline complete!")
@@ -902,8 +900,8 @@ def main():
         help="Comma-separated periods (TW1,TW2,TW3,audit).",
     )
     parser.add_argument(
-        "--output", type=str, default="./idx_data",
-        help="IDX download directory. Default: ./idx_data",
+        "--output", type=str, default=str(BASE_DIR),
+        help=f"IDX download directory. Default: {BASE_DIR}",
     )
     parser.add_argument(
         "--delay", type=float, default=0.5,

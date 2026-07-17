@@ -18,8 +18,9 @@ from pathlib import Path
 
 import duckdb
 
-DEFAULT_DB_PATH = Path("./idx_data/pipeline.duckdb")
-IDX_DATA_DIR = Path("./idx_data")
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_DB_PATH = _PROJECT_ROOT / "idx_data" / "pipeline.duckdb"
+IDX_DATA_DIR = _PROJECT_ROOT / "idx_data"
 
 
 def get_db(db_path: str | Path = DEFAULT_DB_PATH, read_only: bool = False) -> duckdb.DuckDBPyConnection:
