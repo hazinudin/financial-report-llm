@@ -1,7 +1,7 @@
 ---
 description: Queries DuckDB for Indonesian stock financial data (ratios, balance sheets, income statements, cash flows)
 mode: subagent
-model: opencode-go/qwen3.5-plus
+model: opencode-go/qwen3.7-plus
 temperature: 0.0
 tools:
   bash: true
