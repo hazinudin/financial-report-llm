@@ -149,6 +149,7 @@ This sits inside the broader **Danantara Sumberdaya Indonesia (DSI)** regime ann
 
 ## 8. Related Analysis
 
+- [[Strait_of_Hormuz_Crisis]] — Primary geopolitical tracker for the US-Iran conflict and SoH closure; shared Middle East disruption driver feeding into the broader commodity risk-off / USD strength complex affecting CPO
 - [[Indonesian CPO Price Surge]] — Original note; flagged B50, IDR cost structure, PTPS angle
 - [[Gold & DSI - Meridian Research]] — DSI Phase 1/Phase 2 mechanics, APKINDO precedent, JCI liquidity shock
 - [[Gold]] — Macro cross-reference: USD/IDR at 17,748, Fed hawkish pivot, Middle East de-escalation

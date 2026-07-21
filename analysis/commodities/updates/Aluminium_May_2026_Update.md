@@ -212,4 +212,4 @@ The aluminium market has entered a **structurally tight regime** driven by:
 
 ---
 
-> **Related:** [[Aluminium.md]] | [[Al price forecasts hit $4,000t on Middle East conflict.md]] | [[CITA Q4 2025 Analysis]]
+> **Related:** [[Aluminium.md]] | [[Al price forecasts hit $4,000t on Middle East conflict.md]] | [[CITA Q4 2025 Analysis]] | [[Strait_of_Hormuz_Crisis]]

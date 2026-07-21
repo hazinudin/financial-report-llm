@@ -248,4 +248,4 @@ Gold has undergone a **regime shift** between May and July 2026. The market has 
 
 ---
 
-> **Related:** [[Gold Market Research Briefing]] | [[ARCI Gold Production Seasonality & 2026 Forecast]] | [[ARCI Q4 2025 Analysis]] | [[$ARCI]] | [[Ammonia]] | [[Aluminium]]
+> **Related:** [[Gold Market Research Briefing]] | [[ARCI Gold Production Seasonality & 2026 Forecast]] | [[ARCI Q4 2025 Analysis]] | [[$ARCI]] | [[Ammonia]] | [[Aluminium]] | [[Strait_of_Hormuz_Crisis]]

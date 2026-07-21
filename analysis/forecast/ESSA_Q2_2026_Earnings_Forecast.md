@@ -679,4 +679,4 @@ The Stockbit Closed Door Meeting data transforms the ESSA Q2 2026 forecast from 
 
 ---
 
-> **Related:** [[Stockbit (Stockbit) on Stockbit]] | [[ESSA Q1 2026 Analysis]] | [[ESSA Q4 2025 Analysis]] | [[Ammonia]] | [[Rupiah & Ammonia - Meridian Research]] | [[Aluminium_May_2026_Update]] | [[Gold_May_2026_Update]]
+> **Related:** [[Stockbit (Stockbit) on Stockbit]] | [[ESSA Q1 2026 Analysis]] | [[ESSA Q4 2025 Analysis]] | [[Ammonia]] | [[Rupiah & Ammonia - Meridian Research]] | [[Aluminium_May_2026_Update]] | [[Gold_May_2026_Update]] | [[Strait_of_Hormuz_Crisis]]

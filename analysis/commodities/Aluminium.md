@@ -86,4 +86,4 @@ The GCC region produced **~6.16M tons in 2025** (~8.35% of global supply). With 
 - **Cost curve anchor**: ~90% of producers clustered around $2,400/t — market remains well above this floor even in a correction.
 - **Watchpoints**: (1) US-Iran conflict escalation (fourth US strike round?); (2) Qatar maritime suspension duration; (3) Alba/Qatalum restart milestones; (4) LME non-Russian inventory draws; (5) Fed September dot plot; (6) CITA (Indonesia) Q2 earnings print.
 
-> **See also:** [[CITA Q4 2025 Analysis]] | [[Aluminium_July_2026_Update]] | [[Aluminium_May_2026_Update]] — CITA's correlation with the aluminium price rally
+> **See also:** [[CITA Q4 2025 Analysis]] | [[Aluminium_July_2026_Update]] | [[Aluminium_May_2026_Update]] | [[Strait_of_Hormuz_Crisis]] — CITA's correlation with the aluminium price rally; primary geopolitical tracker for the SoH closure/re-closure driving the Gulf smelter supply shock

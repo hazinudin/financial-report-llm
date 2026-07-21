@@ -261,4 +261,4 @@ Gold has entered a **structurally higher price regime** driven by:
 
 ---
 
-> **Related:** [[ARCI Gold Production Seasonality & 2026 Forecast]] | [[ARCI Q4 2025 Analysis]] | [[$ARCI]] | [[Aluminium Market Forecast Update (May 2026)]]
+> **Related:** [[ARCI Gold Production Seasonality & 2026 Forecast]] | [[ARCI Q4 2025 Analysis]] | [[$ARCI]] | [[Aluminium Market Forecast Update (May 2026)]] | [[Strait_of_Hormuz_Crisis]]

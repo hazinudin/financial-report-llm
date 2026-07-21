@@ -273,4 +273,4 @@ The ammonia market has transitioned from a **"normalization" regime** (Jun 2026)
 
 ---
 
-> **Related:** [[Ammonia]] | [[ESSA_Q2_2026_Earnings_Forecast]] | [[Rupiah & Ammonia - Meridian Research]] | [[Gold_July_2026_Update]] | [[Aluminium_July_2026_Update]] | [[Indonesia Fertilizer Market]] | [[Indonesian CPO Price Surge]]
+> **Related:** [[Ammonia]] | [[Strait_of_Hormuz_Crisis]] | [[ESSA_Q2_2026_Earnings_Forecast]] | [[Rupiah & Ammonia - Meridian Research]] | [[Gold_July_2026_Update]] | [[Aluminium_July_2026_Update]] | [[Indonesia Fertilizer Market]] | [[Indonesian CPO Price Surge]]

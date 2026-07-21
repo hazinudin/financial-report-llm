@@ -329,6 +329,7 @@ Sources: IMARC Ammonia Price Index (Apr & Jun 2026 — July release pending, exp
 
 ## Related Analysis
 
+- [[Strait_of_Hormuz_Crisis]] — Primary geopolitical tracker for the US-Iran conflict, IRGC SoH closure/re-opening sequence, Qatar Ras Laffan damage, and scenario probabilities driving the nitrogen fertilizer price floor
 - [[ESSA Q1 2026 Analysis]] — PT ESSA Industries financial performance (Q1 results predate the June price reversal)
 - [[ESSA Q4 2025 Analysis]] — Prior quarter comparison
 - **[[ESSA_Q2_2026_Earnings_Forecast]]** — Current ESSA forecast (rev. 3, Jul 3); base case H2 realized ~$550/MT avg may now look too pessimistic given Jul 11 re-escalation — likely needs upward revision

@@ -103,3 +103,12 @@ FY2025 financials already show the early stage of the commodity upcycle. The **f
 - Bauxite selling prices reset higher on annual contracts
 
 The key watchpoint is whether alumina prices — the direct driver of CITA's equity income — sustain above WHWAR's cost curve, and whether WHWAR increases production to fill the gap left by disrupted Gulf refiners.
+
+---
+
+## Related Analysis
+
+- [[Strait_of_Hormuz_Crisis]] — Primary geopolitical tracker for the US-Iran conflict and SoH closure; the "Alumina supply gap from Hormuz" catalyst above (Iranian smelter alumina flows, Alba/Qatalum shutdown) is tracked in detail here
+- [[Aluminium]] — Base metals briefing; aluminium price forecasts and Gulf smelter status
+- [[Aluminium_July_2026_Update]] / [[Aluminium_May_2026_Update]] — Aluminium price forecast updates
+- [[ADMR_Q2_2026_Earnings_Forecast]] — KAI/ADMR aluminium export forecast (shared Indonesia alumina/aluminium supply theme)

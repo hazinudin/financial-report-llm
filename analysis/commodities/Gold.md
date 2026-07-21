@@ -238,6 +238,7 @@ The [[ARCI keystats robertgunawan Stockbit post]] analysis highlights a long-ter
 
 ## 9. Related Analysis
 
+- [[Strait_of_Hormuz_Crisis]] — Primary geopolitical tracker for the US-Iran conflict and SoH closure/re-opening sequence; key driver of the safe-haven premium unwind/restore cycle in gold
 - [[Gold_July_2026_Update]] — Detailed July 2026 price forecast, scenarios, and technical analysis
 - [[Gold_May_2026_Update]] — Detailed May 2026 price forecast and scenarios
 - [[Gold & DSI - Meridian Research]] — Gold as a Rupiah hedge; 225-year commodity supercycle; DSI export regime analysis

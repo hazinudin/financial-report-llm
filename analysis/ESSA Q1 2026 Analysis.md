@@ -844,4 +844,14 @@ ESSA is fundamentally a commodity cyclical whose profitability is heavily depend
 
 ---
 
+## Related Analysis
+
+- [[Strait_of_Hormuz_Crisis]] — Primary geopolitical tracker for the US-Iran conflict and SoH closure; the core driver of the ammonia/urea price surge and Meridian's "key risk" (SoH reopening) analyzed above
+- [[Ammonia]] — Parent nitrogen fertilizer briefing; full urea-ammonia spread analysis and war-premium sequencing
+- [[ESSA_Q2_2026_Earnings_Forecast]] — Updated ESSA forecast incorporating post-Jun 17 MOU price dynamics
+- [[Rupiah & Ammonia - Meridian Research]] — Original "Long USD, ESSA" thesis underlying the bull case
+- [[Indonesia Fertilizer Market]] — Domestic demand outlook; kharif/rabi seasonality
+
+---
+
 *Disclaimer: This analysis is based on publicly available financial data and market information as of April 30, 2026. It is intended for informational purposes only and does not constitute investment advice. All financial projections and valuations are estimates based on available data and assumptions that may not materialize. Investors should conduct their own due diligence before making investment decisions.*

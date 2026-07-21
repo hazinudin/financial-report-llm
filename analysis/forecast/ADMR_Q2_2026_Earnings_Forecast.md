@@ -363,3 +363,4 @@ If Q2 shows aluminium gross margins above 40%, the diversification thesis is val
 - [[Alamtri ekspor aluminium ke AS dan Korea Selatan, target 350.000 ton]] — Source article for forecast
 - [[Aluminium_July_2026_Update]] — Current aluminium price environment
 - [[Al price forecasts hit $4,000t on Middle East conflict]] — Price outlook context
+- [[Strait_of_Hormuz_Crisis]] — Primary geopolitical tracker for the US-Iran conflict and SoH closure/re-opening sequence driving the record US Midwest aluminium premiums underpinning ADMR/KAI export economics

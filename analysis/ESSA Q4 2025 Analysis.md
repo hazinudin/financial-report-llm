@@ -393,3 +393,13 @@ ESSA operates Indonesia's largest privately-owned domestic LPG refinery and a ma
 | **Financing Cash Flow** | ($120.9M) | ($83.5M) |
 | **Net Change in Cash** | ($31.8M) | $59.3M |
 | **Free Cash Flow** | ~$89M | ~$138M |
+
+---
+
+## Related Analysis
+
+- [[Strait_of_Hormuz_Crisis]] — Primary geopolitical tracker for the US-Iran conflict and SoH closure; the supply-shock dynamic (§ Supply Shock Dynamics above) removing ~3.3M MT of Saudi/Iran/Qatar ammonia underpins the elevated-pricing thesis in this analysis
+- [[ESSA Q1 2026 Analysis]] — Next-quarter update reflecting the war-driven ammonia surge
+- [[ESSA_Q2_2026_Earnings_Forecast]] — Forward forecast carrying the elevated pricing into H2 2026
+- [[Ammonia]] — Parent nitrogen fertilizer briefing
+- [[Rupiah & Ammonia - Meridian Research]] — Original "Long USD, ESSA" thesis
