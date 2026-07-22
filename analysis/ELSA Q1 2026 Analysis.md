@@ -338,4 +338,123 @@ PT Elnusa Tbk is a **structurally sound, cash-rich** Pertamina subsidiary tradin
 
 ---
 
-*Disclaimer: This analysis is based on unaudited interim financial statements. All figures are expressed in Millions of Rupiah unless otherwise stated. This is not investment advice. Past performance does not guarantee future results.*
+## 11. Indonesia Upstream Project Pipeline & ELSA Future Upside
+
+### 11.1 New Major Upstream Oil & Gas Projects Onstream in 2026
+
+Based on SKK Migas (Indonesia's upstream regulator) announcement in Feb 2026, **8 projects are targeted to go onstream in 2026** with total facility capex of **US$478 million (~Rp8.01T)**, adding potential production of **~46,413 boepd** in 2026 (oil: 8,199 bopd + gas: 214 MMscfd). Total design capacity: ~77,968 boepd.
+
+| # | Project | Operator | Capacity | Onstream |
+|---|---|---|---|---|
+| 1 | Fasprod Sidingin North-1 | **PT Pertamina Hulu Rokan (PHR)** | 325 bopd oil | Q4 2026 |
+| 2 | Polymer Minas Area D | **PT Pertamina Hulu Rokan (PHR)** | 1,212 bopd oil | Q2 2026 |
+| 3 | Upgrading Puspa Asri | **PT Pertamina EP** | 1,034 bopd oil | Q4 2026 |
+| 4 | NSD Plant | EMP Bentu Ltd | 90 bopd oil + 20 MMscfd gas | Q2 2026 |
+| 5 | Sisi Nubi AOI 1,3,5 Tahap II | **PT Pertamina Hulu Mahakam** | 180 MMscfd gas | Q1 2026 |
+| 6 | Suban Compressor Clustering | **Medco E&P Grissik** | 118 MMscfd gas | Q2 2026 |
+| 7 | OO-OX | **PT Pertamina Hulu Energi ONWJ (PHE ONWJ)** | 2,996 bopd oil + 21.3 MMscfd gas | Q1 2026 |
+| 8 | Senoro Selatan Tahap II | **JOB Pertamina-Medco E&P Tomori** | 2,800 bopd oil + 110 MMscfd gas | 2026 |
+
+**🔍 Key Observation: 6 of 8 projects are operated by Pertamina Upstream Subholding entities** (PHR, PEP, PHM, PHE ONWJ, JOB Pertamina-Medco) — these are ELSA's captive parent group customers.
+
+### 11.2 Broader Upstream Growth Backdrop
+
+- **Government lifting target:** Raising oil lifting to **900k–1,000k BOPD by FY2028–29** (vs current ~580k BOPD), requiring sustained workover, well intervention, drilling, seismic, EOR/IOR, and fracturing activity
+- **National development drilling:** Rose **+9.1% YoY to 980 wells in 2025**
+- **Eni deep-water gas FIDs (March 2026):** Eni moved forward with **dual deep-water gas hub FIDs** in Indonesia (North Ganal / Andaman Sea integrated with East Kalimantan infrastructure) — significant future LNG/gas supply
+- **2026 Petroleum Bidding Round:** 13 oil & gas blocks offered for exploration
+- **PHE drilling drive:** Large-scale upstream drilling campaign to reverse output decline
+
+### 11.3 ELSA's Current Upstream Customers
+
+Based on publicly disclosed contracts and Q1 2026 financials:
+
+| Customer | Relationship | Nature of Work | Status |
+|---|---|---|---|
+| **PT Pertamina Hulu Energi OSES** (Offshore Southeast Sumatera) | Parent group (PHE) | Long-term drilling contract (2024+) | Anchor contract |
+| **PT Medco Energi Internasional (MEDC)** | Third-party | Long-term seismic contract (2024+) | Third-party diversification |
+| **PT Pertamina EP** | Parent group | Drilling support services (US$106M contract, May 2024, 3–5 yr tenor) | Major related-party |
+| **PT Pertamina Hulu Rokan (PHR)** | Parent group | Well services / workover / drilling | Largest related-party revenue |
+| **PT Pertamina Hulu Mahakam** | Parent group | drilling / well services | 2026 project ramp-up |
+| **PHE ONWJ** | Parent group | drilling / well services | OO-OX project onstream Q1 2026 |
+| **JOB Pertamina-Medco E&P Tomori** | Mixed parent+third-party | Senoro Selatan Phase II support | 2026 project |
+| **PT Pertamina Drilling Services Indonesia (PDSI)** | Parent group (potential acquisition target) | Drilling rigs / workover — captive complement to ELSA | MoU signed; potential accretive acquisition |
+| **Medco E&P Grissik** | Third-party | Suban Compressor Clustering support | 2026 project ramp-up |
+
+💡 **Integrated Upstream Q1 2026 revenue by major related-party contributor (per Section 2.1):**
+- Pertamina EP: -35.3% YoY revenue contribution
+- Pertamina Hulu Rokan: -52.1% YoY revenue contribution
+- Captive Pertamina parentage is a double-edged sword — solid visibility but exposes ELSA to Pertamina's capex cycle shifts
+
+### 11.4 Upside Potential for ELSA — Future Catalysts
+
+> ⚠️ **Sourcing & Attribution Notice:** The catalysts table below draws on **external sell-side research and news sources**, NOT on ELSA's Q1 2026 unaudited financial statements (Sections 1–10 of this report). Specifically:
+> - **Brights Securities** equity research report dated 18 May 2026 ("Elnusa — Monetizing Indonesia's Upstream Revival", ELSA.IJ Rp700; BUY TP Rp1,110) — source for the **Rp4.1T upstream orderbook as of 1Q26**, "13 workover/HWU units fully contracted", "5 cementing units deployed", FY26 +32% net profit / +11% upstream revenue forecasts, KSO/LCO 3–4 of ~41 concessions thesis, PDSI acquisition optionality, 3rd-party mix 23% figure.
+> - **Bisnis.com / SKK Migas announcement (11 Feb 2026)** — source for the 8-project 2026 onstream list, US$478M capex, capacity figures.
+> - **Eni.com press release (March 2026)** — source for Eni deepwater gas hub FIDs (Andaman / North Ganal).
+> - **IDNFinancials news** — source for "Indonesia's first offshore CEOR" deployment claim.
+> - **Ajaib Sekuritas** initiation report (21 April 2026) — source for Rp1,100 TP.
+> - **Bareksa / Kompas / ResourcesAsia (May 2024)** — source for the US$106M drilling support services contract with PHE.
+> - **Bisnis.com (Aug 2024)** — source for PHE OSES drilling & Medco seismic long-term contracts.
+>
+> **Critical limitation:** ELSA's official Q1 2026 unaudited interim financial statements and accompanying management discussion **do NOT explicitly disclose**:
+> - Orderbook / contract backlog value (Rp4.1T figure is a Brights claim, not a company-disclosed number)
+> - Asset utilization metrics (13 workover/HWU units, 5 cementing units, Tedong seismic status)
+> - KSO/LCO pipeline details (3–4 of ~41 undeveloped PHE concessions)
+> - PDSI acquisition status beyond the disclosed MoU
+>
+> Hence catalysts marked with **†** below are **research-sourced, not company-confirmed** — treat with appropriate skepticism and await ELSA management commentary / H1 2026 audited statements for verification.
+
+| Catalyst | Details | Source | Upside Magnitude |
+|---|---|---|---|
+| **† Rp4.1T upstream orderbook** | Rp4.1T upstream backlog reported as of 1Q26; ~Rp12T group-level orderbook visibility cited by Brights | Brights (18 May 2026) — **NOT in ELSA Q1 financials** | High — underpins +11% YoY upstream revenue growth forecast |
+| **† Upstream segment recovery** | FY26 net profit +32% YoY, upstream segment +11% revenue recovery forecast | Brights (18 May 2026) | High — reversal of -22.2% Q1 decline |
+| **† KSO/LCO field management entry** | Targeting 3–4 of ~41 undeveloped PHE concessions (mainly East Java); shift from services contractor to higher-margin integrated operator; 60–70% of work recyclable into ELSA ecosystem | Brights (18 May 2026) — **NOT company-confirmed** | Transformational — margin profile uplift |
+| **† PDSI acquisition optionality** | Potential acquisition of PT Pertamina Drilling Services Indonesia — captive drilling/workover rigs to complement ELSA's capabilities | Brights (18 May 2026); MoU confirmed by Pertamina PHE media release | Accretive — vertical integration |
+| **8 SKK Migas projects onstream 2026** | 6 of 8 are Pertamina-operated — directly addressable to ELSA near-term | SKK Migas via Bisnis.com (11 Feb 2026) | Medium-High |
+| **Government lifting target to 1.0M BOPD by FY28–29** | Structural backdrop requiring workover / drilling / EOR activity | Brights citing government targets | Long-term structural |
+| **Eni deepwater FIDs (Andaman)** | Multi-year deep-water gas hub drilling campaign future demand | Eni.com press release (March 2026) | Long-term optionality |
+| **13-block 2026 bidding round** | Could expand ELSA's third-party customer base | oilandgascourses.org / SKK Migas | Medium-term diversification |
+| **CEOR offshore deployment** | ELSA deployed Indonesia's first offshore CEOR; differentiated EOR technology moat | IDNFinancials news | Technology moat / margin expansion |
+| **Third-party revenue mix improvement** | 3rd-party contribution cited as 21.6% (FY25) → 23.0% (1Q26) | Brights (18 May 2026) — **specific 23.0% figure not in Q1 financials**; the high-level related-party concentration ratio of 76.7% IS disclosed and directionally consistent | Gradual bear argument mitigation |
+
+*† = sourced from external research, NOT explicitly disclosed in ELSA's Q1 2026 unaudited interim financial statements. Verify against future management commentary, analyst calls, or audited H1 2026 statements.*
+
+### 11.5 Key Risks to Upside Realization
+
+1. **Tender-driven margin pressure** — orderbook conversion is competitive; pricing could be squeezed; **the "Rp4.1T orderbook" itself is a Brights figure, not ELSA-disclosed** — contract value may differ in practice
+2. **Pertamina capex discipline** — if PHE defers 2026 project onstream dates (as has happened historically), upstream recovery thesis slips
+3. **KSO/LCO execution risk** — operator model shift carries execution/financial risk; precedent of Pertamina services subsidiaries underperforming on operating assets exists; **KSO/LCO scope is research speculation, not yet announced by ELSA**
+4. **PDSI acquisition economics** — depends on transaction valuation & integration; only an MoU is publicly confirmed; could be EPS dilutive if priced aggressively
+5. **Third-party wins remain small** — Medco/Eni contracts are positive but Patra Niaga/related-party still = ~77% of revenue; **Brights' 23% third-party mix figure should be cross-checked against ELSA's own segment disclosures**
+6. **Sell-side optimism bias** — both Brights (TP Rp1,110) and Ajaib (TP Rp1,100) are initiated Buy ratings with incentives to present a constructive case; analyst forecasts in upstream services have historically overestimated capex conversion speed
+
+### 11.6 Conclusion on Future Upside
+
+✅ **Yes, material upside potential exists for ELSA**, but the bull thesis rests on catalysts that are **predominantly sourced from external sell-side research and have NOT yet been corroborated by ELSA's Q1 2026 financial disclosure**.
+
+3 horizons of upside, with sourcing caveats:
+
+1. **Near-term (FY26-FY28): Upstream activity cycle recovery** — supported by †Rp4.1T orderbook (Brights) and 8 new SKK Migas project onstreams (6 Pertamina-operated, directly addressable). Brights' +32% FY26 net profit forecast is plausible **if** Pertamina capex stays on schedule and **if** the Brights-cited orderbook is approximately correct.
+
+2. **Medium-term (FY27+): †KSO/LCO field management + †PDSI acquisition** — these would structurally lift ELSA from low-margin services contractor into a higher-margin integrated operator. This is the **unpriced optionality** in current valuations (7.9x P/E vs Ajaib TP Rp1,100 / Brights TP Rp1,110). **Both catalysts are research-sourced — ELSA has not announced firm KSO/LCO contracts or a binding PDSI acquisition agreement.**
+
+3. **Long-term (FY28+): Indonesia upstream growth** from Eni deepwater FIDs (confirmed by Eni press release), 13-block bidding round winners, and EOR/CEOR technology deployment (per IDNFinancials) expands TAM and customer base.
+
+⚠️ However, the upside **remains conditional** on:
+- Pertamina's capex cadence (the Q1 2026 -22.2% Integrated Upstream revenue decline shows the bear case is live today)
+- Execution of KSO/LCO/PDSI catalysts (currently unannounced by ELSA)
+- Accuracy of the Brights orderbook and utilization disclosures (Rp4.1T backlog, 13 HWU units — NOT in ELSA's official Q1 statements)
+
+2026 project onstreams (PHR Minas polymer, PHE ONWJ OO-OX, PHM Sisi Nubi) need to convert into tangible ELSA revenue in H2 2026 — visible in the H1 2026 audited statements — to validate the bull case.
+
+**Bottom line:** Base case fair value should incorporate a **modest, probability-weighted premium** for KSO/LCO + PDSI optionality (call option value), supporting the Rp920-950 base case from Section 10. The bull case Rp1,100-1,110 (from Ajaib & Brights) is **fully dependent on**:
+1. Realized upstream recovery in H2 2026 ELSA financials
+2. Firm announcement of KSO/LCO binding contracts by ELSA
+3. Materialization of PDSI acquisition terms
+
+Until these are company-confirmed, the bull case should be treated as optimistic research, not as base case.
+
+---
+
+*Disclaimer: This analysis is based on unaudited interim financial statements (Sections 1–10) and external sell-side research / publicly available news (Section 11). All Rupiah figures are expressed in Millions of Rupiah unless otherwise stated. Section 11 catalysts marked with † are sourced from third-party research (Brights Securities, Ajaib Sekuritas, SKK Migas announcements, Eni press releases, IDNFinancials) and have NOT been explicitly disclosed or verified in ELSA's Q1 2026 unaudited interim financial statements. Investors should await ELSA's H1 2026 audited statements, management conference calls, and formal corporate announcements before assigning material weight to these catalysts. This is not investment advice. Past performance does not guarantee future results.*
