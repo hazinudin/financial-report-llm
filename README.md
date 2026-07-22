@@ -138,3 +138,26 @@ duckdb idx_data/pipeline.duckdb "SELECT ticker, year, period FROM pipeline_jobs 
 duckdb idx_data/pipeline.duckdb "SELECT COUNT(*) as total FROM downloaded_files;"
 duckdb idx_data/pipeline.duckdb "SELECT ticker, COUNT(*) as files FROM downloaded_files GROUP BY ticker ORDER BY files DESC;"
 ```
+
+## Notes RAG Search
+
+Local hybrid search (BM25 + vector embeddings) over the `analysis/` Obsidian vault — used for Q&A and context retrieval in OpenCode sessions.
+
+- **Embeddings**: Ollama `bge-m3` (multilingual EN/ID) — one-time setup: `ollama pull bge-m3`
+- **Store**: `idx_data/notes_rag.duckdb` — chunks, metadata, embeddings, and FTS index in one file
+- **Retrieval**: BM25 (DuckDB FTS) ⊕ cosine similarity, fused with Reciprocal Rank Fusion
+- **Chunking**: markdown header-aware, with ticker/quarter/folder metadata extracted from filenames
+- **OpenCode**: exposed as the `notes-search` custom tool (`.opencode/tool/notes-search.ts`)
+
+```bash
+# Index the vault (incremental; re-run after editing notes)
+uv run scripts/notes_rag/rag.py index          # add --force to rebuild everything
+
+# Search
+uv run scripts/notes_rag/rag.py search "which companies benefit from high ammonia prices"
+uv run scripts/notes_rag/rag.py search -k 5 --ticker ESSA "gas cost assumption"
+uv run scripts/notes_rag/rag.py search --folder forecast --quarter "Q2 2026" "base case"
+uv run scripts/notes_rag/rag.py search --json "ammonia"   # machine-readable
+```
+
+Results include an `obsidian://` link that opens the note directly in Obsidian.
