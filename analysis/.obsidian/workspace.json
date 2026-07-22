@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "commodities/Gold.md",
+                "file": "commodities/Ammonia.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Gold"
+              "title": "Ammonia"
             }
           }
         ]
@@ -185,10 +185,24 @@
   },
   "active": "0b3474618a5cab48",
   "lastOpenFiles": [
+    "geopolitics/Strait_of_Hormuz_Crisis.md",
+    "geopolitics",
+    "commodities/updates/Ammonia_July_2026_Update.md",
+    "commodities/updates/Aluminium_July_2026_Update.md",
+    "commodities/updates/Gold_July_2026_Update.md",
+    "commodities/Ammonia.md",
+    "commodities/updates",
+    "commodities/CPO.md",
+    "South_Sumatra_Q2_2026_Analysis.md",
+    "forecast/ADMR_Q2_2026_Earnings_Forecast.md",
+    "Indonesian CPO Price Surge.md",
+    "Indonesia Fertilizer Market.md",
+    "commodities/Aluminium.md",
+    "articles/Alamtri ekspor aluminium ke AS dan Korea Selatan, target 350.000 ton.md",
+    "commodities/Gold.md",
     "MHKI Q1 2026 Analysis.md",
     "ARCI Gold Production Seasonality & 2026 Forecast.md",
     "articles/Gold & DSI - Meridian Research.md",
-    "commodities/Gold.md",
     "companies/$INDR.md",
     "companies/$ARCI.md",
     "ARCI Q4 2025 Analysis.md",
@@ -197,20 +211,8 @@
     "articles/ESSA Stockbit Closed Door Meeting.md",
     "Clippings/Stockbit (Stockbit) on Stockbit.md",
     "articles/Stockbit (Stockbit) on Stockbit.md",
-    "forecast/Gold_July_2026_Update.md",
     "Clippings",
-    "commodities/Ammonia.md",
     "ESSA Q1 2026 Analysis.md",
-    "ELSA Q1 2026 Analysis.md",
-    "ADMR Q1 2026 Analysis.md",
-    "MEDC Q1 2026 Analysis.md",
-    "PTPS Q4 2025 Analysis.md",
-    "Indonesia Fertilizer Market.md",
-    "MEDC 2025 Full Year Analysis.md",
-    "articles/Harga Emas Melonjak, ARCI Bidik Produksi Naik 15% pada 2026 1.md",
-    "forecast/Gold_May_2026_Update.md",
-    "articles/Harga Emas Melonjak, ARCI Bidik Produksi Naik 15% pada 2026.md",
-    "KAI Analysis.md",
-    "SEAL Q4 2025 Analysis - From PTPS Financial Report.md"
+    "ELSA Q1 2026 Analysis.md"
   ]
 }
