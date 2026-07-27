@@ -1,15 +1,28 @@
 """
 Stage 1 — LLM extraction (one cheap-model call per chunk, run in parallel).
 
+Two modes, chosen automatically per report:
+
+  SEEDED (default when xlsx_statements has coverage for the ticker/period):
+    The primary statements are transcribed deterministically by xlsx_seed.py,
+    so statement chunks are skipped entirely and note chunks get a slim
+    details-only prompt (details + context_notes). Fewer, smaller, faster
+    calls — and no LLM transcription of the big tables to fail validation.
+
+  FALLBACK (no xlsx coverage): the original full-fact-sheet extraction over
+    all chunks (statements + notes).
+
 For each chunk built by chunker.py:
   1. Assemble the extraction prompt (system from prompts/extract_system.md +
-     a data-driven user prompt carrying the chunk's coverage and the canonical
-     line-item keys).
+     a data-driven user prompt).
   2. Call the configured extraction model (temperature 0).
-  3. Strip code fences, parse YAML, validate against schema.FactSheet.
+  3. Strip code fences, parse YAML, validate against schema.FactSheet
+     (lenient coercion handles null blocks, "55%" strings, YAML dates, etc.).
   4. ON FAILURE: one automated repair retry that appends the pydantic errors
      to the user prompt; then give up, saving the raw output for inspection.
-  5. Write {T}_{Q}_{Y}_chunk{NN}.yaml (and .raw.txt on terminal failure).
+  5. Write {T}_{Q}_{Y}_chunk{NN}.yaml in DOCUMENT order (and .raw.txt on
+     terminal failure). Stale chunk files from previous runs are deleted
+     first so merge.py never mixes runs.
 
 The extractor NEVER does arithmetic — only lookup/copy. Ratios are computed
 deterministically in ratios.py. `context_notes` is the escape hatch for
@@ -29,6 +42,7 @@ import yaml
 from pydantic import ValidationError
 
 import opencode_client
+import xlsx_seed
 from chunker import Chunk, build_chunks
 from schema import FactSheet, canonical_line_keys
 
@@ -90,6 +104,47 @@ YAML begins on the next line:
 """
 
 
+def _user_prompt_notes(chunk: Chunk) -> str:
+    """Slim prompt for SEEDED mode: the primary statements come from the xlsx
+    seed, so note chunks only carry tabular disclosures + oddity flags."""
+    covers = ", ".join(chunk.covers)
+    return f"""You are extracting NOTE disclosures from ONE chunk of a docling-converted IDX interim
+report. This chunk covers note(s): {covers}.
+
+The primary financial statements (income statement, balance sheet, cash flow) are sourced
+elsewhere — do NOT extract statement line items, do NOT emit `meta`, `income_statement`,
+`balance_sheet`, or `cash_flow` blocks.
+
+Output ONLY a YAML object with these two keys:
+
+1. `details` — for each tabular disclosure present in this chunk, one entry per row under the
+   matching list (omit lists with no table):
+     customers:        [ {{ name, amount, pct_of_sales }} ]
+     loans:            [ {{ lender, balance, rate, maturity, notes }} ]
+     subsidiaries:     [ {{ name, ownership_pct, activity, total_assets }} ]
+     segments:         [ {{ name, external_sales, internal_sales, gross_profit, net_profit, assets }} ]
+     production:       [ {{ product, volume_mt, period }} ]
+     reserves:         [ {{ product, residual_mt, as_of }} ]
+     related_parties:  [ {{ party, relationship, item, amount }} ]
+     commitments:      [ {{ description, amount, counterparty }} ]
+     dividends:        [ {{ period, per_share, total }} ]
+
+2. `context_notes` — short bullets (plain strings) flagging anything an analyst should verify:
+   a balance that vanished YoY, a misaligned docling table row, a unit surprise, a material
+   one-off described in prose. Also capture, as bullets, key non-tabular facts an equity
+   write-up would need (e.g. a new facility, a default, a dispute, a subsequent event).
+
+Rules:
+- Copy numbers EXACTLY as printed (strip thousands separators; keep the report's unit scale).
+  Do NOT round, convert, or compute.
+- Percentages: emit the number only (55% -> 55). Rates stay strings ("4.90% - 6.10%").
+- If the chunk has no relevant tables and nothing notable, emit `details: {{}}` and
+  `context_notes: []`.
+
+YAML begins on the next line:
+"""
+
+
 def _parse_fact_sheet(raw: str) -> FactSheet:
     text = _strip_fences(raw)
     # Some models prefix with a stray sentence; cut to first top-level key.
@@ -107,25 +162,45 @@ def _parse_fact_sheet(raw: str) -> FactSheet:
 
 def _extract_one(
     chunk: Chunk, line_keys: dict, model: str, temperature: float, max_tokens: int,
+    notes_only: bool = False, meta_override: dict | None = None,
+    reasoning_effort: str | None = None,
 ) -> dict[str, Any]:
     system = load_system_prompt()
-    user = _user_prompt(chunk, line_keys)
+    user = _user_prompt_notes(chunk) if notes_only else _user_prompt(chunk, line_keys)
     resp = opencode_client.chat(
         model, system, user + "\n" + chunk.text,
         temperature=temperature, max_tokens=max_tokens,
+        reasoning_effort=reasoning_effort,
     )
     usage = resp["usage"]
+
+    def _finalize(sheet: FactSheet) -> FactSheet:
+        # We already know these — never leave them to the model (observed:
+        # quarter emitted as int, ticker misread as GOZCO for GZCO).
+        if meta_override:
+            sheet.meta.ticker = meta_override["ticker"]
+            sheet.meta.quarter = meta_override["quarter"]
+            sheet.meta.year = meta_override["year"]
+        return sheet
+
+    base = {"chunk": chunk.name, "covers": chunk.covers, "line_start": chunk.line_range[0]}
     try:
-        sheet = _parse_fact_sheet(resp["content"])
-        return {"chunk": chunk.name, "covers": chunk.covers, "sheet": sheet, "usage": usage, "ok": True}
+        if not (resp["content"] or "").strip():
+            raise ValueError("empty model response (reasoning budget exhausted?)")
+        sheet = _finalize(_parse_fact_sheet(resp["content"]))
+        return {**base, "sheet": sheet, "usage": usage, "ok": True}
     except (ValidationError, yaml.YAMLError, ValueError) as e:
-        # One repair retry with errors appended.
+        # One repair retry with errors appended. Give the repair a larger
+        # output budget: the common first-attempt failures are truncation at
+        # max_tokens and empty content after long hidden reasoning.
+        repair_max = min(32768, max(max_tokens * 2, 16384))
         repair_user = user + "\n" + chunk.text + (
             f"\n\nYour previous output failed validation:\n{e}\n\n"
             "Re-emit the corrected YAML only."
         )
         resp2 = opencode_client.chat(
-            model, system, repair_user, temperature=temperature, max_tokens=max_tokens,
+            model, system, repair_user, temperature=temperature, max_tokens=repair_max,
+            reasoning_effort=reasoning_effort,
         )
         usage2 = resp2["usage"]
         usage = {
@@ -133,11 +208,11 @@ def _extract_one(
             "completion_tokens": usage.get("completion_tokens", 0) + usage2.get("completion_tokens", 0),
         }
         try:
-            sheet = _parse_fact_sheet(resp2["content"])
-            return {"chunk": chunk.name, "covers": chunk.covers, "sheet": sheet, "usage": usage, "ok": True, "repaired": True}
+            sheet = _finalize(_parse_fact_sheet(resp2["content"]))
+            return {**base, "sheet": sheet, "usage": usage, "ok": True, "repaired": True}
         except Exception as e2:
             return {
-                "chunk": chunk.name, "covers": chunk.covers, "ok": False,
+                **base, "ok": False,
                 "error": f"{e!s} / {e2!s}", "raw": resp2["content"], "usage": usage,
             }
 
@@ -147,6 +222,23 @@ def _dump_sheet_yaml(sheet: FactSheet) -> str:
     return yaml.safe_dump(sheet.model_dump(exclude_none=False), sort_keys=False, allow_unicode=True)
 
 
+def _clear_stale_outputs(ticker: str, quarter: str, year: int) -> int:
+    """Delete chunk sheets/raws + manifest from previous runs for this report.
+    Without this, a re-run with different chunk boundaries leaves stale files
+    that merge.py would glob in (observed: GZCO merging 3 overlapping runs)."""
+    removed = 0
+    for pattern in (f"{ticker}_{quarter}_{year}_chunk*.yaml",
+                    f"{ticker}_{quarter}_{year}_chunk*.raw.txt"):
+        for f in FACTS_DIR.glob(pattern):
+            f.unlink()
+            removed += 1
+    manifest = FACTS_DIR / f"{ticker}_{quarter}_{year}_manifest.json"
+    if manifest.exists():
+        manifest.unlink()
+        removed += 1
+    return removed
+
+
 def run(
     ticker: str, year: int, quarter: str,
     preprocessed_path: str, force: bool = False, dry_run: bool = False,
@@ -154,7 +246,8 @@ def run(
 ) -> dict:
     """Run extraction for one report. Returns summary + per-chunk usage."""
     FACTS_DIR.mkdir(parents=True, exist_ok=True)
-    chunks = build_chunks(preprocessed_path, cap=cap)
+    seeded = xlsx_seed.has_coverage(ticker, year, quarter)
+    chunks = build_chunks(preprocessed_path, cap=cap, include_statements=not seeded)
     line_keys = canonical_line_keys()
     settings = opencode_client.parse_model_settings("extract")
     model = settings["model"]
@@ -167,20 +260,28 @@ def run(
     existing = sorted(FACTS_DIR.glob(f"{ticker}_{quarter}_{year}_chunk*.yaml"))
     if existing and not force and not dry_run:
         print(f"  [SKIP] {len(existing)} chunk sheet(s) already present (use --force to re-extract)")
-        return {"status": "skipped", "chunks": len(existing), "model": model}
+        return {"status": "skipped", "chunks": len(existing), "model": model, "seeded": seeded}
 
+    mode = "seeded (notes-only)" if seeded else "fallback (full statements)"
     if dry_run:
-        print(f"  [DRY] would extract {len(chunks)} chunks with {model}")
+        print(f"  [DRY] would extract {len(chunks)} chunks with {model} — {mode}")
         for c in chunks:
             print(f"       - {c.name} covers={c.covers} ~{c.approx_tokens} tok")
-        return {"status": "dry", "chunks": len(chunks), "model": model}
+        return {"status": "dry", "chunks": len(chunks), "model": model, "seeded": seeded}
 
-    print(f"  [EXTRACT] {len(chunks)} chunks with {model} (workers={workers})")
+    removed = _clear_stale_outputs(ticker, quarter, year)
+    if removed:
+        print(f"  [CLEAN] removed {removed} stale chunk file(s)")
+
+    print(f"  [EXTRACT] {len(chunks)} chunks with {model} (workers={workers}) — {mode}")
+    meta_override = {"ticker": ticker, "quarter": quarter, "year": year}
     results: list[dict] = []
     total_prompt = total_completion = 0
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futs = {
-            ex.submit(_extract_one, c, line_keys, model, settings["temperature"], settings["max_tokens"]): c
+            ex.submit(_extract_one, c, line_keys, model, settings["temperature"],
+                      settings["max_tokens"], seeded, meta_override,
+                      settings.get("reasoning_effort")): c
             for c in chunks
         }
         for fut in as_completed(futs):
@@ -193,11 +294,11 @@ def run(
             extra = " (repaired)" if r.get("repaired") else ""
             print(f"    [{tag}] {r['chunk']:<18} covers={r['covers']}{extra}")
 
-    # Write chunk sheets; collect failures.
+    # Write chunk sheets in DOCUMENT order; collect failures.
     failed: list[dict] = []
     ok_count = 0
     manifest: list[dict] = []
-    for i, r in enumerate(sorted(results, key=lambda x: x["chunk"]), start=1):
+    for i, r in enumerate(sorted(results, key=lambda x: x["line_start"]), start=1):
         name = f"{ticker}_{quarter}_{year}_chunk{i:02d}"
         if r.get("ok"):
             out = FACTS_DIR / f"{name}.yaml"
@@ -217,6 +318,7 @@ def run(
     summary = {
         "status": "success" if not failed else "partial",
         "model": model, "chunks": len(chunks), "ok": ok_count, "failed": len(failed),
+        "seeded": seeded,
         "tokens": {"prompt": total_prompt, "completion": total_completion},
     }
     if failed:

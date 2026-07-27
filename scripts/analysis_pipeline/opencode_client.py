@@ -92,8 +92,15 @@ def chat(
     temperature: float = 0.0,
     max_tokens: int = 4096,
     retries: int = 4,
+    reasoning_effort: str | None = None,
 ) -> dict[str, Any]:
-    """OpenAI-compatible chat completion. Returns {content, usage}."""
+    """OpenAI-compatible chat completion. Returns {content, usage}.
+
+    `reasoning_effort` ("low"|"medium"|"high") is honored by reasoning models
+    (e.g. deepseek-v4-flash): reasoning tokens count against max_tokens, so a
+    low effort both speeds up copy-style tasks and avoids finish_reason=length
+    with empty content.
+    """
     headers = {
         "Authorization": f"Bearer {get_api_key()}",
         "Content-Type": "application/json",
@@ -107,6 +114,8 @@ def chat(
             {"role": "user", "content": user},
         ],
     }
+    if reasoning_effort:
+        payload["reasoning_effort"] = reasoning_effort
     delay = 2.0
     last_err: str | None = None
     for attempt in range(retries):
@@ -143,13 +152,15 @@ def chat(
 
 
 def parse_model_settings(role: str) -> dict[str, Any]:
-    """Return {model, temperature, max_tokens} for a pipeline role from config."""
+    """Return {model, temperature, max_tokens, reasoning_effort} for a role."""
     cfg = load_analysis_config()
     models = cfg.get("models", {}) or {}
     temps = cfg.get("temperature", {}) or {}
     tokens = cfg.get("max_tokens", {}) or {}
+    efforts = cfg.get("reasoning_effort", {}) or {}
     return {
         "model": models.get(role),
         "temperature": float(temps.get(role, 0.0)),
         "max_tokens": int(tokens.get(role, 4096)),
+        "reasoning_effort": efforts.get(role),
     }

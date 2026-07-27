@@ -1,19 +1,23 @@
 """
 Stage 2a — merge per-chunk fact sheets into one canonical fact sheet.
 
-Conflict rules (from the implementation plan, §5 Stage 2):
-  1. Primary-statement values (chunks covering "statements") win over note values.
-  2. Later notes win over earlier notes for the same field.
-  3. Every conflict is logged with both values (this catches docling row
-     misalignments such as the DKFT note-29 customer table).
+Priority layers (first non-null value wins, conflicts logged):
+  0. XLSX SEED — deterministic primary statements from xlsx_seed.py, when the
+     IDX XBRL filing is parsed in pipeline.duckdb. Exact by construction.
+  1. Primary-statement values from LLM chunks covering "statements" — these
+     fill keys the seed leaves null (dividends_paid, operating_profit, ...).
+  2. Note chunks, later notes winning over earlier notes for the same field.
 
-Also performs an optional XLSX cross-validation: when the report_pipeline has
-parsed `FinancialStatement-*.xlsx` into pipeline.duckdb (xlsx_statements), the
-canonical primary-statement line items are compared against that ground truth
-and deviations beyond a tolerance are logged as warnings (hallucination guard).
-XLSX coverage is partial, so mismatches are warnings — never hard failures.
+Every conflict is logged with both values (this catches docling row
+misalignments such as the DKFT note-29 customer table, and any LLM value
+disagreeing with the xlsx seed = hallucination signal).
+
+When no xlsx seed exists, the legacy XLSX cross-validation runs instead,
+comparing merged LLM values against any xlsx rows as warnings-only ground
+truth. With a seed it is skipped (the values ARE the xlsx).
 
 Inputs:  idx_data/analysis/facts/{T}_{Q}_{Y}_chunkNN.yaml (+ _manifest.json)
+         pipeline.duckdb xlsx_statements/xlsx_meta (optional seed)
 Output:  idx_data/analysis/facts/{T}_{Q}_{Y}.yaml          (canonical)
          idx_data/analysis/runs/{job_id}.merge.log          (conflicts/warnings)
 """
@@ -28,6 +32,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel
 
+import xlsx_seed
 from schema import FactSheet, Details, Meta, Statement
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -49,6 +54,8 @@ DETAIL_DEDUP_KEYS = {
 
 
 def _sheet_priority(covers: list[str]) -> tuple[int, int]:
+    if "xlsx" in covers:
+        return (-1, 0)  # deterministic seed outranks every LLM sheet
     is_stmt = any("statements" in c for c in covers)
     if is_stmt:
         return (0, 0)
@@ -185,9 +192,7 @@ XLSX_MAP = {
 
 def xlsx_cross_validate(sheet: FactSheet, db_path: Path, tolerance: float, log: logging.Logger):
     try:
-        import duckdb
-        from db import AnalysisDB  # noqa: F401  (reuse handle only)
-        conn = duckdb.connect(str(db_path), read_only=True)
+        conn = xlsx_seed._connect(db_path)
     except Exception as e:  # noqa: BLE001
         log.debug(f"xlsx cross-validation skipped: {e}")
         return
@@ -257,15 +262,19 @@ def run(ticker: str, year: int, quarter: str, force: bool = False, dry_run: bool
         return {"status": "skipped", "output": str(out_path)}
 
     chunk_count = len(list(FACTS_DIR.glob(f"{ticker}_{quarter}_{year}_chunk*.yaml")))
+    seed = xlsx_seed.seed_from_xlsx(ticker, year, quarter, DEFAULT_DB_PATH)
     if dry_run:
-        print(f"  [DRY] would merge {chunk_count} chunk sheet(s) -> {out_path.name}")
-        return {"status": "dry", "chunks": chunk_count}
+        print(f"  [DRY] would merge {chunk_count} chunk sheet(s)"
+              f"{' + xlsx seed' if seed else ''} -> {out_path.name}")
+        return {"status": "dry", "chunks": chunk_count, "seeded": seed is not None}
 
     sheets = load_chunk_sheets(ticker, quarter, year)
+    if seed is not None:
+        sheets.insert(0, (seed, ["xlsx"]))
     if not sheets:
         raise FileNotFoundError(
-            f"No chunk fact sheets found in {FACTS_DIR} for {ticker}_{quarter}_{year}. "
-            "Run extract first."
+            f"No chunk fact sheets and no xlsx seed found for {ticker}_{quarter}_{year}. "
+            "Run extract first (or parse the xlsx into pipeline.duckdb)."
         )
 
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
@@ -278,23 +287,25 @@ def run(ticker: str, year: int, quarter: str, force: bool = False, dry_run: bool
     logger.addHandler(fh)
     logger.propagate = False
 
-    if dry_run:
-        print(f"  [DRY] would merge {len(sheets)} chunk sheet(s) -> {out_path.name}")
-        return {"status": "dry", "chunks": len(sheets)}
+    if seed is not None:
+        gaps = xlsx_seed.missing_keys(seed)
+        logger.info(f"xlsx seed active; keys left for LLM gap-fill: {gaps or 'none'}")
 
     canonical = merge_sheets(sheets, logger)
-    xlsx_cross_validate(canonical, DEFAULT_DB_PATH, 0.005, logger)
+    if seed is None:
+        xlsx_cross_validate(canonical, DEFAULT_DB_PATH, 0.005, logger)
+    else:
+        logger.info("xlsx cross-validation skipped (canonical statements seeded from xlsx)")
 
     out_path.write_text(
         yaml.safe_dump(canonical.model_dump(exclude_none=False), sort_keys=False, allow_unicode=True),
         encoding="utf-8",
     )
-    conflicts = sum(1 for h in logger.handlers if isinstance(h, logging.FileHandler))
-    logger.info(f"merged {len(sheets)} chunk sheet(s) -> {out_path.name}")
+    logger.info(f"merged {len(sheets)} sheet(s) ({'seed + ' if seed else ''}{len(sheets) - (1 if seed else 0)} chunk) -> {out_path.name}")
     n_warns = len([l for l in open(log_path, encoding="utf-8").read().splitlines() if "WARNING" in l])
-    print(f"  [MERGE] {len(sheets)} sheets -> {out_path.name} ({n_warns} warning(s) in {log_path.name})")
-    return {"status": "success", "output": str(out_path), "chunks": len(sheets), "warnings": n_warns,
-            "log": str(log_path)}
+    print(f"  [MERGE] {len(sheets)} sheets{' (incl. xlsx seed)' if seed else ''} -> {out_path.name} ({n_warns} warning(s) in {log_path.name})")
+    return {"status": "success", "output": str(out_path), "chunks": len(sheets),
+            "seeded": seed is not None, "warnings": n_warns, "log": str(log_path)}
 
 
 if __name__ == "__main__":

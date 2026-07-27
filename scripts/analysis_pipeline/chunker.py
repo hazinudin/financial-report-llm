@@ -155,7 +155,7 @@ def _range_name(names: list[str]) -> str:
     return "notes" + "-".join(str(int(n)) for n in nums)
 
 
-def build_chunks(preprocessed_path, cap: int | None = None) -> list[Chunk]:
+def build_chunks(preprocessed_path, cap: int | None = None, include_statements: bool = True) -> list[Chunk]:
     from pathlib import Path
     prep = Path(preprocessed_path)
     text = prep.read_text(encoding="utf-8")
@@ -167,7 +167,10 @@ def build_chunks(preprocessed_path, cap: int | None = None) -> list[Chunk]:
         cap = int(cfg.get("extraction_input_token_cap", 16000))
         cap -= int(cfg.get("extraction_prompt_token_overhead", 1500))
         cap = max(2000, cap)
-    units = _statement_units(lines, index) + _note_units(lines, index)
+    # When the xlsx seed covers the primary statements, only note chunks go to
+    # the LLM (details + context_notes) — the statement tables are transcribed
+    # deterministically by xlsx_seed.py instead.
+    units = (_statement_units(lines, index) if include_statements else []) + _note_units(lines, index)
     chunks = _pack(units, cap)
     return chunks
 

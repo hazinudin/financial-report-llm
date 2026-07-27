@@ -11,14 +11,99 @@ All monetary values are raw integers/floats in the reporting currency scaled per
 
 from __future__ import annotations
 
-from typing import Optional
+import datetime
+import re
+import typing
+from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 SCHEMA_VERSION = 1
 
 
-class Meta(BaseModel):
+# ── Lenient input coercion ─────────────────────────────────────────────
+# LLM chunk outputs fail validation on trivial type issues far more often than
+# on actual content (null blocks, "55%" strings, YAML-parsed dates, int quarters).
+# These before-validators coerce what is coercible and null out the rest, so a
+# chunk sheet only fails when the payload is truly unusable.
+
+_NUM_RE = re.compile(r"-?\d+(?:\.\d+)?")
+
+
+def _coerce_float(v: Any) -> Optional[float]:
+    """Best-effort float coercion. Keeps the number AS PRINTED (no % scaling,
+    no unit conversion). Unparseable -> None (never raises)."""
+    if v is None:
+        return None
+    if isinstance(v, bool):
+        return float(v)
+    if isinstance(v, (int, float)):
+        return float(v)
+    s = str(v).strip()
+    if not s or s.lower() in ("null", "none", "-", "n/a", "na"):
+        return None
+    neg = False
+    if s.startswith("(") and s.endswith(")"):  # accounting parentheses
+        neg = True
+        s = s[1:-1]
+    if s.endswith("%"):
+        s = s[:-1]
+    s = s.replace(",", "").replace(" ", "")
+    if not _NUM_RE.fullmatch(s):
+        m = _NUM_RE.search(s)  # tolerate stray tokens: "161322044693 la"
+        if not m:
+            return None
+        s = m.group(0)
+    try:
+        out = float(s)
+    except ValueError:
+        return None
+    return -out if neg else out
+
+
+def _stringify(v: Any) -> str:
+    if isinstance(v, str):
+        return v
+    if isinstance(v, (datetime.date, datetime.datetime)):
+        return v.isoformat()[:10]
+    if isinstance(v, dict):
+        return "; ".join(f"{k}: {_stringify(x)}" for k, x in v.items())
+    if isinstance(v, (list, tuple)):
+        return "; ".join(_stringify(x) for x in v)
+    return str(v)
+
+
+def _wants(annotation: Any, typ: type) -> bool:
+    if annotation is typ:
+        return True
+    if typing.get_origin(annotation) is typing.Union:
+        return any(a is typ for a in typing.get_args(annotation))
+    return False
+
+
+class _CoerceModel(BaseModel):
+    """Base model that coerces str->float and any->str per field annotation."""
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_fields(cls, data: Any) -> Any:
+        if data is None:
+            return {}
+        if not isinstance(data, dict):
+            return data
+        d = dict(data)
+        for name, f in cls.model_fields.items():
+            v = d.get(name)
+            if v is None:
+                continue
+            if _wants(f.annotation, float) and not isinstance(v, (int, float)):
+                d[name] = _coerce_float(v)
+            elif _wants(f.annotation, str) and not isinstance(v, str):
+                d[name] = _stringify(v)
+        return d
+
+
+class Meta(_CoerceModel):
     schema_version: int = SCHEMA_VERSION
     ticker: Optional[str] = None
     quarter: Optional[str] = None
@@ -29,6 +114,24 @@ class Meta(BaseModel):
     audited: Optional[bool] = None
     period_end: Optional[str] = None
     prior_period_end: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_meta(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return {} if data is None else data
+        d = dict(data)
+        if d.get("year") is not None and not isinstance(d["year"], int):
+            d["year"] = int(_coerce_float(d["year"])) if _coerce_float(d["year"]) is not None else None
+        if d.get("audited") is not None and not isinstance(d["audited"], bool):
+            s = str(d["audited"]).strip().lower()
+            if s in ("true", "yes", "audited", "diaudit"):
+                d["audited"] = True
+            elif s in ("false", "no", "unaudited", "not audited", "tidak diaudit"):
+                d["audited"] = False
+            else:
+                d["audited"] = None
+        return d
 
 
 class Statement(BaseModel):
@@ -45,14 +148,33 @@ class Statement(BaseModel):
     lines: dict[str, Optional[float]] = Field(default_factory=dict)
     prior_lines: dict[str, Optional[float]] = Field(default_factory=dict)
 
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce(cls, data: Any) -> Any:
+        if data is None:
+            return {}
+        if not isinstance(data, dict):
+            return data
+        d = dict(data)
+        if d.get("periods") is None:
+            d["periods"] = []
+        elif isinstance(d["periods"], str):
+            d["periods"] = [d["periods"]]
+        for col in ("lines", "prior_lines"):
+            if d.get(col) is None:
+                d[col] = {}
+            elif isinstance(d[col], dict):
+                d[col] = {k: _coerce_float(v) for k, v in d[col].items()}
+        return d
 
-class Customer(BaseModel):
+
+class Customer(_CoerceModel):
     name: Optional[str] = None
     amount: Optional[float] = None
     pct_of_sales: Optional[float] = None
 
 
-class Loan(BaseModel):
+class Loan(_CoerceModel):
     lender: Optional[str] = None
     balance: Optional[float] = None
     rate: Optional[str] = None
@@ -60,14 +182,14 @@ class Loan(BaseModel):
     notes: Optional[str] = None
 
 
-class Subsidiary(BaseModel):
+class Subsidiary(_CoerceModel):
     name: Optional[str] = None
     ownership_pct: Optional[float] = None
     activity: Optional[str] = None
     total_assets: Optional[float] = None
 
 
-class Segment(BaseModel):
+class Segment(_CoerceModel):
     name: Optional[str] = None
     external_sales: Optional[float] = None
     internal_sales: Optional[float] = None
@@ -76,35 +198,41 @@ class Segment(BaseModel):
     assets: Optional[float] = None
 
 
-class Production(BaseModel):
+class Production(_CoerceModel):
     product: Optional[str] = None
     volume_mt: Optional[float] = None
     period: Optional[str] = None
 
 
-class Reserve(BaseModel):
+class Reserve(_CoerceModel):
     product: Optional[str] = None
     residual_mt: Optional[float] = None
     as_of: Optional[str] = None
 
 
-class RelatedParty(BaseModel):
+class RelatedParty(_CoerceModel):
     party: Optional[str] = None
     relationship: Optional[str] = None
     item: Optional[str] = None
     amount: Optional[float] = None
 
 
-class Commitment(BaseModel):
+class Commitment(_CoerceModel):
     description: Optional[str] = None
     amount: Optional[float] = None
     counterparty: Optional[str] = None
 
 
-class Dividend(BaseModel):
+class Dividend(_CoerceModel):
     period: Optional[str] = None
     per_share: Optional[float] = None
     total: Optional[float] = None
+
+
+_DETAIL_LIST_FIELDS = (
+    "customers", "loans", "subsidiaries", "segments", "production",
+    "reserves", "related_parties", "commitments", "dividends",
+)
 
 
 class Details(BaseModel):
@@ -118,14 +246,56 @@ class Details(BaseModel):
     commitments: list[Commitment] = Field(default_factory=list)
     dividends: list[Dividend] = Field(default_factory=list)
 
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce(cls, data: Any) -> Any:
+        if data is None:
+            return {}
+        if not isinstance(data, dict):
+            return data
+        d = dict(data)
+        for name in _DETAIL_LIST_FIELDS:
+            v = d.get(name)
+            if v is None:
+                d[name] = []
+            elif isinstance(v, dict):
+                d[name] = [v]  # single entry emitted as a bare mapping
+            elif isinstance(v, list):
+                d[name] = [e for e in v if isinstance(e, (dict, BaseModel))]
+            else:
+                d[name] = []
+        return d
+
 
 class FactSheet(BaseModel):
-    meta: Meta
+    meta: Meta = Field(default_factory=Meta)
     income_statement: Statement = Field(default_factory=lambda: Statement(periods=["current", "prior_yoy"]))
     balance_sheet: Statement = Field(default_factory=lambda: Statement(periods=["current", "prior_fy_end"]))
     cash_flow: Statement = Field(default_factory=Statement)
     details: Details = Field(default_factory=Details)
     context_notes: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce(cls, data: Any) -> Any:
+        if data is None:
+            return {}
+        if not isinstance(data, dict):
+            return data
+        d = dict(data)
+        for key in ("meta", "income_statement", "balance_sheet", "cash_flow", "details"):
+            if d.get(key) is None:
+                d[key] = {}
+        cn = d.get("context_notes")
+        if cn is None:
+            d["context_notes"] = []
+        elif isinstance(cn, str):
+            d["context_notes"] = [cn]
+        elif isinstance(cn, list):
+            d["context_notes"] = [_stringify(n) for n in cn if n is not None]
+        else:
+            d["context_notes"] = [_stringify(cn)]
+        return d
 
 
 # Canonical line-item keys (used for validation + grep-consistency QA).
