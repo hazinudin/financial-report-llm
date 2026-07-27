@@ -5,3 +5,33 @@ pipeline:
     api_host: localhost
     api_port: 11434
     model_name: glm-ocr
+
+analysis:
+  opencode:
+    base_url: https://openrouter.ai/api/v1
+    # API key read from OPENCODE_API_KEY in .env (do not commit the key)
+    timeout_sec: 300
+  models:
+    # Extraction is lookup-style on preprocessed chunks; temperature 0.
+    # Confirm exact IDs via: uv run scripts/analysis_pipeline/pipeline.py --list-models
+     extract: deepseek/deepseek-v4-flash
+     redflags: deepseek/deepseek-v4-flash
+    # The only call where reasoning quality is binding.
+     write: deepseek/deepseek-v4-pro
+  max_tokens:
+    extract: 8192
+    write: 16384
+    redflags: 4096
+  temperature:
+    extract: 0.0
+    write: 0.3
+    redflags: 0.0
+  # Hard token cap per LLM call (§9 budget). Chunks exceeding this are split.
+  call_token_cap: 32000
+  # Max INPUT tokens fed to an extraction call (leaves headroom for the ~8K
+  # YAML output + system/user prompt). Total call stays under call_token_cap.
+  extraction_input_token_cap: 16000
+  extraction_prompt_token_overhead: 1500
+  extraction_workers: 1
+  # XLSX cross-validation tolerance (deviation as a fraction of the XLSX value).
+  xlsx_deviation_tolerance: 0.005

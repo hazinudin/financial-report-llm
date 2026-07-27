@@ -9,3 +9,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Analysis pipeline runtime artifacts (deterministic + LLM outputs)
+idx_data/analysis/
