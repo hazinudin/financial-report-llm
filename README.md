@@ -7,11 +7,27 @@ Downloads financial reports from the Indonesia Stock Exchange (IDX), identifies 
 ```
 .
 ├── scripts/
-│   └── report_pipeline/
-│       ├── pipeline.py          # Main pipeline orchestrator
-│       ├── db.py                # DuckDB database layer
-│       ├── idx_downloader.py    # IDX API downloader
-│       └── xlsx_parser.py       # XLSX financial statement parser
+│   ├── report_pipeline/
+│   │   ├── pipeline.py          # Report download/convert pipeline
+│   │   ├── db.py                # DuckDB database layer
+│   │   ├── idx_downloader.py    # IDX API downloader
+│   │   └── xlsx_parser.py       # XLSX financial statement parser
+│   ├── analysis_pipeline/
+│   │   ├── pipeline.py          # Analysis orchestrator
+│   │   ├── db.py                # Analysis jobs state
+│   │   ├── schema.py            # Pydantic fact sheet schema
+│   │   ├── opencode_client.py   # OpenCode Go API client
+│   │   ├── preprocess.py        # Stage 0 deterministic reducer
+│   │   ├── chunker.py           # Adaptive chunk builder
+│   │   ├── extract.py           # Stage 1 LLM extraction
+│   │   ├── merge.py             # Stage 2a merge + XLSX cross-check
+│   │   ├── ratios.py            # Stage 2b deterministic ratios
+│   │   ├── context.py           # Stage 3 profile/vault/market
+│   │   ├── write.py             # Stage 4 writer call
+│   │   ├── redflags.py          # Stage 5 contradiction pass
+│   │   └── prompts/             # System/user prompt files
+│   └── notes_rag/
+│       └── rag.py               # Vault search indexer/retriever
 ├── idx_data/
 │   ├── reports/                 # Downloaded files from IDX
 │   └── pipeline.duckdb          # Pipeline state database
@@ -161,3 +177,33 @@ uv run scripts/notes_rag/rag.py search --json "ammonia"   # machine-readable
 ```
 
 Results include an `obsidian://` link that opens the note directly in Obsidian.
+
+## Analysis Pipeline
+
+Automates equity-analysis markdown generation from converted reports using the
+OpenCode Go subscription model API. Six-stage pipeline: deterministic
+preprocessing → bounded chunk extraction (cheap model) → merge + deterministic
+ratios → context assembly → writer call (strong model) → red-flag pass.
+
+```bash
+# Full run
+uv run scripts/analysis_pipeline/pipeline.py --tickers DKFT --years 2026 --quarters Q1
+
+# Dry-run preview
+uv run scripts/analysis_pipeline/pipeline.py --tickers DKFT --years 2026 --quarters Q1 --dry-run
+
+# View job status
+uv run scripts/analysis_pipeline/pipeline.py --status
+
+# List available model IDs
+uv run scripts/analysis_pipeline/pipeline.py --list-models
+```
+
+See `scripts/analysis_pipeline/README.md` for the full command reference and
+design documentation.
+
+### Prerequisites
+
+Set `OPENCODE_API_KEY` in `.env` (gitignored). Model IDs are configured in
+`config.yaml` under `analysis.models`. Run `--list-models` after key setup to
+confirm available IDs.
