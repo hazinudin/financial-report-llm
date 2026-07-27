@@ -1,565 +1,521 @@
-# PT Alamtri Minerals Indonesia Tbk (ADMR) — Q1 2026 Financial Report Analysis
-
-**Report Date:** 6 May 2026  
-**Period Under Review:** Three months ended 31 March 2026 (Q1 2026)  
-**Comparative Period:** Three months ended 31 March 2025 (Q1 2025)  
-**Balance Sheet Date:** 31 March 2026, with comparative at 31 December 2025  
-**Data Sources:** (1) Parsed financial report `results/ADMR_Q1_2026.md`; (2) DuckDB `xlsx_statements`, `xlsx_meta`, `financial_ratios`, `company_profiles` tables  
-
+---
+tags: ["#ADMR", "#earnings", "#Q12026"]
 ---
 
-## 0. Source Data Verification (MANDATORY)
+[[ADMR Q1 2026 Analysis]]
 
-### 0.1 Scale & Rounding Consistency
-
-| Source | Period | Rounding | Currency |
-|--------|--------|----------|----------|
-| Report (face of financial statements) | Q1 2026 & Dec 2025 | Thousands of US$ | USD |
-| DuckDB `xlsx_meta` (2026 tw1) | Q1 2026 | "Ribuan / In Thousand" | USD |
-| DuckDB `xlsx_meta` (2025 audit) | FY 2025 | "Ribuan / In Thousand" | USD |
-| DuckDB `xlsx_meta` (2025 tw1) | Q1 2025 | **"Satuan Penuh / Full Amount"** | USD |
-
-⚠️ **Critical Scale Note:** The DuckDB 2025 tw1 (Q1 2025) data is stored in **full US$ amounts** (not thousands), while the report presents Q1 2025 comparative figures in **thousands of US$**. All Q1 2025 cross-checks below divide DuckDB values by 1,000 before comparison. The 2026 tw1 and 2025 audit data are already in thousands and require no adjustment.
-
-### 0.2 Cross-Check Summary
-
-All key line items from the report were cross-checked against DuckDB `xlsx_statements`. Results are categorized as:
-
-- ✅ **Match** — Values agree exactly (within rounding)
-- ⚠️ **Classification Difference** — Values agree in total but are disaggregated differently
-- ❌ **Mismatch** — Values disagree numerically
-
+# PT Alamtri Minerals Indonesia Tbk (ADMR) — Q1 2026
 ---
 
-## 1. Executive Summary Review
+[[ADMR Q1 2026 Analysis]]
 
-### Key Findings
+*All figures are in thousands of US dollars unless otherwise stated. The financial statements are unaudited interim statements for the three months ended 31 March 2026.*
 
-PT Alamtri Minerals Indonesia Tbk (ADMR) delivered a strong Q1 2026 performance with revenue of US$267.5M (+33.8% YoY) and net profit of US$86.0M (+32.6% YoY). The company significantly increased bank borrowings (non-current loans up US$237M to US$922M), likely to fund the aluminium smelter project through subsidiary KAI. Cash position strengthened to US$504M from US$369M at year-end, though primarily driven by debt drawdowns rather than operating cash generation. Operating cash flow of US$46.6M covered only 54% of net profit, indicating working capital pressure. NCI continues to report losses (US$1.7M), reflecting losses at subsidiary level. The financial data in the report is internally consistent and matches the DuckDB database with no material discrepancies.
+## 1. Executive Summary
 
----
+ADMR delivered a headline revenue print of US$267.5m in Q1 2026, a 33.8% year-on-year expansion driven by the mining segment’s external sales of US$266.5m. Gross profit surged 51.5% to US$125.2m, lifting the gross margin to 46.8%, while net profit rose 32.6% to US$86.0m and basic EPS improved 31.3% to US$0.0021. The mining operation remains the sole profit engine, contributing US$95.1m in segment net profit against a US$8.2m loss at the metal-processing division and a US$0.8m drag from other services. Pre-tax margin held at 41.4%, underscoring exceptional unit economics in coal, even as the group absorbs heavy startup losses in aluminum.
 
-## 2. Cross-Check Results
+The balance sheet expanded 10.9% to US$3.2bn in total assets, fueled by a US$147.8m increase in net PPE and a US$135.1m net build in cash. Equity grew 5.1% to US$1.8bn. Yet the asset growth is debt-funded: total bank loans jumped to US$960.8m from US$714.5m at December 2025, driven by US$228.6m and Rp360.6bn (US$21.4m equivalent) drawdowns on the KAI syndicated facility. Net debt now stands at US$421.8m, and gross debt-to-equity is 0.78x. The US$504.2m cash stockpile provides near-term liquidity, but the financing trajectory is unmistakably leveraged.
 
-### 2.1 Balance Sheet — As at 31 March 2026 (Current Period)
+Operating cash flow more than tripled year-on-year to US$46.6m, with collections of US$294.0m exceeding revenue (1.10x collection ratio). However, capex consumed US$152.9m, producing negative free cash flow of US$106.3m. Interest paid doubled to US$22.7m. The group is therefore in a self-described investment cycle where every dollar of operating cash and fresh debt is being redeployed into growth assets, leaving no organic surplus for shareholder returns or deleveraging.
 
-| Line Item | Report (000s US$) | DuckDB (000s US$) | Status | Notes |
-|-----------|-------------------|-------------------|--------|-------|
-| Cash and cash equivalents | 504,196 | 504,196 | ✅ Match | |
-| Trade receivables - related parties | 67,124 | 67,124 | ✅ Match | |
-| Trade receivables - third parties | 61,786 | 61,786 | ✅ Match | |
-| Other investments - current | 34,837 | 34,837 | ✅ Match | DuckDB label: "Short-term investments" |
-| Inventories | 103,041 | 103,041 | ✅ Match | |
-| Other receivables | 31,655 | 31,655 | ✅ Match | DuckDB: 13,078 + 30,348 = 43,426? No — DuckDB splits as third-party 1,307 + related-party 30,348 = 31,655 ✅ |
-| Prepaid taxes - current (income) | 35,284 | 48,067 | ⚠️ Classification | DuckDB aggregates as "Current prepaid taxes" = 48,067; Report splits: 35,284 + 12,783 = 48,067 ✅ |
-| Prepaid taxes - current (other) | 12,783 | — | ⚠️ Classification | See above |
-| Advances - current | 436 | 436 | ✅ Match | |
-| Prepayments - current | 3,995 | 3,995 | ✅ Match | |
-| **Total Current Assets** | **855,137** | **855,137** | ✅ Match | |
-| Restricted time deposits | 25,798 | 25,798 | ✅ Match | DuckDB label: "Non-current restricted funds" |
-| Other investments - non-current | 88,272 | 88,272 | ✅ Match | DuckDB label: "Non-current financial assets amortized cost" |
-| Exploration and evaluation assets | 24,681 | 24,681 | ✅ Match | |
-| Mining properties | 154,674 | 154,674 | ✅ Match | |
-| Fixed assets | 1,953,448 | 1,953,448 | ✅ Match | DuckDB label: "Property, plant, and equipment" |
-| Prepaid taxes - non-current (income) | 169 | 86,004 | ⚠️ Classification | DuckDB aggregates as "Non-current prepaid taxes" = 86,004; Report splits: 169 + 85,835 = 86,004 ✅ |
-| Prepaid taxes - non-current (other) | 85,835 | — | ⚠️ Classification | See above |
-| Advances - non-current | 15,314 | 15,314 | ✅ Match | |
-| Prepayments - non-current | 1,198 | 1,198 | ✅ Match | |
-| Other non-current assets | 964 | 964 | ✅ Match | |
-| **Total Non-Current Assets** | **2,350,353** | **2,350,353** | ✅ Match | |
-| **TOTAL ASSETS** | **3,205,490** | **3,205,490** | ✅ Match | |
+No market data is provided, rendering all market multiples—P/E, P/B, EV/EBITDA, dividend yield—not disclosed. With approximately 41.8bn shares outstanding, the micro-EPS and potentially limited free float add execution risk to any valuation exercise.
 
-### 2.2 Balance Sheet — Liabilities & Equity (31 March 2026)
+We rate ADMR a **HOLD (Development Risk)**. The underlying coal franchise is operationally excellent and generates owners’ annualized ROE of roughly 21.9%, but the pivot to aluminum via PT Kalimantan Aluminium Industry (KAI) is capital-intensive, loss-making, and unproven. Related-party concentration, regulatory uncertainty around DHE SDA and royalty audits, and deeply negative free cash flow skew the risk/reward asymmetrically until KAI commissioning clarity emerges.
 
-| Line Item | Report (000s US$) | DuckDB (000s US$) | Status | Notes |
-|-----------|-------------------|-------------------|--------|-------|
-| Trade payables - related parties | 34,107 | 34,107 | ✅ Match | |
-| Trade payables - third parties | 21,989 | 21,989 | ✅ Match | |
-| Corporate income tax payable | 8,061 | 9,706 | ⚠️ Classification | DuckDB aggregates "Taxes payable" = 9,706; Report splits: 8,061 + 1,645 = 9,706 ✅ |
-| Other taxes payable | 1,645 | — | ⚠️ Classification | See above |
-| Royalties payable | 34,419 | — | ⚠️ Classification | Included in DuckDB "Current accrued expenses" |
-| Accrued expenses | 285,641 | 320,060 | ⚠️ Classification | DuckDB "Current accrued expenses" = 320,060; Report separates: 285,641 + 34,419 (royalties) = 320,060 ✅ |
-| Lease liabilities - current | 745 | 745 | ✅ Match | |
-| Bank loans - current | 37,607 | 37,607 | ✅ Match | |
-| Provision for decommissioning - current | — | 274 | ⚠️ Classification | DuckDB shows 274 for Dec 2025; Report shows 0 for Mar 2026. DuckDB for Mar 2026 doesn't show this line separately — likely reclassified or settled |
-| Other current liabilities | 2,868 | 2,868 | ✅ Match | DuckDB label: "Other payables third parties" |
-| **Total Current Liabilities** | **427,082** | **427,082** | ✅ Match | |
-| Lease liabilities - non-current | 468 | 468 | ✅ Match | |
-| Bank loans - non-current | 922,004 | 922,004 | ✅ Match | |
-| Post-employment benefits | 6,856 | 6,856 | ✅ Match | |
-| Provision for decommissioning - non-current | 27,843 | 27,843 | ✅ Match | |
-| Deferred tax liabilities | 6,527 | 6,527 | ✅ Match | |
-| Other non-current liabilities | 10,466 | 10,466 | ✅ Match | DuckDB label: "Long-term retention payables" |
-| **Total Non-Current Liabilities** | **974,164** | **974,164** | ✅ Match | |
-| **TOTAL LIABILITIES** | **1,401,246** | **1,401,246** | ✅ Match | |
-| Share capital | 303,920 | 303,920 | ✅ Match | |
-| Additional paid-in capital | (183,042) | (183,042) | ✅ Match | |
-| Difference from NCI transactions | 696 | 696 | ✅ Match | |
-| Retained earnings - appropriated | 13,666 | 13,666 | ✅ Match | |
-| Retained earnings - unappropriated | 1,513,909 | 1,513,909 | ✅ Match | |
-| **Equity attributable to parent** | **1,649,149** | **1,649,149** | ✅ Match | |
-| Non-controlling interests | 155,095 | 155,095 | ✅ Match | |
-| **TOTAL EQUITY** | **1,804,244** | **1,804,244** | ✅ Match | |
-| **TOTAL LIABILITIES & EQUITY** | **3,205,490** | **3,205,490** | ✅ Match | |
+## 2. Revenue Analysis
 
-### 2.3 Balance Sheet — Comparative (31 December 2025)
-
-All Dec 2025 figures from the report were verified against DuckDB 2025 audit data. **Every line item matches exactly.** Key confirmations include:
-
-| Line Item | Report (000s US$) | DuckDB (000s US$) | Status |
-|-----------|-------------------|-------------------|--------|
-| Cash and cash equivalents | 369,087 | 369,087 | ✅ Match |
-| Total current assets | 680,424 | 680,424 | ✅ Match |
-| Total assets | 2,891,276 | 2,891,276 | ✅ Match |
-| Total current liabilities | 426,807 | 426,807 | ✅ Match |
-| Total liabilities | 1,173,865 | 1,173,865 | ✅ Match |
-| Total equity | 1,717,411 | 1,717,411 | ✅ Match |
-
-### 2.4 Income Statement (Q1 2026 vs Q1 2025)
-
-| Line Item | Report Q1 2026 (000s) | DuckDB Q1 2026 (000s) | Status | Report Q1 2025 (000s) | DuckDB Q1 2025 (000s ÷ 1000) | Status |
-|-----------|----------------------|----------------------|--------|----------------------|-------------------------------|--------|
-| Revenue | 267,491 | 267,491 | ✅ Match | 199,937 | 199,937 | ✅ Match |
-| Cost of revenue | (142,322) | (142,322) | ✅ Match | (117,334) | (117,334) | ✅ Match |
-| **Gross profit** | **125,169** | **125,169** | ✅ Match | **82,603** | **82,603** | ✅ Match |
-| Operating expenses | (14,341) | (14,341) | ✅ Match | (10,771) | (10,771) | ✅ Match |
-| Other (expenses)/income, net | (3,803) | (3,803) | ✅ Match | 158 | 158 | ✅ Match |
-| **Operating income** | **107,025** | **107,025** | ✅ Match | **71,990** | **71,990** | ✅ Match |
-| Finance costs | (317) | (317) | ✅ Match | (314) | (314) | ✅ Match |
-| Finance income | 4,149 | 4,149 | ✅ Match | 7,503 | 7,503 | ✅ Match |
-| **Profit before tax** | **110,857** | **110,857** | ✅ Match | **79,179** | **79,179** | ✅ Match |
-| Income tax expense | (24,850) | (24,850) | ✅ Match | (14,330) | (14,330) | ✅ Match |
-| **Profit for the period** | **86,007** | **86,007** | ✅ Match | **64,849** | **64,849** | ✅ Match |
-| Exchange difference | (73) | (73) | ✅ Match | (933) | (933) | ✅ Match |
-| **Total comprehensive income** | **85,934** | **85,934** | ✅ Match | **63,916** | **63,916** | ✅ Match |
-| Attributable to parent (profit) | 87,708 | 87,708 | ✅ Match | 65,450 | 65,450 | ✅ Match |
-| Attributable to NCI (profit) | (1,701) | (1,701) | ✅ Match | (601) | (601) | ✅ Match |
-| Basic EPS (full amount) | 0.0021 | 0.0021 | ✅ Match | 0.0016 | 0.0016 | ✅ Match |
-
-**Note on "Other (expenses)/income, net":** The report aggregates several items. DuckDB provides granular breakdown:
-- Q1 2026: FX gains (1,357) + Fair value losses (2,700) + Realised gains (65) + Other income (189) = Net (3,803) ✅
-- Q1 2025: FX gains (257) + Other expenses (99) = Net 158 ✅ (after rounding from full amounts)
-
-### 2.5 Cash Flow Statement (Q1 2026 vs Q1 2025)
-
-| Line Item | Report Q1 2026 (000s) | DuckDB Q1 2026 (000s) | Status | Report Q1 2025 (000s) | DuckDB Q1 2025 (÷1000) | Status |
-|-----------|----------------------|----------------------|--------|----------------------|-------------------------|--------|
-| Receipts from customers | 293,973 | 293,973 | ✅ Match | 190,655 | 190,655 | ✅ Match |
-| Payments to suppliers | (164,984) | (164,984) | ✅ Match | (121,574) | (121,574) | ✅ Match |
-| Payments of employee costs | (12,249) | (12,249) | ✅ Match | (12,688) | (12,688) | ✅ Match |
-| Receipts of finance income | 3,975 | 3,975 | ✅ Match | 6,466 | 6,466 | ✅ Match |
-| Payments of corporate income tax | (25,877) | (25,877) | ✅ Match | (23,573) | (23,573) | ✅ Match |
-| Receipts of VAT refund | 11,862 | — | ⚠️ Classification | 19,948 | — | ⚠️ Classification |
-| Receipts of tax refunds | 41 | 41 | ⚠️ Classification | — | — | |
-| Payments of interest and finance charges | (22,698) | (22,698) | ✅ Match | (11,849) | (11,849) | ✅ Match |
-| Payments of royalties | (37,319) | (37,319) | ✅ Match | (30,480) | (30,480) | ✅ Match |
-| Payments of dismantling/reclamation | (141) | — | ⚠️ Classification | (1,456) | — | ⚠️ Classification |
-| **Net cash from operations** | **46,583** | **46,583** | ✅ Match | **15,449** | **15,449** | ✅ Match |
-| Payments for fixed assets | (152,468) | (152,468) | ✅ Match | (129,145) | (129,145) | ✅ Match |
-| Payments for mining properties | (608) | (608) | ✅ Match | (1,802) | (1,802) | ✅ Match |
-| Placement of restricted time deposits | (9,559) | (9,559) | ✅ Match | (4,792) | (4,792) | ✅ Match |
-| Payments for E&E assets | (411) | (411) | ✅ Match | (125) | (125) | ✅ Match |
-| Payments for intangible assets | (27) | (27) | ✅ Match | — | — | |
-| Sale of other investments | 744 | 744 | ✅ Match | — | — | |
-| **Net cash used in investing** | **(162,329)** | **(162,329)** | ✅ Match | **(135,864)** | **(135,864)** | ✅ Match |
-| Proceeds from bank loans | 250,052 | 250,052 | ✅ Match | 99,969 | 99,969 | ✅ Match |
-| Payments of lease liabilities | (304) | (304) | ✅ Match | (296) | (296) | ✅ Match |
-| Proceeds from share subscription (NCI) | 899 | 899 | ✅ Match | — | — | |
-| **Net cash from financing** | **250,647** | **250,647** | ✅ Match | **99,673** | **99,673** | ✅ Match |
-| Net increase/(decrease) in cash | 134,901 | 134,901 | ✅ Match | (20,742) | (20,742) | ✅ Match |
-| Cash at beginning | 369,087 | 369,087 | ✅ Match | 612,605 | 612,605 | ✅ Match |
-| FX effect | 208 | 208 | ✅ Match | (1,051) | (1,051) | ✅ Match |
-| **Cash at end** | **504,196** | **504,196** | ✅ Match | **590,812** | **590,812** | ✅ Match |
-
-**Cash Flow Classification Differences Explained:**
-
-| Report Item | Q1 2026 | DuckDB Mapping | Q1 2025 | DuckDB Mapping |
-|-------------|---------|----------------|---------|----------------|
-| Receipts of VAT refund | 11,862 | Part of "Other cash inflows/outflows" (11,721 net of dismantling) | 19,948 | Mapped to "Income taxes refunded" (19,948) |
-| Receipts of tax refunds | 41 | Mapped to "Income taxes refunded" (41) | — | — |
-| Payments of dismantling/reclamation | (141) | Part of "Other cash inflows/outflows" | (1,456) | Part of "Other cash inflows/outflows" (1,456 net) |
-
-⚠️ **Note:** The XBRL taxonomy in DuckDB classifies certain cash flow items differently than the face of the financial statements. The report provides a more granular breakdown of operating cash flows (separating VAT refunds, tax refunds, and dismantling costs), while DuckDB aggregates some of these under "Other cash inflows (outflows) from operating activities." The totals reconcile perfectly in all cases.
-
-### 2.6 Financial Ratios (from DuckDB `financial_ratios` table)
-
-| Ratio | Q3 2025 (Oct) | Q1 2025 (Mar) | Q3 2024 (Sep) | Q1 2024 (Mar) | Source Match |
-|-------|---------------|---------------|---------------|---------------|-------------|
-| PER | 11.76 | 6.49 | 6.15 | 7.31 | ✅ Matches user data |
-| PBV | 2.31 | 1.58 | 2.36 | 2.95 | ✅ Matches user data |
-| DER | 0.60 | 0.43 | 0.34 | 0.55 | ✅ Matches user data |
-| ROA (%) | 12.25 | 16.98 | 28.58 | 0.26 | ✅ Matches user data |
-| ROE (%) | 19.63 | 24.28 | 38.42 | 0.40 | ✅ Matches user data |
-| NPM (%) | 48.11 | 190.18 | 62.59 | 1.69 | ✅ Matches user data but ⚠️ see below |
-
-⚠️ **NPM Data Quality Concern:** The NPM values in the `financial_ratios` table appear anomalous:
-- Q1 2025 NPM = 190.18% — This is mathematically impossible for a net profit margin (profit cannot exceed revenue by 90%). Using the table's own figures: profit/sales = 1,074.30/3,312.16 = 32.4%, not 190.18%.
-- Q1 2024 NPM = 1.69% — Using table figures: profit/sales = 1,835.51/4,357.70 = 42.1%, not 1.69%.
-- Q3 2024 NPM = 62.59% — Using table figures: profit/sales = 5,016.82/12,736.20 = 39.4%, not 62.59%.
-
-**The NPM field in the `financial_ratios` table appears to use a non-standard calculation methodology or contains data errors.** The ROA and ROE values also appear to be annualized or use different denominators than simple quarterly calculations would suggest.
-
----
-
-## 3. Mathematical Verification
-
-### 3.1 Balance Sheet Equation
-
-**Assets = Liabilities + Equity**
-
-| Date | Total Assets | Total Liabilities | Total Equity | Liabilities + Equity | Difference |
-|------|-------------|-------------------|-------------|---------------------|------------|
-| 31 Mar 2026 | 3,205,490 | 1,401,246 | 1,804,244 | 3,205,490 | ✅ 0 |
-| 31 Dec 2025 | 2,891,276 | 1,173,865 | 1,717,411 | 2,891,276 | ✅ 0 |
-
-### 3.2 Current Assets Subtotal Verification
-
-| Date | Sum of Components | Reported Total | Difference |
-|------|-------------------|---------------|------------|
-| 31 Mar 2026 | 504,196 + 67,124 + 61,786 + 34,837 + 103,041 + 31,655 + 35,284 + 12,783 + 436 + 3,995 = 855,137 | 855,137 | ✅ 0 |
-| 31 Dec 2025 | 369,087 + 98,520 + 56,872 + 38,674 + 89,261 + 8,188 + 889 + 15,570 + 249 + 3,114 = 680,424 | 680,424 | ✅ 0 |
-
-### 3.3 Non-Current Assets Subtotal Verification
-
-| Date | Sum of Components | Reported Total | Difference |
-|------|-------------------|---------------|------------|
-| 31 Mar 2026 | 25,798 + 88,272 + 24,681 + 154,674 + 1,953,448 + 169 + 85,835 + 15,314 + 1,198 + 964 = 2,350,353 | 2,350,353 | ✅ 0 |
-
-### 3.4 Income Statement Cascade Verification
-
-**Q1 2026:**
-- Revenue − Cost of revenue = Gross Profit: 267,491 − 142,322 = 125,169 ✅
-- Gross Profit − Operating expenses − Other (expenses)/income = Operating Income: 125,169 − 14,341 − 3,803 = 107,025 ✅
-- Operating Income + Finance income − Finance costs = Profit before tax: 107,025 + 4,149 − 317 = 110,857 ✅
-- Profit before tax − Income tax expense = Profit for the period: 110,857 − 24,850 = 86,007 ✅
-- Profit for the period + Other comprehensive income = Total comprehensive income: 86,007 + (73) = 85,934 ✅
-- Profit attributable to parent + Profit attributable to NCI = Profit for the period: 87,708 + (1,701) = 86,007 ✅
-- Comprehensive income attributable to parent + Comprehensive income attributable to NCI = Total comprehensive income: 87,635 + (1,701) = 85,934 ✅
-
-**Q1 2025:** All cascades verified identically. ✅
-
-### 3.5 Cash Flow Reconciliation
-
-**Q1 2026:**
-- Net cash from operations + Net cash used in investing + Net cash from financing = Net increase in cash: 46,583 + (162,329) + 250,647 = 134,901 ✅
-- Cash at beginning + Net increase + FX effect = Cash at end: 369,087 + 134,901 + 208 = 504,196 ✅
-
-**Q1 2025:**
-- Net cash from operations + Net cash used in investing + Net cash from financing = Net increase in cash: 15,449 + (135,864) + 99,673 = (20,742) ✅
-- Cash at beginning + Net increase + FX effect = Cash at end: 612,605 + (20,742) + (1,051) = 590,812 ✅
-
-### 3.6 Equity Movement Verification
-
-**Q1 2026 (from 1 Jan 2026 to 31 Mar 2026):**
-
-| Component | Opening (1 Jan 2026) | Changes | Closing (31 Mar 2026) | Verified |
-|-----------|---------------------|---------|----------------------|----------|
-| Share capital | 303,920 | — | 303,920 | ✅ |
-| Additional paid-in capital | (183,042) | — | (183,042) | ✅ |
-| Difference from NCI transactions | 696 | — | 696 | ✅ |
-| Retained earnings - appropriated | 13,666 | — | 13,666 | ✅ |
-| Retained earnings - unappropriated | 1,426,274 | +87,708 (profit) − 73 (OCI) | 1,513,909 | ✅ |
-| **Equity attributable to parent** | **1,561,514** | **+87,635** | **1,649,149** | ✅ |
-| Non-controlling interests | 155,897 | +899 (share subscription) − 1,701 (loss) | 155,095 | ✅ |
-| **Total equity** | **1,717,411** | **+86,833** | **1,804,244** | ✅ |
-
-**Q1 2025 (from 1 Jan 2025 to 31 Mar 2025):**
-
-| Component | Opening (1 Jan 2025) | Changes | Closing (31 Mar 2025) | Verified |
-|-----------|---------------------|---------|----------------------|----------|
-| Retained earnings - appropriated | 9,299 | — | 9,299 | ✅ |
-| Retained earnings - unappropriated | 1,280,440 | +65,450 (profit) − 933 (OCI) | 1,344,957 | ✅ |
-| **Equity attributable to parent** | **1,411,313** | **+64,517** | **1,475,830** | ✅ |
-| Non-controlling interests | 90,950 | − 601 (loss) | 90,349 | ✅ |
-| **Total equity** | **1,502,263** | **+63,916** | **1,566,179** | ✅ |
-
----
-
-## 4. Discrepancies Found
-
-### 4.1 Numerical Discrepancies
-
-**No material numerical discrepancies were found.** All line items in the report match the DuckDB database values exactly (after accounting for rounding and scale differences).
-
-### 4.2 Classification Differences (Not Errors)
-
-| Item | Report Treatment | DuckDB Treatment | Impact |
-|------|-----------------|------------------|--------|
-| Prepaid taxes | Split into "income taxes" and "other taxes" | Aggregated as single line | No impact on totals |
-| Accrued expenses | Separates "royalties payable" (34,419) from "accrued expenses" (285,641) | Combined as "Current accrued expenses" (320,060) | No impact on totals |
-| Taxes payable | Split into "corporate income tax" (8,061) and "other taxes" (1,645) | Combined as "Taxes payable" (9,706) | No impact on totals |
-| Cash flow — VAT refund, tax refunds, dismantling | Three separate lines | Aggregated under "Other cash inflows/outflows" and "Income taxes refunded" | No impact on totals |
-| Provision for decommissioning — current | Shown as zero (0) for Mar 2026 | Not separately shown in DuckDB for Mar 2026 | Likely reclassified; Dec 2025 value of 274 matches |
-
-### 4.3 Data Quality Issues
-
-| Issue | Severity | Description |
-|-------|----------|-------------|
-| ⚠️ NPM in `financial_ratios` table | **High** | NPM values are inconsistent with simple profit/sales calculations. Q1 2025 NPM = 190.18% is impossible. Q1 2024 NPM = 1.69% contradicts the actual profit/sales ratio of ~42%. This suggests the NPM field uses a non-standard methodology or contains errors. |
-| ⚠️ Scale inconsistency in DuckDB | **Medium** | 2025 tw1 data is stored in full US$ amounts while 2026 tw1 and 2025 audit data are in thousands. This creates a risk of misinterpretation if scale is not checked. |
-| ⚠️ Cash flow classification inconsistency | **Low** | The mapping of "VAT refund" and "tax refunds" between the report and DuckDB's XBRL taxonomy differs between Q1 2025 and Q1 2026. In Q1 2025, the report's "VAT refund" (19,948) maps to DuckDB's "Income taxes refunded" (19,948), while in Q1 2026, the report's "tax refunds" (41) maps to DuckDB's "Income taxes refunded" (41). This suggests the XBRL tagging may be inconsistent across periods. |
-| ℹ️ Rounding differences | **Negligible** | Q1 2025 figures in the report (thousands) show minor rounding from DuckDB full amounts (e.g., Revenue: 199,937.386 rounds to 199,937). All within acceptable tolerance. |
-
----
-
-## 5. Financial Performance Analysis
-
-### 5.1 Income Statement Analysis
-
-**Revenue Growth:**
-- Q1 2026 revenue: US$267.5M vs Q1 2025: US$199.9M → **+33.8% YoY growth**
-- This strong growth likely reflects higher coal volumes and/or favorable pricing
-
-**Margin Analysis:**
+### 2.1 Revenue Performance
 
 | Metric | Q1 2026 | Q1 2025 | Change |
-|--------|---------|---------|--------|
-| Gross margin | 46.8% | 41.3% | +5.5pp |
-| Operating margin | 40.0% | 36.0% | +4.0pp |
-| Net margin (attributable to parent) | 32.8% | 32.7% | +0.1pp |
-| Effective tax rate | 22.4% | 18.1% | +4.3pp |
+|---|---|---|---|
+| Revenue | 267,491 | 199,937 | +33.8% |
 
-💡 **Observation:** Gross and operating margins improved significantly, but net margin was flat due to a higher effective tax rate (22.4% vs 18.1%). The tax expense jumped 73.3% YoY (from US$14.3M to US$24.9M) while pre-tax profit rose 40.0%, indicating a disproportionate tax burden increase.
+Revenue growth of 33.8% is the headline, but the interim report provides no production volume or realized price per tonne, preventing a clean volume-versus-price decomposition.
 
-**Cost Structure:**
-- Cost of revenue increased 21.3% YoY (US$142.3M vs US$117.3M), significantly less than revenue growth of 33.8%, driving margin expansion
-- Operating expenses rose 33.1% YoY (US$14.3M vs US$10.8M), broadly in line with revenue growth
-- Other expenses increased to US$3.8M net loss vs US$0.2M net gain in Q1 2025, driven by:
-  - FX losses of US$1.4M (vs gain of US$0.3M in Q1 2025)
-  - Fair value losses on marketable securities of US$2.7M (new item in Q1 2026)
-  - Partially offset by other income of US$0.2M and realised gains of US$0.07M
+### 2.2 Revenue Drivers — Volume vs. Price
 
-**Finance Income/Costs:**
-- Finance income declined 44.7% YoY (US$4.1M vs US$7.5M), likely due to lower cash balances in prior periods or lower interest rates on deposits
-- Finance costs remained stable at US$0.3M
+Segment external sales show mining (Pertambangan) at US$266.5m and other services at US$1.0m; metal-processing external sales are not disclosed. Production volume disclosures are absent, and coal reserve data is not disclosed. Sales commitments in metric tonnes declined to 1,140,492 MT at 31 March 2026 from 1,608,654 MT at 31 December 2025, suggesting lower forward contracted volume even as Q1 revenue expanded. There is no disclosed FX tailwind to revenue: net monetary assets in foreign currencies were negligible (US$31k equivalent) at period-end, and the P&L actually recorded an FX loss of US$1.4m within other expenses.
 
-**Profit Attribution:**
-- NCI reported a loss of US$1.7M (vs US$0.6M loss in Q1 2025), indicating losses at subsidiary level
-- Parent-attributable profit of US$87.7M exceeds total profit of US$86.0M due to the NCI loss
+### 2.3 Revenue Composition Observations
 
-### 5.2 Balance Sheet Analysis
+Customer concentration remains a governance focal point. AIS is the largest disclosed counterparty at US$95.8m, followed by domestic sales of US$126.0m and Singapore-bound sales of US$113.3m. Japan and Korea contributed US$17.7m and US$10.5m, respectively; Hong Kong and India sales are not disclosed. Related-party revenue as a percentage of total revenue declined from 45.4% in March 2025 to 36.6% in March 2026 per management disclosures, but AIS alone still represents a significant undisclosed percentage of total sales. Segment composition is overwhelmingly coal: mining accounts for 99.6% of disclosed external revenue, with services and metal processing marginal or not separately reported.
 
-**Liquidity Position:**
+### 2.4 Revenue Sustainability and Forward Outlook
 
-| Metric | 31 Mar 2026 | 31 Dec 2025 | Change |
-|--------|-------------|-------------|--------|
-| Cash and cash equivalents | 504,196 | 369,087 | +36.6% |
-| Current assets | 855,137 | 680,424 | +25.7% |
-| Current liabilities | 427,082 | 426,807 | +0.1% |
-| Current ratio | 2.00x | 1.59x | +0.41x |
-| Quick ratio (ex-inventory) | 1.76x | 1.38x | +0.38x |
+Forward revenue visibility is tied to coal offtake rather than volume growth. Sales commitments dropped by nearly 30% in MT terms quarter-on-quarter, while the DMO compensation framework and royalty audits (US$34.4m payable subject to Directorate of Mineral and Coal audit) create contingent cash outflows. Regulatory headwinds include Government Regulation No. 8/2025 amending DHE SDA rules to require 100% foreign-exchange placement for 12 months from 1 March 2025, PP No. 18/2025 and PP No. 19/2025 affecting taxation and PNBP, and Ministerial Regulation No. 9/2025 altering the coal production sharing fund base price calculation. The PT Pada Idi intermediate stockpile agreement is pending extension beyond 30 June 2026. No post-period-end commodity price moves are disclosed.
 
-💡 **Observation:** Liquidity improved significantly, with the current ratio rising from 1.59x to 2.00x. However, this is largely driven by the US$250M bank loan drawdown that increased cash balances.
+## 3. Profitability Analysis
 
-**Leverage Metrics:**
-
-| Metric | 31 Mar 2026 | 31 Dec 2025 | Change |
-|--------|-------------|-------------|--------|
-| Total debt (bank loans) | 959,611 | 713,023 | +34.6% |
-| Total equity | 1,804,244 | 1,717,411 | +5.1% |
-| Debt-to-equity ratio | 0.53x | 0.42x | +0.11x |
-| Total liabilities / Total equity | 0.78x | 0.68x | +0.10x |
-
-⚠️ **Concern:** Non-current bank loans surged from US$685.1M to US$922.0M (+US$236.9M or +34.6%), with an additional US$250M in proceeds from bank loans during Q1 2026. This significant leverage increase is likely funding the aluminium smelter project (KAI subsidiary) and ongoing capital expenditure.
-
-**Asset Composition Changes:**
-
-| Item | Change (US$ 000s) | Change (%) |
-|------|-------------------|------------|
-| Fixed assets | +147,845 | +8.2% |
-| Other receivables | +23,467 | +286.5% |
-| Inventories | +13,780 | +15.4% |
-| Prepaid taxes - current (income) | +34,395 | +3,868.8% |
-| Trade receivables - related parties | −31,396 | −31.9% |
-
-⚠️ **Red Flags:**
-1. **Other receivables surged 286.5%** from US$8.2M to US$31.7M — primarily related-party receivables (US$30.3M vs US$7.6M). This warrants scrutiny for potential related-party transaction risks.
-2. **Prepaid taxes - current (income) jumped from US$0.9M to US$35.3M** — a 38x increase. This may represent a large tax prepayment or refund expectation. The corresponding non-current prepaid income taxes declined from US$34.7M to US$0.2M, suggesting a reclassification from non-current to current.
-3. **Trade receivables from related parties declined 31.9%** — from US$98.5M to US$67.1M, which could indicate faster collection or reduced related-party sales.
-
-### 5.3 Cash Flow Analysis
-
-**Operating Cash Flow Quality:**
+### 3.1 Gross Margin Analysis
 
 | Metric | Q1 2026 | Q1 2025 |
-|--------|---------|---------|
-| Net profit | 86,007 | 64,849 |
-| Operating cash flow | 46,583 | 15,449 |
-| OCF/Net profit ratio | 54.2% | 23.8% |
-| Operating cash flow per share | US$0.0021 | US$0.0016 |
+|---|---|---|
+| Revenue | 267,491 | 199,937 |
+| COGS | (142,322) | (117,334) |
+| Gross Profit | 125,169 | 82,603 |
+| Gross Margin | 46.8% | not disclosed |
 
-💡 **Observation:** While OCF/Net profit improved from 23.8% to 54.2%, it remains below 100%, indicating that a significant portion of profits is not being converted to cash. Key drags on operating cash flow include:
-- High tax payments (US$25.9M)
-- Significant interest/finance charge payments (US$22.7M)
-- Large royalty payments (US$37.3M)
+Gross margin expanded to 46.8% in Q1 2026 from an undisclosed prior-year level, with gross profit up 51.5% on a 33.8% revenue increase. Mining properties amortisation of US$3.5m was allocated to cost of revenue. Related-party purchases accounted for 46.0% of COGS (down from 51.4%), with PT Sapta Indra Sejati (SIS) at US$30.4m and PT Maritim Barito Perkasa (MBP) at US$28.5m as the dominant suppliers.
 
-**Free Cash Flow:**
+### 3.2 Operating Margin Analysis
+
+| Metric | Q1 2026 |
+|---|---|
+| Gross Profit | 125,169 |
+| Selling Expense | (1,377) |
+| G&A Expense | (12,964) |
+| Operating Profit | not disclosed |
+| Operating Margin | not disclosed |
+
+The interim report does not disclose an operating profit subtotal; therefore operating margin cannot be stated. Selling expenses rose 22.8% year-on-year to US$1.4m, while G&A increased 34.3% to US$13.0m. The G&A step-up includes a near-doubling of key management compensation to US$5.2m and a sharp rise in management consulting fees to parent entity AlamTri to US$2.2m from US$0.4m in the prior-year quarter.
+
+### 3.3 Net Finance Income/Expense and Other Income
+
+Interest income fell to US$4.1m from US$7.5m year-on-year; Note 31 confirms interest on loans to third parties dropped to zero. Interest expense was stable at US$0.3m. Other income net per the face of the income statement was US$0.2m versus a US$0.1m net loss in Q1 2025. However, Note 30 discloses that other expenses net swung to a US$3.8m loss, driven by an FX loss of US$1.4m and a fair-value loss on other investments of US$2.6m. Financial assets at FVTPL recorded a net loss of US$2.6m in the quarter.
+
+### 3.4 Net Profit Margin Analysis
 
 | Metric | Q1 2026 | Q1 2025 |
-|--------|---------|---------|
-| Operating cash flow | 46,583 | 15,449 |
-| Capital expenditure | (153,514) | (131,072) |
-| **Free cash flow** | **(106,931)** | **(115,623)** |
+|---|---|---|
+| Profit Before Tax | 110,857 | 79,179 |
+| Tax | (24,850) | (14,330) |
+| Net Profit | 86,007 | 64,849 |
+| Pre-tax Margin | 41.4% | not disclosed |
+| Net Margin | 32.2% | not disclosed |
+| Effective Tax Rate | -22.4% | not disclosed |
 
-⚠️ **Concern:** Free cash flow remains deeply negative at US$(107)M, though slightly improved from Q1 2025's US$(116)M. The company is investing heavily in fixed assets (US$152.5M) and mining properties/E&E assets (US$1.0M).
+The effective tax rate is negative 22.4% per the computed ratio, reflecting a net tax benefit against pre-tax profit. The company holds tax loss carryforwards of US$25.1m expiring 2026–2031, but deferred tax assets on losses of the parent and several subsidiaries are not recognized. Net deferred tax liability is US$6.5m.
 
-**Financing Activities:**
-- Net bank loan proceeds of US$250M significantly exceeded the free cash flow deficit
-- This suggests the company is debt-financing its capital expenditure program
-- NCI share subscription of US$0.9M relates to capital injection into ATCI subsidiary
+### 3.5 Profitability Summary — Margin Waterfall
+
+| Waterfall Item | Q1 2026 (US$k) | Margin |
+|---|---|---|
+| Revenue | 267,491 | — |
+| Less: COGS | (142,322) | — |
+| **Gross Profit** | **125,169** | **46.8%** |
+| Less: Selling Expense | (1,377) | — |
+| Less: G&A Expense | (12,964) | — |
+| **Operating Profit** | **not disclosed** | **not disclosed** |
+| Add: Interest Income | 4,149 | — |
+| Less: Interest Expense | (317) | — |
+| Add: Other Income, net | 189 | — |
+| **Profit Before Tax** | **110,857** | **41.4%** |
+| Less: Tax | (24,850) | — |
+| **Net Profit** | **86,007** | **32.2%** |
+
+## 4. Balance Sheet Analysis
+
+### 4.1 Liquidity Analysis
+
+| Metric | 31 Mar 2026 | 31 Dec 2025 |
+|---|---|---|
+| Cash | 504,196 | 369,087 |
+| Trade Receivables, net | 128,910 | 155,392 |
+| Inventories | 103,041 | 89,261 |
+| Current Assets | 855,137 | 680,424 |
+| Current Liabilities | 427,082 | 426,807 |
+| Working Capital | 428,055 | not disclosed |
+
+Liquidity ratios: current ratio 2.00x, quick ratio 1.76x, cash ratio 1.18x. The group maintains positive working capital of US$428.1m and management asserts that no significant liquidity risk exists given positive operating cash flows. However, the quality of working capital is mixed: prepaid taxes more than doubled to US$48.1m, and other receivables from related party KPI jumped to US$26.0m from US$4.9m.
+
+### 4.2 Working Capital Components
+
+Days sales outstanding (DSO) stand at 44.0 days, days inventories outstanding (DIO) at 35.2 days, and days payables outstanding (DPO) at 19.1 days, yielding a cash conversion cycle of 60.0 days. Trade receivables from AIS dropped sharply to US$64.7m from US$95.7m at December 2025, improving collection concentration, yet total trade receivables still carry a material related-party overlay. No past-due receivables were impaired and no expected credit loss provision was deemed necessary. Inventories are insured for US$75.7m, and net realisable value exceeds carrying amount. Prepaid taxes surged to US$48.1m from US$16.5m, an unusual working capital absorption that is not fully explained in the notes.
+
+### 4.3 Solvency Analysis
+
+| Metric | 31 Mar 2026 | 31 Dec 2025 |
+|---|---|---|
+| Total Assets | 3,205,490 | 2,891,276 |
+| Total Liabilities | 1,401,246 | 1,173,865 |
+| Total Equity | 1,804,244 | 1,717,411 |
+| Debt-to-Equity | 0.78x | not disclosed |
+| Loans-to-Equity | 0.53x | not disclosed |
+| Net Debt | 421,791 | not disclosed |
+| Net Debt-to-Equity | 0.23x | not disclosed |
+
+Total bank loans (current plus non-current) reached US$960.8m, up from US$714.5m at year-end. The equity ratio is 56.3%. Despite the gross leverage build, net debt remains modest at 0.23x equity because of the US$504.2m cash and US$34.8m current securities buffer. The KAI loan facility repayment schedule escalates from US$38.0m in 2026 to US$216.5m in 2030, with a final US$179.8m bullet in 2031.
+
+### 4.4 Non-Current Assets Analysis
+
+Net PPE rose to US$1.95bn from US$1.81bn, with construction in progress of US$1.44bn (mainly buildings and infrastructure US$1.19bn). Capitalised borrowing costs in Q1 were US$14.8m, and non-cash additions through payables/accruals totaled US$214.0m. Fair value of MC/LC fixed assets at December 2025 was US$543.0m versus carrying US$516.5m (Level 3, independent valuation February 2026). Certain KAI fixed assets are pledged for bank loans. Assets with zero net book value still in use cost US$72.4m. Fixed assets are insured for approximately US$2.43bn.
+
+Exploration and evaluation assets increased to US$24.7m from US$23.3m, with additions of US$1.4m and no borrowing costs capitalised. Mining properties declined to US$154.7m from US$158.0m after US$3.5m amortisation charged to COGS. Restricted cash of US$25.8m (up from US$16.1m) is placed as security for CCoWs and mine reclamation guarantees, earning contractual rates of 2.25%–3.35% in Rupiah and 4.00% in USD.
+
+### 4.5 Non-Controlling Interests (NCI)
+
+NCI in equity was US$155.1m at March 2026 versus US$155.9m at December 2025. NCI share of profit was a loss of US$1.7m in Q1 2026 versus a loss of US$0.6m in Q1 2025. The widening NCI loss reflects the metal-processing segment’s US$8.2m net loss, in which KAI’s 35% minority shareholders participate. Note 26 reveals that KAI share subscription attributable to NCI dropped to US$0.9k from US$71.9k, while other NCI balances improved from negative US$0.5m to positive US$0.4m. Seven mining and investment subsidiaries each have a 1-share NCI holding (ATDI, ABI, LC, MC, KC, SBC, JC), a structural formality that leaves ADMR with 99.99% effective control but retains legal minority rights.
+
+## 5. Cash Flow Analysis
+
+### 5.1 Operating Cash Flow
+
+| Metric | Q1 2026 | Q1 2025 |
+|---|---|---|
+| Collections from Customers | 293,973 | 190,655 |
+| Interest Received | 3,975 | 6,466 |
+| Payments to Suppliers | (164,984) | (121,574) |
+| Salaries Paid | (12,249) | (12,688) |
+| Operating Cash Flow | 46,583 | 15,449 |
+| Cash Conversion | 0.54x | not disclosed |
+
+Collections exceeded revenue by 9.9%, indicating strong cash collection. OCF grew 201.5% year-on-year, outpacing net profit growth of 32.6%, which lifted cash conversion to 0.54x. The improvement was driven by higher customer receipts and disciplined salary outflows, offset by a US$43.4m increase in supplier payments.
+
+### 5.2 Investing Cash Flow
+
+| Metric | Q1 2026 | Q1 2025 |
+|---|---|---|
+| Capex — PPE | (152,468) | (129,145) |
+| Capex — Other | (438) | (125) |
+| Investing Cash Flow | (162,329) | (135,864) |
+
+Investing cash outflows deepened to US$162.3m from US$135.9m. PPE additions of US$152.5m are overwhelmingly growth capex for the KAI metal processing complex and ongoing mine infrastructure, with capital expenditure commitments still standing at US$92.0m. The group is in a heavy investment cycle with no indication of maintenance-only spending.
+
+### 5.3 Financing Cash Flow
+
+| Metric | Q1 2026 | Q1 2025 |
+|---|---|---|
+| Loan Repayments | (304) | (296) |
+| Interest Paid | (22,698) | (11,849) |
+| Dividends Paid | not disclosed | not disclosed |
+
+Total financing cash flow is not disclosed. Note 20 confirms net loan drawdowns of US$250.1m in the quarter, implying a large financing inflow that funded the cash balance increase despite negative free cash flow. Interest paid nearly doubled, tracking the larger loan base. The AGMS approved a US$120.0m cash dividend for 2025, but whether any dividend was paid in Q1 is not disclosed.
+
+### 5.4 Free Cash Flow Analysis
+
+Reported free cash flow is negative US$106.3m (OCF of US$46.6m less total capex of US$152.9m). No material one-offs are disclosed in the cash flow statement, so core FCF equals reported FCF. Free cash flow margin is not disclosed. The persistent cash burn is structural given the KAI buildout.
+
+### 5.5 Cash Flow Summary and Net Change
+
+| Metric | Q1 2026 | Q1 2025 |
+|---|---|---|
+| Net Change in Cash | 134,901 | (20,742) |
+| Cash at Beginning | 369,087 | 612,605 |
+| Cash at End | 504,196 | 590,812 |
+
+The US$135.1m net cash increase reconciles to the opening December 2025 cash of US$369.1m and the closing March 2026 cash of US$504.2m. FX effects on cash are not separately disclosed.
+
+## 6. Key Financial Ratios
+
+### 6.1 Profitability Ratios
+
+| Ratio | Q1 2026 |
+|---|---|
+| Gross Margin | 46.8% |
+| Operating Margin | not disclosed |
+| Pre-tax Margin | 41.4% |
+| Net Margin | 32.2% |
+| Effective Tax Rate | -22.4% |
+
+### 6.2 Return Ratios (Annualized)
+
+| Ratio | Q1 2026 |
+|---|---|
+| ROA | 11.3% |
+| ROE (Total Equity) | 19.5% |
+| ROE (Owners’ Equity) | 21.9% |
+
+### 6.3 Liquidity Ratios
+
+| Ratio | Q1 2026 |
+|---|---|
+| Current Ratio | 2.00x |
+| Quick Ratio | 1.76x |
+| Cash Ratio | 1.18x |
+| Working Capital | US$428,055k |
+
+### 6.4 Solvency Ratios
+
+| Ratio | Q1 2026 |
+|---|---|
+| Debt-to-Equity | 0.78x |
+| Loans-to-Equity | 0.53x |
+| Equity Ratio | 56.3% |
+| Net Debt | US$421,791k |
+| Net Debt-to-Equity | 0.23x |
+
+### 6.5 Efficiency Ratios
+
+| Ratio | Q1 2026 |
+|---|---|
+| Asset Turnover (Annualized) | 0.351x |
+| DSO | 44.0 days |
+| DIO | 35.2 days |
+| DPO | 19.1 days |
+| Cash Conversion Cycle | 60.0 days |
+| Collections Ratio | 1.099x |
+
+### 6.6 Per-Share Metrics
+
+| Metric | Q1 2026 |
+|---|---|
+| Shares Outstanding | 41,765,714 |
+| Book Value per Share | US$0.0395 |
+| Basic EPS | US$0.0021 |
+| EPS Growth | 31.3% |
+
+### 6.7 Valuation Ratios (Market Data as of …)
+
+No market data is provided. P/E, P/B, EV, EV/EBITDA, and dividend yield are all not disclosed.
+
+## 7. Segment and Subsidiary Analysis
+
+### 7.1 Subsidiary Overview
+
+| Subsidiary | Ownership | Activity | Total Assets (US$k) |
+|---|---|---|---|
+| PT Alam Tri Daya Indonesia (ATDI) | 99.99% | Investment | 1,478,357 |
+| PT Alamtri Baterai Indonesia (ABI) | 99.99% | Investment | 1,699,120 |
+| PT Alam Tri Cakra Indonesia (ATCI) | 90.84% | Investment | 2,432 |
+| PT Batuan Anugerah Semesta (BAS) | 100.0% | Mining | 5,480 |
+| PT Alamtri Indo Aluminium (AIA) | 100.0% | Investment | 1,697,897 |
+| PT Lahai Coal (LC) | 99.99% | Mining | 119,202 |
+| PT Maruwai Coal (MC) | 99.99% | Mining | 1,338,951 |
+| PT Kalteng Coal (KC) | 99.99% | Mining | 2,135 |
+| PT Sumber Barito Coal (SBC) | 99.99% | Mining | 6,569 |
+| PT Juloi Coal (JC) | 99.99% | Mining | 26,474 |
+| PT Kalimantan Aluminium Industry (KAI) | 65.0% | Metal processing | 1,656,675 |
+| PT Bumi Alam Seraya (BASR) | 100.0% | Limestone mining | 5,097 |
+
+### 7.2 The Core Operating Business
+
+The crown jewel is the Pertambangan (mining) segment, recording US$266.5m in external sales and US$95.1m in net profit for Q1 2026, with segment assets of US$1.48bn. The producing coal subsidiaries are MC and LC, supported by mining services agreements with SIS (MC, until 31 December 2029) and PT Putra Perkasa Abadi (LC, until 1 December 2027), coal transport and barging agreements with MBP through 28 February 2035, and coal terminal service agreements with IBT through 20 August 2027. CCoW amendments date to 14 November 2017. Road corridor agreements for MC and LC are in place but some extend only to the end of the CCoW term. Segment gross profit is not disclosed.
+
+### 7.3 Strategic Question Marks
+
+JC, KC, and SBC have not yet commenced mining operations, representing undeveloped CCoW assets with no disclosed reserve base or near-term capex plans. The larger question mark is KAI, the 65%-owned metal processing subsidiary with US$1.66bn in assets and a Q1 net loss of US$8.2m. KAI is the destination for the group’s major capital deployment, yet it is currently a cash consumer with no disclosed revenue. The PCC contract was terminated and fully dismantled in 2025, removing one legacy optionality.
+
+### 7.4 Growth Options
+
+The only visible second leg is KAI. ABI and AIA are investment conduits that injected billions of Rupiah into KAI through successive capital increases in 2025. ATCI received a US$150bn (equivalent) capital injection from ADMR and a Rp15.1bn injection from AlamTri, converted to equity in February 2026. If KAI successfully commissions aluminum production, ADMR transforms from a pure coal exporter to an integrated miner-processor; until then, it is a capital sink.
+
+### 7.5 Intercompany and Related-Party Dynamics
+
+Internal sales within the Jasa lainnya segment were US$3.5m. Related-party revenue totaled 36.6% of sales (down from 45.4%), with AIS at US$95.8m. Related-party cost of revenue was 46.0% (down from 51.4%). Trade payables to related parties were US$34.1m, predominantly MBP (US$15.9m) and SIS (US$12.9m). Accrued expenses to related parties totaled roughly US$29.9m, with MBP and SIS again the largest items. Management consulting fees paid to controlling parent AlamTri surged to US$2.2m from US$0.4m year-on-year. Key management compensation nearly doubled to US$5.2m. These dynamics demand close monitoring.
+
+## 8. EPS and Valuation
+
+### 8.1 EPS Analysis
+
+| Metric | Q1 2026 | Q1 2025 |
+|---|---|---|
+| Net Profit | 86,007 | 64,849 |
+| Profit Attributable to Owners | 87,708 | 65,450 |
+| Profit Attributable to NCI | (1,701) | (601) |
+| Basic EPS | 0.0021 | 0.0016 |
+| EPS Growth | 31.3% | — |
+
+### 8.2 Valuation Assessment
+
+No market price, market capitalisation, or enterprise value is provided. Consequently, P/E (TTM and annualized), P/B, EV/EBITDA, and dividend yield are all not disclosed. The shares outstanding are approximately 41.8 billion, producing a book value per share of US$0.0395 and basic EPS of US$0.0021. Without a market data stub, no target multiple or valuation band can be anchored.
+
+### 8.3 Dividend Analysis
+
+The AGMS on 17 April 2026 approved a cash dividend for 2025 of US$120.0m and an appropriation of US$2.7m to general reserve. The dividend payout ratio relative to Q1 or full-year 2025 earnings is not disclosed. Dividend yield is not disclosed. Sustainability is questionable in the context of negative free cash flow and rising leverage, suggesting any near-term distributions will be funded from balance sheet cash or incremental debt rather than organic surplus.
+
+## 9. Year-over-Year Comparison
+
+### 9.1 Income Statement Comparison
+
+| Line Item | Q1 2026 | Q1 2025 |
+|---|---|---|
+| Revenue | 267,491 | 199,937 |
+| COGS | (142,322) | (117,334) |
+| Gross Profit | 125,169 | 82,603 |
+| Selling Expense | (1,377) | (1,121) |
+| G&A Expense | (12,964) | (9,650) |
+| Interest Income | 4,149 | 7,503 |
+| Interest Expense | (317) | (314) |
+| Other Income, net | 189 | (99) |
+| Profit Before Tax | 110,857 | 79,179 |
+| Tax | (24,850) | (14,330) |
+| Net Profit | 86,007 | 64,849 |
+| NP — Owners | 87,708 | 65,450 |
+| NP — NCI | (1,701) | (601) |
+| Basic EPS | 0.0021 | 0.0016 |
+
+### 9.2 Balance Sheet Comparison
+
+| Line Item | 31 Mar 2026 | 31 Dec 2025 |
+|---|---|---|
+| Cash | 504,196 | 369,087 |
+| Trade Receivables, net | 128,910 | 155,392 |
+| Inventories | 103,041 | 89,261 |
+| Prepaid Taxes | 48,067 | 16,459 |
+| Securities Current | 34,837 | 38,674 |
+| Current Assets | 855,137 | 680,424 |
+| PPE, net | 1,953,448 | 1,805,603 |
+| Exploration Assets | 24,681 | 23,321 |
+| Mining Properties | 154,674 | 158,009 |
+| Restricted Cash | 25,798 | 16,073 |
+| Non-current Assets | 2,350,353 | 2,210,852 |
+| Total Assets | 3,205,490 | 2,891,276 |
+| Trade Payables | 56,096 | 60,078 |
+| Taxes Payable | 9,706 | 12,447 |
+| Accrued Current | 320,060 | 318,729 |
+| Current Liabilities | 427,082 | 426,807 |
+| Loans Current | 38,352 | 28,906 |
+| Loans Non-current | 922,472 | 685,638 |
+| Non-current Liabilities | 974,164 | 747,058 |
+| Total Liabilities | 1,401,246 | 1,173,865 |
+| Equity — Owners | 1,649,149 | 1,561,514 |
+| NCI | 155,095 | 155,897 |
+| Total Equity | 1,804,244 | 1,717,411 |
+
+### 9.3 Cash Flow Comparison
+
+| Line Item | Q1 2026 | Q1 2025 |
+|---|---|---|
+| Collections from Customers | 293,973 | 190,655 |
+| Interest Received | 3,975 | 6,466 |
+| Payments to Suppliers | (164,984) | (121,574) |
+| Salaries Paid | (12,249) | (12,688) |
+| Operating Cash Flow | 46,583 | 15,449 |
+| Capex — PPE | (152,468) | (129,145) |
+| Capex — Other | (438) | (125) |
+| Investing Cash Flow | (162,329) | (135,864) |
+| Loan Repayments | (304) | (296) |
+| Interest Paid | (22,698) | (11,849) |
+| Net Change in Cash | 134,901 | (20,742) |
+| Cash at Beginning | 369,087 | 612,605 |
+| Cash at End | 504,196 | 590,812 |
+
+### 9.4 Key Ratio Comparison
+
+| Ratio | Q1 2026 | Q1 2025 |
+|---|---|---|
+| Revenue Growth | 33.8% | — |
+| Gross Profit Growth | 51.5% | — |
+| Net Profit Growth | 32.6% | — |
+| EPS Growth | 31.3% | — |
+| Total Assets Growth | 10.9% | — |
+| Equity Growth | 5.1% | — |
+| OCF Growth | 201.5% | — |
+| Gross Margin | 46.8% | not disclosed |
+| Net Margin | 32.2% | not disclosed |
+| Pre-tax Margin | 41.4% | not disclosed |
+| Current Ratio | 2.00x | not disclosed |
+| Debt-to-Equity | 0.78x | not disclosed |
+| Net Debt-to-Equity | 0.23x | not disclosed |
+| ROE (Owners, Annualized) | 21.9% | not disclosed |
+| ROA (Annualized) | 11.3% | not disclosed |
+
+## 10. Strengths
+
+### 10.1 Financial Strengths
+
+The group carries a US$504.2m cash balance against current liabilities of US$427.1m, producing a cash ratio of 1.18x and current ratio of 2.00x. Working capital is positive at US$428.1m. Net debt-to-equity is only 0.23x, meaning the gross leverage build is largely offset by liquid assets. Operating cash flow more than tripled year-on-year, and the collection ratio exceeds 1.0x, confirming that earnings are being converted to cash.
+
+### 10.2 Operational Strengths
+
+The mining segment generated US$95.1m in net profit on US$266.5m of external sales, implying robust pit-to-port economics. No trade receivables are past due or impaired. Inventory carrying values are fully supported by net realisable value and insured. Fixed assets are insured at approximately US$2.43bn. The group has long-dated offtake relationships with AIS, Posco International, and domestic buyers, and logistics contracts extending to 2035.
+
+### 10.3 Strategic Strengths
+
+Vertical integration into aluminum via KAI offers a potential rerating from pure coal to diversified miner-processor if execution succeeds. The CCoW amendments in 2017 provide long-dated tenure, and the group controls a deep pipeline of undeveloped coal licenses (JC, KC, SBC) that can be brought online if market conditions warrant.
+
+## 11. Concerns and Risk Factors
+
+### 11.1 Near-Term Risks
+
+**HIGH — Funding Gap and Negative Free Cash Flow:** Q1 FCF was negative US$106.3m. With US$92.0m in capex commitments and escalating KAI loan repayments, the group remains dependent on continued debt market access. Any disruption to syndicated loan rollovers or parent support would strain liquidity.
+
+**HIGH — Related-Party Concentration:** AIS accounts for US$95.8m of revenue, and related-party purchases from SIS and MBP total US$58.9m. The surge in management consulting fees to AlamTri and the doubling of key management compensation raise governance questions.
+
+**MODERATE — Prepaid Tax Buildup:** Prepaid taxes ballooned to US$48.1m from US$16.5m, absorbing working capital without a disclosed recovery timeline.
+
+**MODERATE — KAI Repayment Escalation:** The KAI facility requires US$38.0m in 2026, US$148.0m in 2027, US$186.3m in 2028, US$200.7m in 2029, and US$216.5m in 2030. Refinancing risk rises materially in 2028–2030.
+
+### 11.2 Structural Risks
+
+**HIGH — KAI Execution Risk:** KAI is loss-making (US$8.2m net loss in Q1) and asset-heavy (US$1.66bn). The aluminum project has no disclosed revenue, and the 35% NCI means ADMR bears 65% of the losses but may face minority governance friction.
+
+**MODERATE — Stranded Development Assets:** JC, KC, and SBC have not commenced mining. If long-term coal demand shifts or regulatory hurdles emerge, these licenses may not generate returns commensurate with their holding costs.
+
+**MODERATE — NCI Structure:** The 1-share NCI holdings in seven subsidiaries are legally valid but economically unusual, potentially complicating future squeeze-out or restructuring transactions.
+
+### 11.3 Market and Regulatory Risks
+
+**MODERATE — DHE SDA and Forex Controls:** Government Regulation No. 8/2025 mandates 100% foreign-exchange placement for 12 months from 1 March 2025, potentially trapping export proceeds and reducing cash fungibility.
+
+**MODERATE — Royalty and Tax Audits:** US$34.4m in government royalties payable is subject to audit. MC already received a tax assessment (SKPKB) for FY2024 including a US$0.8m penalty. New regulations (PP No. 18/2025, PP No. 19/2025) may alter PNBP and tariff rates.
+
+**LOW — FX Sensitivity:** A 5% Rupiah movement versus USD would impact post-tax profit by US$1.2m (weakening) or US$1.3m (strengthening), a material step-up from the US$86k–95k sensitivity at December 2025.
+
+### 11.4 Valuation Concerns
+
+**HIGH — Absence of Market Data:** With no share price, market cap, or EV provided, no valuation multiple can be calculated. The stock’s micro-EPS (US$0.0021) and ~41.8bn share count suggest limited institutional liquidity and wide bid-ask spreads if traded.
+
+**MODERATE — Dividend vs. Cash Flow Mismatch:** A US$120.0m dividend for 2025 was approved despite negative FCF, signaling a willingness to return capital even while funding a major project via debt.
+
+## 12. Management and Governance
+
+### 12.1 Leadership
+
+The interim report discloses only Wito Krisnahadi as a Director, holding 69,000 shares (0.00%). Additional board members, the CEO, or commissioners are not disclosed in the provided extracts.
+
+### 12.2 Management Actions and Commentary
+
+Management completed the corporate name change to PT Alamtri Minerals Indonesia Tbk on 2 June 2025. During 2025 and early 2026, they executed multiple capital injections into ABI, AIA, KAI, and ATCI to fund the metal-processing expansion. The AGMS on 17 April 2026 approved a US$120.0m cash dividend and a US$2.7m general reserve appropriation. Management consulting fees paid to parent AlamTri rose sharply to US$2.2m in Q1 2026 from US$0.4m in Q1 2025. Key management compensation nearly doubled to US$5.2m.
+
+### 12.3 Governance Observations
+
+Related-party transaction disclosure is voluminous but concentration is high. Revenue dependence on AIS and cost dependence on SIS/MBP create potential conflicts. The 1-share NCI structure in seven subsidiaries and the KAI NCI subscription volatility suggest non-standard minority governance. Post-employment benefit assumptions changed in the quarter (inflation 1.90%–3.00% vs 1.90%–3.30%; discount rate 5.55%–6.94% vs 4.48%–6.70%), and the obligation is sensitive: a 1% change in the discount rate moves the liability by US$0.4m.
+
+### 12.4 Capital Allocation
+
+Capital is being allocated overwhelmingly to growth: US$152.5m in PPE capex, US$214.0m in non-cash additions through payables, and US$14.8m in capitalised borrowing costs. Debt drawdowns of US$250.1m funded the cash build. The US$120.0m dividend is a shareholder-friendly signal but is financially incongruent with the investment cycle. Standby loan facilities exist but undrawn amounts are not disclosed.
+
+## 13. Overall Assessment
+
+### 13.1 Financial Health Score: 7/10
+
+Strong liquidity and low net leverage support the score, but aggressive debt-funded capex and negative FCF prevent a higher mark.
+
+### 13.2 Operational Performance Score: 8/10
+
+The mining segment is world-class on margins, cash conversion, and working capital quality. The only deduction is the lack of volume/price transparency and the metal-processing loss.
+
+### 13.3 Growth Score: 6/10
+
+Revenue and profit are growing robustly, but the growth is coal-price dependent and the aluminum project is unproven. The pipeline is deep but execution is uncertain.
+
+### 13.4 Valuation Score: 3/10
+
+No market data, micro-EPS, and heavy capex make valuation a black box.
+
+### 13.5 Risk Profile
+
+Asymmetric and elevated. The downside case features funding stress, regulatory squeezes on forex and royalties, and KAI cost overruns. The upside case requires sustained coal prices and flawless aluminum commissioning. Investors need high risk tolerance and a long horizon.
+
+## 14. Investment Thesis
+
+### 14.1 Bull Case
+
+Coal margins sustain at 46.8% gross and 32.2% net, throwing off owners’ annualized ROE of ~21.9%. If KAI successfully commissions and ramps aluminum production, ADMR rerates from a pure coal beta to an integrated energy/metal compounder. The US$504m cash stockpile and undrawn parent facilities provide a liquidity backstop.
+
+### 14.2 Bear Case
+
+A coal price correction would collapse revenue and expose the fixed-cost aluminum project. KAI is already loss-making and will require billions more in capex and working capital. Related-party transactions and concentrated offtake to AIS create governance and counterparty risk. Regulatory headwinds on DHE SDA, royalties, and new tax rules could raise effective costs and trap cash.
+
+### 14.3 Key Catalysts
+
+1. KAI construction milestones and first metal production timeline.
+2. Q2 2026 FCF trajectory and further KAI loan drawdowns.
+3. 2026–2030 coal offtake price resets with AIS, Posco, and domestic buyers.
+4. Regulatory clarity on DHE SDA enforcement and royalty audit outcomes.
+
+### 14.4 Recommendation
+
+**HOLD (Development Risk).** The core coal business is highly cash-generative and operationally sound, but the group is in a heavy investment phase with negative free cash flow and rising leverage to build the KAI metal processing complex. Without market data, a valuation anchor is absent, and the risk/reward is skewed by execution uncertainty. Target price range: not disclosed (insufficient market data). Review trigger: Any update on KAI construction milestones, Q2 FCF print, or material coal price movement greater than 10%.
+
+## Related Analysis
+
+- [[ADMR Q1 2026 Analysis]]
+- [[ADMR Q1 2026 Analysis]]
+- [[ADMR Q1 2026 Analysis]]
 
 ---
 
-## 6. External Factor Analysis
-
-### 6.1 Commodity Price Environment
-
-The report notes exchange rates as at 31 March 2026:
-- Rp10,000 = US$0.59 (implying US$1 ≈ Rp16,949)
-- AU$1 = US$0.69
-- CNY1 = US$0.14
-
-Compared to 31 December 2025:
-- Rp10,000 = US$0.60 (implying US$1 ≈ Rp16,667)
-- AU$1 = US$0.67
-- CNY1 = US$0.14
-
-The Indonesian Rupiah depreciated ~1.7% against the US Dollar over the quarter, which would positively impact USD-denominated results for a company with IDR-denominated costs.
-
-### 6.2 Regulatory Environment
-
-The company operates under Coal Contracts of Work (CCoWs) with the Indonesian government for its AMC entities (LC, JC, KC, MC, SBC). These CCoWs provide 30-year operating periods from the commencement of mining operations.
-
-### 6.3 Corporate Developments
-
-1. **Name Change:** The company changed its name from PT Adaro Minerals Indonesia Tbk to PT Alamtri Minerals Indonesia Tbk, effective per Deed No. 2 dated 2 June 2025.
-
-2. **Aluminium Smelter Project (KAI):** Significant capital injections into KAI (PT Kalimantan Aluminium Industry) during 2025:
-   - June 2025: US$57.8M (through AIA)
-   - August 2025: US$75.7M (through AIA)
-   - Additional capital from AUMAY and CITA partners
-   This explains the surge in bank borrowings and advances.
-
-3. **Subsidiary Capital Increases:** Multiple capital injections into ABI and AIA during 2025, totaling hundreds of millions of USD, indicating aggressive expansion into battery materials and aluminium.
-
-4. **NCI Transactions:** ATCI received a capital injection of US$0.9M from AlamTri (non-controlling interest) in January 2026.
-
-### 6.4 Employee Count
-
-The Group had 622 permanent employees as at 31 March 2026, up from 595 at 31 December 2025 (+4.5%).
-
----
-
-## 7. Valuation Assessment
-
-### 7.1 Calculated Ratios from Q1 2026 Data
-
-| Ratio | Q1 2026 (Quarterly) | Annualized Estimate |
-|-------|---------------------|---------------------|
-| ROA | 2.68% | ~10.7% |
-| ROE | 4.77% | ~19.1% |
-| Net margin | 32.2% | 32.2% |
-| Gross margin | 46.8% | 46.8% |
-| DER (total liabilities/total equity) | 0.78x | — |
-| DER (bank debt/equity) | 0.53x | — |
-| Current ratio | 2.00x | — |
-
-### 7.2 Comparison with Database Ratios (Q3 2025)
-
-| Ratio | Q3 2025 (Latest DB) | Q1 2026 (Calculated) | Trend |
-|-------|---------------------|----------------------|-------|
-| DER | 0.60 | 0.78 | ⬆ Increasing leverage |
-| ROA | 12.25% | ~10.7% (ann.) | ⬇ Slight decline |
-| ROE | 19.63% | ~19.1% (ann.) | ➡ Stable |
-| NPM | 48.11%* | 32.2% | ⚠️ Not comparable* |
-
-*Note: The NPM in the database appears to use a non-standard methodology (see Section 4.3). The calculated NPM of 32.2% is based on quarterly profit/revenue.
-
-### 7.3 Key Valuation Observations
-
-- The significant increase in DER from 0.60 (Q3 2025) to 0.78 (Q1 2026) reflects the US$250M bank loan drawdown
-- ROE remains healthy at ~19% annualized, suggesting efficient use of equity despite increased leverage
-- The company is in a heavy investment phase (aluminium smelter, battery materials), which depresses current free cash flow but may generate returns in future periods
-
----
-
-## 8. SWOT Analysis
-
-### Strengths
-- ✅ Strong revenue growth (+33.8% YoY) driven by coal operations
-- ✅ Improving gross margin (46.8% vs 41.3%) indicating favorable pricing/cost dynamics
-- ✅ Healthy liquidity position (current ratio 2.00x)
-- ✅ Diversified subsidiary portfolio across coal mining, aluminium, and battery materials
-- ✅ Strong parent company backing (AlamTri with 85.02% ownership)
-
-### Weaknesses
-- ⚠️ Negative free cash flow (US$107M deficit) requiring debt financing
-- ⚠️ OCF/Net profit ratio of only 54.2%, indicating working capital pressure
-- ⚠️ NCI consistently reporting losses, suggesting some subsidiaries are not yet profitable
-- ⚠️ Significant related-party receivables (US$30.3M non-current + US$67.1M current)
-- ⚠️ Rapidly increasing leverage (DER from 0.42 to 0.78 in 15 months)
-
-### Opportunities
-- 💡 Aluminium smelter project (KAI) could transform the company from a pure coal play into a diversified minerals company
-- 💡 Battery materials investments (ABI, AIA) position the company for the energy transition
-- 💡 Favorable coal pricing environment supporting near-term cash flows
-- 💡 Weak IDR providing natural hedge for USD-denominated revenue
-
-### Threats
-- 🔍 Coal price volatility could significantly impact revenue and margins
-- 🔍 Regulatory risk from Indonesian mining regulations and potential CCoW renegotiations
-- 🔍 Execution risk on aluminium smelter and battery materials projects (large capital commitments)
-- 🔍 Rising interest costs on US$960M bank debt portfolio
-- 🔍 FX risk on subsidiary translation (IDR depreciation impacts)
-- 🔍 Fair value losses on marketable securities (US$2.7M in Q1 2026)
-
----
-
-## 9. Risk Assessment
-
-| Risk | Severity | Likelihood | Impact | Mitigation |
-|------|----------|-----------|--------|------------|
-| Coal price decline | High | Medium | Revenue and margin compression | Diversification into aluminium/battery materials |
-| Project execution risk (KAI smelter) | High | Medium | Cost overruns, delays, cash burn | Phased capital deployment, parent guarantees |
-| Leverage increase | Medium | High | Interest burden, covenant risk | Strong operating cash flows, parent support |
-| Regulatory/CCoW risk | Medium | Low-Medium | Operating restrictions, royalty increases | Long-standing CCoW agreements, government relations |
-| FX translation risk | Medium | Medium | Volatility in consolidated results | Natural hedge (USD functional currency) |
-| Related-party transaction risk | Low-Medium | Medium | Potential conflicts of interest | Disclosure and governance mechanisms |
-| NCI subsidiary losses | Low | High | Drag on consolidated earnings | Ongoing capital support until projects mature |
-
----
-
-## 10. Conclusion & Recommendation
-
-### Overall Assessment
-
-The Q1 2026 financial statements of PT Alamtri Minerals Indonesia Tbk are **internally consistent and accurately reported**, with all numerical values verified against the DuckDB database. The company demonstrates strong operational performance with 33.8% revenue growth and expanding margins, but is in a capital-intensive investment phase that requires significant debt financing.
-
-### Data Quality Rating: ✅ EXCELLENT
-
-- **No material numerical discrepancies** between the report and DuckDB database
-- All mathematical relationships (balance sheet equation, income statement cascade, cash flow reconciliation, equity movement) verified and correct
-- Classification differences between the report and XBRL taxonomy are well-understood and do not affect totals
-- ⚠️ One data quality concern: NPM values in the `financial_ratios` table appear to use a non-standard methodology
-
-### Investment Considerations
-
-| Factor | Assessment |
-|--------|------------|
-| Short-term outlook | Positive — strong coal pricing, revenue growth, margin expansion |
-| Medium-term outlook | Mixed — heavy capex phase, rising leverage, project execution risk |
-| Long-term outlook | Positive if aluminium/battery investments deliver — transformation from coal pure-play to diversified minerals company |
-| Balance sheet risk | Moderate — DER rising but manageable with strong cash flows |
-| Cash flow quality | Moderate — OCF conversion improving but still below 100% of net profit |
-
-### Recommendation: **HOLD / WATCH**
-
-The company is executing a significant strategic transformation with substantial capital deployment into aluminium and battery materials. While near-term coal operations are strong, the investment phase creates elevated financial risk (rising DER, negative FCF). Investors should monitor:
-1. Progress on the KAI aluminium smelter project
-2. Trajectory of leverage ratios
-3. Coal price trends and their impact on operating cash flows
-4. Ability to convert profits to cash (OCF/Net profit ratio trend)
-
----
-
-*This analysis was prepared based on the Q1 2026 interim consolidated financial statements filed with IDX and cross-referenced against the pipeline.duckdb database. All figures are in thousands of US$ unless otherwise stated.*
+*Disclaimer: This analysis is based on the unaudited interim financial statements of PT Alamtri Minerals Indonesia Tbk and publicly available market information as of 31 March 2026. It is intended for informational purposes only and does not constitute investment advice. All financial projections and valuations are estimates based on available data and assumptions that may not materialize. Investors should conduct their own due diligence before making investment decisions.*

@@ -1,7 +1,7 @@
 ---
 title: "Strait of Hormuz Crisis Tracker"
 created: 2026-07-17
-updated: 2026-07-21
+updated: 2026-07-27
 tags:
   - geopolitics
   - strait-of-hormuz
@@ -15,32 +15,33 @@ tags:
   - gcc
 ---
 
-# Strait of Hormuz Crisis Tracker — July 21, 2026
+# Strait of Hormuz Crisis Tracker — July 27, 2026
 
-> **Daily update (Jul 21, 2026):** Conflict has escalated sharply since the Jul 17 entry. The US has now completed **10 consecutive nights of strikes** on Iran, reinstated its **naval blockade of Iranian ports**, struck the **Darkhovin nuclear plant** construction site and near **Bushehr**, and the **June 17 MOU has been formally declared void by both sides**. 17 US service members have died. Brent crude has surged to ~$88.75. Ras Laffan is not expected to fully restart before late August (Wood Mackenzie).
+> **Daily update (Jul 27, 2026):** The conflict has entered its third week of sustained infrastructure war. The US has now completed **16 consecutive nights of strikes** on Iran, reinstated its **naval blockade of Iranian ports**, and the **June 17 MOU remains formally void by both sides**. 19 US service members have died. The Houthis activated their threatened "operational alliance," executing the first strikes on **Bab el-Mandeb** shipping (Jul 22–23), opening a second chokepoint front and pushing Brent to an intraday ~$93.4. Iraq's mediation track produced a Baghdad "framework" for indirect talks (Jul 24), and Iran granted selective transit to two Qatari LNG carriers (Jul 26) — the first crack in the total closure. Brent settled ~$91.50; the Tehran rial crossed 900,000 (903,500 on Jul 25, ~912,000 on Jul 27). Ras Laffan remains constrained (Wood Mackenzie: late-Aug partial restart).
 
 ## Current Status (July 21, 2026)
 
-| Metric | Current | Pre-War Baseline | Source |
+| Metric | Current (Jul 27) | Pre-War Baseline | Source |
 |---|---|---|---|
-| **Day since closure declared** | **Day 142** | N/A | straits.live |
-| **Crisis pressure** | **91 (extreme)** | 0 | straits.live v0.5.0 |
-| **Escalation forecast** | 75 (high) | 0 | straits.live |
-| **Commercial transits (24h)** | ~10 | ~100–138/day | straits.live |
-| **Throughput** | ~11% of pre-war | 100% | straits.live |
-| **AIS-dark tankers (24h)** | **34** (▼ vs 43.1 typical) | ~21.4 typical | straits.live |
+| **Day since closure declared** | **Day 148** | N/A | straits.live |
+| **Crisis pressure** | **92 (extreme)** | 0 | straits.live v0.5.0 |
+| **Escalation forecast** | 78 (high) | 0 | straits.live |
+| **Commercial transits (24h)** | ~9 | ~100–138/day | straits.live |
+| **Throughput** | ~10% of pre-war | 100% | straits.live |
+| **AIS-dark tankers (24h)** | **31** (▼ vs 43.1 typical) | ~21.4 typical | straits.live |
 | **Daily tanker transits (est.)** | **~0 since Jul 15** (Kpler) | ~100–138 | Kpler |
-| **7-day total tankers** | 127 (last confirmed Jul 17) | N/A | TankerMap (−77% vs prior 7d) |
-| **War-risk insurance** | **8.0× pre-crisis** | 1.0× | straits.live |
-| **Brent crude** | **$88.75** (24h −0.45%; peaked ~$90.78 Jul 19) | ~$72.48 | straits.live; CNN |
-| **Iranian rial (Tehran open-market)** | **888,500** | N/A | straits.live (24h +1.54%; 7d +7.73% deterioration) |
-| **US service member deaths (war total)** | **17** | 0 | CENTCOM |
-| **Consecutive nights of US strikes** | **10** (as of Jul 21) | 0 | CENTCOM; CBS |
+| **7-day total tankers** | 119 (last confirmed Jul 24) | N/A | TankerMap (−81% vs prior 7d) |
+| **War-risk insurance** | **8.5× pre-crisis** | 1.0× | straits.live |
+| **Brent crude** | **$91.50** (24h +2.9%; peaked ~$93.40 Jul 23 on Bab el-Mandeb action) | ~$72.48 | straits.live; CNN |
+| **Iranian rial (Tehran open-market)** | **912,000** | N/A | straits.live (24h +1.8%; 7d +9.2% deterioration) |
+| **US service member deaths (war total)** | **19** | 0 | CENTCOM |
+| **Consecutive nights of US strikes** | **16** (as of Jul 27) | 0 | CENTCOM; CBS |
 | **SoH status** | **CLOSED** (IRGC: "until end of America's evils") | Open | Windward, Reuters, TIME |
+| **Bab el-Mandeb status** | **CONTESTED** (Houthi "operational alliance" strikes Jul 22–23) | Open | NPR, CNN |
 | **Operational risk (Windward)** | **CRITICAL** | Normal | Windward AI |
 | **US naval blockade of Iranian ports** | **REINSTATED** (Jul 14) | N/A | Guardian, NPR |
 
-> **Single-sentence summary:** Between Jul 14 and Jul 21, 2026, the US reinstated its naval blockade of Iranian ports, completed 10 consecutive nights of strikes (hitting the Darkhovin nuclear plant, near Bushehr, Abadan refinery, and Iranian bridges), the June 17 MOU was formally declared void by both sides, 17 US service members died, Iran expanded retaliation to Jordan/Kuwait/Oman/Qatar/Bahrain/UAE and struck a Kuwaiti desalination plant, the Houthis threatened to close Bab el-Mandeb in an "operational alliance" with Iran, and Brent crude surged to ~$90 — the conflict has moved from a contested-transit phase to a sustained infrastructure war.
+> **Single-sentence summary:** Between Jul 14 and Jul 27, 2026, the US reinstated its naval blockade of Iranian ports, completed **16 consecutive nights of strikes** (hitting Bandar Abbas, Jask, Isfahan drone factories, Darkhovin, Bushehr, Abadan, and Iranian bridges), the June 17 MOU was formally declared void by both sides, 19 US service members died, the Houthis **activated their "operational alliance" with Iran and opened a second Bab el-Mandeb front** (Jul 22–23), Iraq secured a Baghdad-mediated talks "framework" (Jul 24), Iran granted selective Qatari LNG transit (Jul 26), and Brent held ~$91–93 — the conflict is now a **dual-chokepoint infrastructure war** with the first tentative diplomatic fissures.
 
 ---
 
@@ -71,6 +72,7 @@ tags:
 | **Jul 14** | ~21 transits (Tue); 6 on Sun Jul 13 — fewest in 5 weeks (Kpler) | Two large crude carriers moved 4M bbls through SoH; two other carriers badly damaged (Lipow) |
 | **Jul 15–21** | **0 tankers transited SoH since Jul 15** (Kpler) | Throughput collapse; UAE hiring shuttle tankers from inside the strait (CNN/Energy Sec. Wright) |
 | **Jul 21 (current)** | ~10 commercial transits/24h; ~14M bbl/day still moving if counting bypass pipelines | Crisis pressure 91 (extreme); straits.live v0.5.0; AIS-dark tankers 34 (down from ~45); 340 stranded vessels (7d) |
+| **Jul 27 (current)** | ~9 commercial transits/24h; throughput ~10% of pre-war | Crisis pressure 92 (extreme); straits.live v0.5.0; AIS-dark tankers 31 (▼ vs 43.1 typical); 119 tankers (7d, −81%); Bab el-Mandeb now contested; 19 US KIA |
 
 ---
 
@@ -137,6 +139,16 @@ tags:
 | **Jul 20, 2026** | — | Iran FM Araghchi: "I still have not met [Supreme Leader] Mojtaba [Khamenei] in person during this period"; "If we do not have the ability to achieve an absolute military victory, we must negotiate. Negotiations should take place when you have the upper hand on the military front." | CNN |
 | **Jul 21, 2026** | 0859Z | straits.live Day 142; crisis pressure 91 (extreme); AIS-dark tankers 34 (▼ vs 43.1 typical); commercial transits ~10/24h; Tehran rial 888,500 (24h +1.54%); Brent $88.75 | straits.live |
 | **Jul 21, 2026** | — | **US launches 10th consecutive night of strikes** on Iran (CBS); CENTCOM completes wave after 3 US troops killed | CBS |
+| **Jul 22, 2026** | ~9:00 p.m. ET | **CENTCOM begins 11th consecutive night of strikes** — Bandar Abbas port infrastructure, Jask radar/coastal sites; 7-hour wave | CNN, CENTCOM |
+| **Jul 22, 2026** | Late | **Houthis execute "operational alliance"** — first drone strike on Israeli-linked container vessel in **Bab el-Mandeb**; Houthi al-Farah: "the southern front is now open" | NPR, hormuzstraitmonitor |
+| **Jul 23, 2026** | Overnight | **Houthi ballistic missile fired at US-linked bulker in Bab el-Mandeb**; US-led coalition initiates **Red Sea escort operations**; Gulf states activate Red Sea escort coordination | CNN, NPR |
+| **Jul 23, 2026** | — | **Brent +3.2% intraday to ~$93.40** — highest since Jul 19 peak; war-risk insurance to 8.5× | CNN, straits.live |
+| **Jul 24, 2026** | — | **Iraq PM Al-Zaidi visits Tehran**; reports Baghdad-mediated "framework" for indirect US-Iran talks; Iran signals willingness to discuss selective SoH transit for humanitarian/neutral-flagged LNG | CNN |
+| **Jul 25, 2026** | ~10:00 p.m. ET | **13th consecutive night of strikes** — US hits Iranian UAV/drone factories near **Isfahan and Yazd**; 1 US service member killed by Iranian drone in eastern Syria | CENTCOM, CNN |
+| **Jul 25, 2026** | — | **Tehran open-market rial crosses 900,000** (903,500); 7-day change +9.2% (deterioration); AlanChand | AlanChand, straits.live |
+| **Jul 26, 2026** | — | **Oman reopens mediation channel**; Iran grants transit approval to **two Qatari LNG carriers** (selective-access precedent); GCC emergency summit convenes in Riyadh — joint Gulf naval escort + LNG rationing coordination | Reuters, Marine Insight |
+| **Jul 27, 2026** | 0902Z | straits.live **Day 148**; crisis pressure **92** (extreme); escalation forecast 78 (high); AIS-dark tankers **31** (▼ vs 43.1 typical); commercial transits ~9/24h; Tehran rial **912,000** (24h +1.8%); Brent $91.50 | straits.live |
+| **Jul 27, 2026** | — | **US launches 16th consecutive night of strikes** on Iran; CENTCOM completes wave after **2 US troops killed** in Iranian missile strike on base in eastern Syria; **war total 19 KIA** | CBS, CENTCOM |
 
 ---
 
@@ -321,7 +333,7 @@ Per the original Ammonia.md analysis and ChemicalsBlog, plus CNN (Jul 19, 2026):
 - FM Araghchi (Jul 19): has **not yet met new Supreme Leader Mojtaba Khamenei** in person since his March appointment — "Only a very small number of people have met with him"
 - Araghchi: security vulnerability that allowed Feb 2026 strike on Khamenei **"still exists"**
 - Araghchi: "If we do not have the ability to achieve an absolute military victory, we must negotiate. Negotiations should take place when you have the upper hand on the military front."
-- Tehran open-market rial at **888,500** (24h +1.54%; 7d +7.73% deterioration) signals severe domestic economic stress
+- Tehran open-market rial at **912,000** (24h +1.8%; 7d +9.2% deterioration; crossed 900,000 Jul 25) signals severe domestic economic stress
 
 ---
 
@@ -329,14 +341,14 @@ Per the original Ammonia.md analysis and ChemicalsBlog, plus CNN (Jul 19, 2026):
 
 ### Urea & Fertilizer Markets (First Responders)
 
-| Indicator | Pre-Escalation (Jul 8) | Jul 16 | Jul 21 (current) | Change |
+| Indicator | Pre-Escalation (Jul 8) | Jul 16 | Jul 27 (current) | Change |
 |---|---|---|---|---|
 | **Urea (CFD)** | ~$360/t | **$424/t** (+17.78% MoM) | Rising (post-Jul 15 transit collapse) | Structural floor raised |
 | **Urea (NOLA spot)** | ~$453/t | Watching >$500/t break | Pending (ChemicalsBlog) | Likely breached |
 | **Urea (ME FOB)** | ~$630/t | Re-rising | Pending IFDC weekly | Constrained by Ras Laffan feedstock |
 | **Ammonia (NE Asia, est.)** | $0.33/kg | ~$0.34–0.36/kg | Re-rising (lagged) | Lagged passthrough |
-| **Brent crude** | ~$72 | ~$79–84 | **$88.75** (peaked ~$90.78 Jul 19) | **+23.3% vs pre-crisis** |
-| **US gasoline (avg)** | ~$2.97/gal pre-war | — | **$3.992/gal** (Jul 19) | ~34% above pre-war |
+| **Brent crude** | ~$72 | ~$79–84 | **$91.50** (peaked ~$93.40 Jul 23 on Bab el-Mandeb action) | **+26.3% vs pre-crisis** |
+| **US gasoline (avg)** | ~$2.97/gal pre-war | — | **$4.05/gal** (Jul 23 est.) | ~36% above pre-war |
 
 ### LNG & Energy Markets
 
@@ -350,13 +362,14 @@ Per the original Ammonia.md analysis and ChemicalsBlog, plus CNN (Jul 19, 2026):
 
 ### Shipping & Insurance
 
-| Metric | Current (Jul 21) | Pre-Crisis |
+| Metric | Current (Jul 27) | Pre-Crisis |
 |---|---|---|
-| **War-risk insurance** | 8.0× pre-crisis (+0.34% 24h) | 1.0× |
-| **Cape of Good Hope rerouting** | 241 vessels in SA ports | Normal traffic |
-| **AIS-dark tankers (24h)** | 34 (▼ vs 43.1 typical) | ~21.4 typical |
-| **Stranded vessels (7-day)** | 340 (straits.live) — down from 560 Jul 17 | Normal |
+| **War-risk insurance** | 8.5× pre-crisis (+0.5% 24h) | 1.0× |
+| **Cape of Good Hope rerouting** | 241+ vessels in SA ports | Normal traffic |
+| **AIS-dark tankers (24h)** | 31 (▼ vs 43.1 typical) | ~21.4 typical |
+| **Stranded vessels (7-day)** | ~300 (straits.live); 119 tankers transited (7d, −81%) | Normal |
 | **Container carriers rerouting** | 8 suspended; 41 stranded | Normal |
+| **Bab el-Mandeb status** | **CONTESTED** — Houthi "operational alliance" strikes Jul 22–23; US-led Red Sea escorts initiated | Open |
 | **US naval blockade of Iranian ports** | **Reinstated Jul 14** — M/V Belma disabled near Kharg Island; 2 vessels redirected in 24h | None |
 
 ### Emerging Market Currencies
@@ -364,7 +377,7 @@ Per the original Ammonia.md analysis and ChemicalsBlog, plus CNN (Jul 19, 2026):
 | Currency | Impact | Driver |
 |---|---|---|
 | **USDIDR (Indonesian Rupiah)** | **Sharply weaker** — ~18,000+ (Jul 14 high 18,177) | Domestic fiscal stress (MBG programme) + EM-wide risk-off from re-escalation |
-| **Iranian rial (Tehran open-market)** | **888,500** (24h +1.54%; 7d +7.73% deterioration) | Domestic economic collapse + re-tightened US sanctions on Shamkhani network |
+| **Iranian rial (Tehran open-market)** | **912,000** (24h +1.8%; 7d +9.2% deterioration; crossed 900,000 Jul 25) | Domestic economic collapse + re-tightened US sanctions on Shamkhani network |
 | **Broader EM FX** | Under pressure | Risk-off flow into USD on re-escalation; Brent ~$89 lifts DXY |
 
 ---
@@ -375,13 +388,14 @@ Per the original Ammonia.md analysis and ChemicalsBlog, plus CNN (Jul 19, 2026):
 
 | Element | Status |
 |---|---|
-| **CENTCOM strikes** | **10 consecutive nights** of strikes (Jul 12–21); ~140 targets Jul 11; Abadan refinery hit Jul 14; Tabriz Jul 16; Iranian bridges Jul 17; Darkhovin nuclear plant Jul 19; Bushehr vicinity Jul 19; ongoing |
+| **CENTCOM strikes** | **16 consecutive nights** of strikes (Jul 12–27); ~140 targets Jul 11; Abadan refinery hit Jul 14; Tabriz Jul 16; Iranian bridges Jul 17; Darkhovin nuclear plant Jul 19; Bushehr vicinity Jul 19; Bandar Abbas & Jask Jul 22; Isfahan/Yazd drone factories Jul 25; ongoing |
 | **US naval blockade** | **Reinstated Jul 14**; M/V Belma disabled near Kharg Island; 2 commercial vessels redirected |
-| **US service member deaths** | **17 total** — 2 killed in Jordan Jul 15, 1 killed in Iraq Jul 18 (drone detonation), 1 MIA Jordan; "Trump to swiftly punish Iran for military casualties" |
+| **US service member deaths** | **19 total** — 2 killed in Jordan Jul 15, 1 killed in Iraq Jul 18 (drone detonation), 1 MIA Jordan (presumed), 1 killed in Syria Jul 25 (drone), 2 killed in Syria Jul 27 (missile strike), plus 12 from earlier waves; "Trump to swiftly punish Iran for military casualties" |
 | **US Navy SoH posture** | Blockade posture; 50,000+ US service members in theater (CENTCOM) |
-| **Regional bases** | Prince Hassan Air Base (Jordan) — 2 US KIA; Azraq base (Jordan) struck 2nd time; air defenses activated across Qatar, Bahrain, UAE, Kuwait, Oman |
+| **Red Sea / Bab el-Mandeb** | US-led coalition **escort operations initiated Jul 23** after Houthi "operational alliance" strikes; Gulf states coordinating Red Sea escort |
+| **Regional bases** | Prince Hassan Air Base (Jordan) — 2 US KIA; Azraq base (Jordan) struck 2nd time; eastern Syria base hit Jul 27 (2 KIA); air defenses activated across Qatar, Bahrain, UAE, Kuwait, Oman |
 | **US posture changes** | Additional refueling aircraft bolstered in Israel Jul 19; Trump threatens Jul 14: "Next week comes the power plants. Next week comes the bridges." — partially executed Jul 17 |
-| **US political pushback** | Senate Democrats blocked NDAA advancement Jul 14; Schumer: "no authorization, no plan, no exit strategy" |
+| **US political pushback** | Senate Democrats blocked NDAA advancement Jul 14; Schumer: "no authorization, no plan, no exit strategy"; House war-powers resolution filed Jul 24 |
 | **US travel advisory** | **Worldwide Caution alert Jul 20** — "U.S. diplomatic facilities, including outside the Middle East, have been targeted" |
 
 ### Iranian Forces (IRGC)
@@ -392,8 +406,8 @@ Per the original Ammonia.md analysis and ChemicalsBlog, plus CNN (Jul 19, 2026):
 | **Retaliation range** | Expanded to **Jordan (2x), Kuwait (incl. Mina Abdullah, desalination plant), Oman (Musandam), Qatar, Bahrain, UAE** — all 5 Gulf states + Jordan now directly involved |
 | **Missile barrages** | New wave from Lorestan province toward "enemy targets" Jul 20; 3 missiles intercepted over Jordan, 4th landed remote |
 | **Crude export evasion** | 9 NITC tankers (~$989M cargo) dark off Port Klang, Malaysia; **US Treasury sanctions on Shamkhani network Jul 14** targeting evasion infrastructure |
-| **Iranian casualties** | 35 killed, 300+ wounded in strikes (Iranian state media); 50 killed since Jul 6 (hormuzstraitmonitor Jul 18) |
-| **Threat to Bab el-Mandeb** | IRGC statement Jul 15: regional oil/gas exports "for everyone or for no one" — implicit threat to close Bab el-Mandeb; **Houthi al-Farah Jul 20: "operational alliance" with Iran to close both straits** |
+| **Iranian casualties** | 60+ killed, 400+ wounded in strikes (Iranian state media); 60+ killed since Jul 6 (hormuzstraitmonitor Jul 27) |
+| **Bab el-Mandeb — second front OPEN** | IRGC statement Jul 15: regional oil/gas exports "for everyone or for no one"; **Houthi al-Farah executed "operational alliance" Jul 22–23** — drone strike on Israeli-linked container vessel + ballistic missile at US-linked bulker in Bab el-Mandeb; US-led Red Sea escorts initiated Jul 23 |
 
 ### GCC States
 
@@ -412,9 +426,9 @@ Per the original Ammonia.md analysis and ChemicalsBlog, plus CNN (Jul 19, 2026):
 
 ## 10. Scenario Analysis
 
-> **Probability update (Jul 21, 2026):** Scenario A (Sustained Closure / Infrastructure War) probability has been **raised from ~35% to ~55%** — the Jul 14–21 escalation (10 strike nights, MOU void, nuclear sites hit, Bab el-Mandeb threat) has materially shifted the trajectory. Scenario B (Contested Transit) lowered from ~45% to ~30%. Scenario C (Rapid Diplomatic Breakthrough) lowered from ~20% to ~15%.
+> **Probability update (Jul 27, 2026):** Scenario A (Sustained Closure / Infrastructure War) probability has been **raised from ~55% to ~60%** — the Jul 22–27 developments (16 strike nights, Bab el-Mandeb second front opened, rial past 900,000, 19 US KIA) confirm the infrastructure-war trajectory. The first diplomatic fissures (Iraq "framework" Jul 24; selective Qatari LNG transit Jul 26) cap the upside but do not yet break the regime. Scenario B (Contested Transit) lowered from ~30% to ~28%. Scenario C (Rapid Diplomatic Breakthrough) lowered from ~15% to ~12%.
 
-### Scenario A: Sustained Closure / Infrastructure War (Probability ~55% — RAISED)
+### Scenario A: Sustained Closure / Infrastructure War (Probability ~60% — RAISED)
 
 **Assumptions:**
 - SoH remains formally closed for 6+ months; US infrastructure strikes (power plants, bridges, refineries) continue
@@ -430,7 +444,7 @@ Per the original Ammonia.md analysis and ChemicalsBlog, plus CNN (Jul 19, 2026):
 - ESSA (Indonesia) and other non-Gulf producers capture massive price windfall
 - Iranian domestic economy collapses (rial hyperinflation); regime change or desperate escalation likely
 
-### Scenario B: Contested / Fragile Transit (Probability ~30% — LOWERED)
+### Scenario B: Contested / Fragile Transit (Probability ~28% — LOWERED)
 
 **Assumptions:**
 - Oman/Iraq mediation produces partial ceasefire in Aug–Sep after both sides exhausted
@@ -444,7 +458,7 @@ Per the original Ammonia.md analysis and ChemicalsBlog, plus CNN (Jul 19, 2026):
 - "Quick reopening" price floor ($636/st) becomes the *upper bound* of down-legs
 - Market volatility remains high but within a bounded range
 
-### Scenario C: Rapid Diplomatic Breakthrough (Probability ~15% — LOWERED)
+### Scenario C: Rapid Diplomatic Breakthrough (Probability ~12% — LOWERED)
 
 **Assumptions:**
 - Iran accepts comprehensive nuclear curbs + verified sanctions sequencing under new supreme leader
@@ -463,19 +477,19 @@ Per the original Ammonia.md analysis and ChemicalsBlog, plus CNN (Jul 19, 2026):
 ## 11. Key Watchpoints (July–September 2026)
 
 ### Immediate (Next 7 Days)
-1. **straits.live daily updates** — Crisis pressure index; AIS-dark tanker count (34 today, watch if trend continues down); transit volume; Iranian rial (888,500)
-2. **CENTCOM 11th+ night of strikes** — Trump's "next week: power plants and bridges" threat (made Jul 14) — execution status
-3. **Brent crude trajectory** — Already at ~$88.75; $100+ psychological threshold if Bab el-Mandeb threat activates
-4. **Houthi / Bab el-Mandeb** — al-Farah Jul 20 threat; any Houthi movement in Red Sea; Saudi-Houthi ceasefire fraying
-5. **Iraq mediation track** — PM Al-Zaidi Tehran visit; Sep 30 US withdrawal deadline implications
-6. **US Congress** — NDAA standoff; war powers resolution; Democratic pushback on unauthorized war
+1. **straits.live daily updates** — Crisis pressure index (92 extreme); AIS-dark tanker count (31 today, watch if trend continues down); transit volume; Iranian rial (912,000)
+2. **CENTCOM 17th+ night of strikes** — Trump's "next week: power plants and bridges" threat (made Jul 14) — largely executed; watch for expansion to population/ power-grid targets
+3. **Brent crude trajectory** — At ~$91.50 (intraday ~$93.40 Jul 23 on Bab el-Mandeb action); $100+ psychological threshold if Houthi Red Sea campaign intensifies or Iran widens Gulf mining
+4. **Houthi / Bab el-Mandeb — SECOND FRONT NOW ACTIVE** — al-Farah "operational alliance" executed Jul 22–23; US-led Red Sea escorts initiated Jul 23; watch for escalation vs. ceasefire fraying with Saudi-backed govt
+5. **Iraq mediation track** — PM Al-Zaidi Tehran visit (Jul 24) yielded Baghdad "framework"; Sep 30 US withdrawal deadline implications; primary diplomatic channel now
+6. **US Congress** — NDAA standoff; war-powers resolution filed Jul 24; Democratic pushback on unauthorized war
 
 ### Short-Term (Next 30 Days)
 7. **IMARC July Ammonia Price Index** (expected ~early Aug) — First hard ammonia confirmation post-Jul 15 transit collapse
 8. **IFDC Weekly Urea/CF Report** — ME FOB urea post-Jul 11
 9. **Qatar Ras Laffan restart** — Wood Mackenzie late-Aug target; gas turbine procurement status
-10. **Iranian rial trajectory** — 888,500 today; accelerating deterioration → regime stress indicator; new supreme leader visibility
-11. **US service member casualties** — 17 KIA; "swift punishment" vow; 4th strike wave potential
+10. **Iranian rial trajectory** — 912,000 today (crossed 900,000 Jul 25); accelerating deterioration → regime stress indicator; new supreme leader visibility
+11. **US service member casualties** — 19 KIA (2 Syria Jul 27); "swift punishment" vow; risk of further strikes on US bases in Syria/Iraq/Jordan
 12. **European gas storage** — Fill rate ahead of winter; LNG shortage vulnerability; Asian rationing spillovers
 
 ### Medium-Term (Next 90 Days)
@@ -483,7 +497,7 @@ Per the original Ammonia.md analysis and ChemicalsBlog, plus CNN (Jul 19, 2026):
 14. **China urea export policy** — Re-imposition of export ban would remove supply offset
 15. **Fed September meeting** (Sep 17–18, 2026) — Rate hike decision impacts DXY and EM FX; Brent ~$89 inflation pass-through
 16. **US troop withdrawal from Iraq** (Sep 30, 2026) — Regional force posture implications
-17. **ESSA Q2 2026 earnings** (expected late Jul / early Aug) — Actual ammonia realized price; inventory monetization; turnaround cost treatment — **base case needs further upward revision given Jul 14–21 escalation**
+ 17. **ESSA Q2 2026 earnings** (expected late Jul / early Aug) — Actual ammonia realized price; inventory monetization; turnaround cost treatment — **base case needs further upward revision given Jul 14–27 escalation (now dual-front: Hormuz + Bab el-Mandeb)**
 
 ---
 
@@ -553,6 +567,14 @@ The following analysis, forecast, and prediction notes across `analysis/` refere
 - **US Treasury / OFAC** (Jul 14, 2026): Sanctions on Mohammad Hossein Shamkhani network — "major force behind Iran's oil exports" including global containerized shipping
 - **IAEA** (Jul 19, 2026): Statement on Darkhovin nuclear plant strike — "very early stages" of construction, unlikely radiological risk
 - **Wikipedia** (Jul 2026): "2026 Iran war" — reference timeline
+- **CNN** (Jul 22–27, 2026): Live updates — 11th/13th/16th consecutive nights of strikes; Bandar Abbas & Jask (Jul 22); Isfahan/Yazd drone factories (Jul 25); Iraq PM Al-Zaidi Tehran "framework" (Jul 24); Brent intraday ~$93.40 (Jul 23); 19 US KIA; rial crosses 900,000
+- **NPR** (Jul 22–23, 2026): Houthi "operational alliance" executed — drone strike on Israeli-linked container vessel + ballistic missile at US-linked bulker in Bab el-Mandeb; US-led Red Sea escort operations initiated
+- **CBS News** (Jul 27, 2026): "U.S. launches 16th night of strikes on Iran after 2 U.S. troops killed in Syria"
+- **Reuters** (Jul 26, 2026): Oman reopens mediation channel; Iran grants selective transit to two Qatari LNG carriers; GCC emergency summit convenes in Riyadh
+- **Marine Insight** (Jul 26, 2026): Qatar LNG carriers receive Iranian transit approval; GCC joint naval escort + LNG rationing coordination
+- **AlanChand** (Jul 25–27, 2026): Tehran open-market USD/IRR — 903,500 (Jul 25), 912,000 (Jul 27); 7d +9.2% deterioration
+- **hormuzstraitmonitor.com** (Jul 27, 2026): Crisis Timeline — 148+ days since war began; 16 consecutive nights of US strikes; dual-front (Hormuz + Bab el-Mandeb); 60+ Iranian killed since Jul 6
+- **CENTCOM** (Jul 25 & Jul 27, 2026): 1 US service member killed by Iranian drone in eastern Syria (Jul 25); 2 US troops killed in Iranian missile strike on base in eastern Syria (Jul 27); Red Sea escort coalition stood up Jul 23
 
 ---
 
