@@ -133,9 +133,11 @@ research:
 Plus a **catalyst calendar** per commodity so templates know *when* to look:
 
 ```yaml
-  catalyst_calendar:
-    nickel: ["RKAB quota decisions ~mid-year", "LME price path", "progressive royalty reviews"]
-    coal:   ["DMO policy", "reference price (HBA) monthly"]
+catalyst_calendar:
+      nickel: ["RKAB quota decisions ~mid-year", "LME price path", "progressive royalty reviews"]
+      coal:   ["DMO policy", "reference price (HBA) monthly"]
+    # Monthly snapshots written to vault: analysis/commodities/snapshots/{commodity}_{YYYY-MM}.md
+    # Stable primers (analysis/commodities/{Commodity}.md) are hand-curated, never overwritten.
 ```
 
 Cheap LLM then adds ≤ 3 freeform questions for events templates can't cover; union + dedupe. Budget caps: ~8–12 questions total, 2–3 queries each.
@@ -146,19 +148,64 @@ Cheap LLM then adds ≤ 3 freeform questions for events templates can't cover; u
 
 Ordering and reuse rules:
 
-1. **Vault-first:** run each question through `scripts/notes_rag/rag.py` (existing pattern from `context.py`); accept hits above a relevance bar. Free, private, already curated ([[Strait_of_Hormuz_Crisis]], [[Rupiah & Ammonia - Meridian Research]], commodity deep-dives).
-2. **Shared sector pack:** commodity/policy context is identical across tickers (nickel: DKFT/INDR/MHKI/ELSA/ARCI). Maintain `idx_data/analysis/research/sector/{commodity}_{YYYY-MM}.md`, refreshed monthly or on `--refresh-sector`. Quarterly runs only research ticker-specific events + freshness deltas. **Biggest cost saver.**
-3. **Web search** for the remainder, results cached by query hash in `idx_data/analysis/research/cache/` so `--write-only` and re-runs never re-fetch.
+1. **Vault-first:** run each question through `scripts/notes_rag/rag.py` (existing pattern from `context.py`); accept hits above a relevance bar. Free, private, already curated ([[Strait_of_Hormuz_Crisis]], [[Rupiah & Ammonia - Meridian Research]], commodity deep-dives). This **includes** the monthly sector snapshots (see §5.2) since they live in the vault — RAG picks them up automatically, no special wiring needed.
+2. **Shared sector pack (vault-resident):** commodity/policy context is identical across tickers (nickel: DKFT/INDR/MHKI/ELSA/ARCI). Maintain **two genres, both in the vault under `analysis/commodities/snapshots/`**:
+   - **Stable primers** (`analysis/commodities/Coking Coal.md` etc.) — hand-curated, timeless narrative; not overwritten by the pipeline.
+   - **Monthly snapshots** (`analysis/commodities/snapshots/{commodity}_{YYYY-MM}.md`) — auto-generated, dated state-of-market (e.g., HBA path this month, DMO moves, recent news), clearly marked machine-produced, regenerated monthly or on `--refresh-sector`. Mirrors [[Coking Coal Market Asia-Pacific 2025-2026]] convention but dated and refreshable.
+   
+   Snapshots are written into the vault — not the gitignored cache — because RAG already searches the vault, git versions them (auditable, no silent overwrites via cache), and operators can browse them in Obsidian alongside the primers. Quarterly runs only research ticker-specific events + freshness deltas on top of the snapshot. **Biggest cost saver.**
+3. **Web search** for the remainder, results cached by query hash in `idx_data/analysis/research/cache/` so `--write-only` and re-runs never re-fetch. (Cache stays gitignored — it holds raw search results, not analysis.)
 
-### Search backend — OPEN DECISION (§12)
+### Search backend — SearXNG via Docker (resolved, §12)
 
-| Option | Pros | Cons |
-|---|---|---|
-| **Search API (Exa / Tavily / Brave)** | Clean for scripted pipeline; Exa has strong date-filtering for news; deterministic + cacheable | New API key in `.env`; pay-per-use |
-| **OpenCode Go tool use** | No new dependency | Unverified: tool-calling support on glm-5.1/5.2 through `opencode_client.py` must be tested first |
-| **Agentic subprocess** (spawn agent session with web tools) | Most capable | Hardest to make deterministic/replayable; cost opaque |
+**Adopted:** self-hosted **SearXNG** in a Docker container, queried through its
+JSON API. Free, keyless, private, no `.env` secret, no pay-per-use — fits the
+plan's cost and privacy ethos, and the JSON response maps cleanly onto the
+query-hash cache in §5.3 so the "replayable artifacts" rule (§7.3) holds with a
+container rather than an API account.
 
-Default recommendation: **Exa or Tavily + cheap-model synthesis**. Confirm before implementation.
+**Container contract:**
+
+- `docker compose up -d` from a repo-root `docker-compose.yml` pinning the
+  SearXNG image on `8080:8080`. Pipeline writes stay in `idx_data` (gitignored).
+- Query: `GET http://localhost:8080/search?q={query}&format=json&time_range={day|week|month|year}&categories=news`.
+- A pinned `settings.yml` overrides the engine list to a **stable, low-blocking
+  set** (e.g. `duckduckgo, brave, bing`) for reproducibility + rate-limit hygiene
+  — the default meta-of-everything drifts run-to-run.
+- **Health gate:** `research.py` pings `/healthz` before sub-step ③; container
+  down → skip search, mark stage `degraded`, write proceeds (mirrors
+  `vault_search` handling). Container health is *not* a hard pipeline dep.
+- **Rate-limit mitigation:** ≤36 queries/report (§7) + query-hash cache + shared
+  sector pack (§5.2) keep per-IP load low; the pinned engine set avoids
+  Google-scrape blocks.
+
+**Hybrid content depth** (operator choice 2026-07-31): SearXNG returns
+URL+title+snippet+`publishedDate`, not article text. To avoid both the thinness
+of snippet-only and the cost of always-fetching:
+
+1. First synthesis pass over cached results uses **snippets only** (glm-5.1) →
+   provisional finding + `provisional_confidence`.
+2. If `provisional_confidence == low` **and** a result URL is on an
+   authoritative-domain allow-list (Reuters, Bloomberg, GIA, ministry portals,
+   IDX filings — in `config.yaml`), `research.py` fetches **that one** page via
+   `httpx` (already a dep, `opencode_client.py:21`) + lightweight readability
+   pass, then runs a **second synthesis pass** over snippet+body. Cap: one fetch
+   per low-confidence finding, ≤ ~8 fetches/report.
+3. Fetch missing/parse-failed → keep `low`, persist `fetch_attempted: true` so
+   `redflags.py` can audit.
+
+**Pluggable adapter:** `search_backend_search(query, **kw) -> list[Result]`
+behind the cache. SearXNG is the implemented adapter; an Exa/Tavily adapter can
+drop in behind the same interface later if precise by-date news filtering ever
+justifies the cost (deprioritized, kept open-only).
+
+**Open caveat — date fidelity (vs Exa):** `time_range` is coarse
+(day/week/month/year), so the precise by-date news filtering praised in §2 is
+approximated. Period integrity is recovered structurally from `publishedDate`
+plus a cheap-LLM date-parsing fallback in synthesis when the field is missing;
+`redflags.py` enforces period discipline off whatever date the brief carries, so
+the §7.1 constraint holds even with fuzzy sourcing — it just shifts the burden
+to the synthesis redflag layer rather than the search layer.
 
 ---
 
@@ -199,7 +246,8 @@ The `event → explanation → confidence → period → sources → writer_hint
 4. **Token budget.** Brief ≤ ~3–4K tokens injected into the writer package (writer call ≤ 32K principle); sector pack referenced, not inlined.
 5. **Best-effort failure.** Backend down / no results → stage marked `degraded`, pipeline proceeds to write (same as `vault_search`).
 6. **Numbers still canonical.** The brief may carry external *context* numbers (LME prices, quota volumes) but never restate financials; all financial figures remain sourced from the fact sheet only. QA grep-check rule extended: external numbers must trace to brief sources.
-7. **Cost caps.** ≤ 12 questions, ≤ 3 queries each, ≤ ~2 synthesis calls per report. Record search + token usage in `analysis_jobs`.
+7. **Cost caps.** ≤ 12 questions, ≤ 3 queries each, ≤ ~2 synthesis calls per report (+ ≤ 1 follow-up synthesis per low-confidence authoritative fetch, capped at ≤ 8 fetches/report per §5). Record search + fetch + token usage in `analysis_jobs`.
+8. **Ops isolation.** The SearXNG container is an *external* dependency, not a pipeline stage: `research.py` health-gates it, treats it as best-effort, and never blocks write. Operators manage `docker compose` lifecycle manually; a `--no-search` flag makes the stage skip the container entirely (triggers + `internal_must_explain` still produce).
 
 ---
 
@@ -227,15 +275,28 @@ Track these as a small separate task against `schema.py` / `extract_system.md` /
 ```
 scripts/analysis_pipeline/
 ├── research.py                    # Stage 3b: triggers → classify → search → brief
+├── search_backend.py              # search_backend_search() SearXNG adapter + cache I/O + fetcher
 └── prompts/
     ├── research_questions.md      # classify + freeform-question prompt (cheap model)
     └── research_synthesis.md      # evidence → RCA brief prompt (cheap model)
 
+docker-compose.yml                 # repo root: SearXNG image, 8080:8080, pinned settings.yml
+config/searxng/settings.yml        # pinned engine list (duckduckgo/brave/bing), stable + low-blocking
+
 idx_data/analysis/research/        # gitignored
 ├── {TICKER}_{Q}_{YEAR}.research.yaml
 ├── {TICKER}_{Q}_{YEAR}.research.md
-├── sector/{commodity}_{YYYY-MM}.md
-└── cache/{query_hash}.json
+└── cache/
+    ├── {query_hash}.json          # raw SearXNG results
+    └── fetch/{url_hash}.json      # fetched+extracted page body (for the hybrid pass)
+
+# Sector snapshots live IN the vault (git-tracked, RAG-searchable):
+analysis/commodities/
+├── Coking Coal.md                # stable primer, hand-curated (existing)
+├── snapshots/
+│   ├── coal_2026-07.md           # monthly, auto-generated, dated, refreshable
+│   └── nickel_2026-07.md
+└── ...
 ```
 
 ```yaml
@@ -247,7 +308,18 @@ analysis:
     research: 4096
   research:
     enabled: true
-    search_backend: exa                  # exa | tavily | opencode-tools (TBD, §12)
+    search_backend: searxng              # searxng (default) | exa | tavily
+    searxng:
+      base_url: http://localhost:8080     # /search?format=json&categories=news
+      health_path: /healthz
+      engines: [duckduckgo, brave, bing] # pinned stable, low-blocking set
+      timeout_s: 15
+    fetch:
+      on_low_confidence: true
+      authoritative_domains: [reuters.com, bloomberg.com, siaiair.com, gidji.com,
+                              kemen-esdm, bappebti, idx.co.id, investing.com]
+      max_fetches_per_report: 8
+      readability: true                   # httpx + lightweight extractor
     max_questions: 12
     max_queries_per_question: 3
     brief_token_cap: 4000
@@ -270,7 +342,7 @@ New CLI flags: `--skip-research`, `--refresh-sector`, `--research-only` (produce
 | Phase | Deliverable | Est. effort |
 |---|---|---|
 | **1. Triggers + brief skeleton** | `research.py` with deterministic triggers only, no search — brief contains events + `internal_must_explain`; wire into `context.py` and writer prompt. Validate trigger list on DKFT fact sheet (expect ~9–12 events). | 0.5 day |
-| **2. Search backend** | Backend decision (§12), client + cache, sector pack builder for nickel. | 1 day |
+| **2. Search backend** | SearXNG Docker container (`docker-compose.yml` + `config/searxng/settings.yml`), `search_backend.py` adapter + query-hash cache, health gate, fetcher for the hybrid low-confidence pass; sector pack builder for nickel. | 1 day |
 | **3. Questions + synthesis** | Classifier prompt, templates, RCA synthesis → brief YAML/MD; period-label + provenance enforcement. Golden test vs the enriched DKFT report's external claims (RKAB, LME path, USD/IDR). | 1 day |
 | **4. Redflags + Layer C** | Period/provenance checks in `redflags.py`; extraction schema `note_items`; writer divergence rule (§9). | 0.5–1 day |
 
@@ -280,8 +352,8 @@ Phase 1 exit criteria: DKFT trigger list matches the human-identified event set 
 
 ## 12. Open Questions
 
-1. **Search backend** (§5): Exa/Tavily key vs. verifying OpenCode Go tool-calling on glm models. Default recommendation: Exa or Tavily.
-2. **Sector-pack authorship:** fully auto-generated monthly, or human-curated with auto-append of dated news items? Curated is higher quality but adds maintenance.
+1. **Search backend** (§5): ~~Exa/Tavily key vs. verifying OpenCode Go tool-calling on glm models.~~ **Resolved (operator discussion 2026-07-31):** self-hosted **SearXNG via Docker**, queried through its JSON API, with a hybrid snippet→conditional-fetch content-depth policy. Free, keyless, replayable via the query-hash cache (§5.3), container-down → `degraded` (§7.5). Exa/Tavily kept as a deprioritized pluggable adapter behind the same `search_backend_search()` cache interface. See §5 for the container contract and the date-fidelity caveat.
+2. **Sector-pack authorship:** ~~fully auto-generated monthly, or human-curated with auto-append of dated news items?~~ **Resolved (operator discussion 2026-07-31):** two genres, both vault-resident (§5.2). Stable primers stay hand-curated; monthly snapshots are auto-generated into `analysis/commodities/snapshots/`, git-tracked and RAG-searchable. Open sub-questions remaining: (a) regenerate snapshot in-place vs. diff-append; (b) whether snapshots should carry a `generated_at` header + `confidence` per claim to keep them auditable alongside curated notes.
 3. **Post-period window:** how far past quarter-end may "post-period" context extend (report date vs. analysis run date)? Proposal: up to run date, always labeled.
 4. **Paywalled sources** (Wood Mackenzie etc.): brief must mark `confidence: low` when the only support is secondary citation; never present as verified.
 5. **Market data (Layer A):** keep manual `--market-data` stub (per `IMPLEMENTATION_PLAN.md` §13.1) or fold an auto-fetch into this stage? Recommendation: keep separate concern; revisit after research stage lands.
