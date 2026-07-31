@@ -4,7 +4,7 @@ tags:
   - "#earnings"
   - "#Q12026"
 ---
-[[Strait_of_Hormuz_Crisis]]
+ar[[Strait_of_Hormuz_Crisis]]
 # PT Central Omega Resources Tbk (DKFT) — Q1 2026
 ---
 ## 1. Executive Summary
