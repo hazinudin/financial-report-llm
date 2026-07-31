@@ -14,8 +14,8 @@ analysis:
   models:
     # Extraction is lookup-style on preprocessed chunks; temperature 0.
     # Confirm exact IDs via: uv run scripts/analysis_pipeline/pipeline.py --list-models
-     extract: deepseek-v4-flash
-     redflags: deepseek-v4-flash
+     extract: hy3
+     redflags: hy3
     # The only call where reasoning quality is binding.
      write: kimi-k2.6
   max_tokens:
