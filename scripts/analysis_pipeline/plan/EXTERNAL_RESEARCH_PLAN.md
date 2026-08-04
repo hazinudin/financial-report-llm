@@ -5,6 +5,8 @@
 **Date:** 2026-07-27
 **Scope:** Add an external-research layer to the analysis pipeline so that events found in the financial statements are *explained* (commodity prices, quota/policy, FX, sector news), not just restated — closing the gap between report-only output (e.g., `analysis/DKFT Q1 2026 Analysis - Gemma.md`) and context-enriched output (e.g., `analysis/DKFT Q1 2026 Analysis.md`).
 
+**Companion plan:** [[WEB_SEARCH_TOOL_PLAN]] — the LLM-callable Python search/fetch tool that implements the search mechanics described in §5.
+
 ---
 
 ## 1. Background and Motivation
@@ -197,7 +199,9 @@ of snippet-only and the cost of always-fetching:
 **Pluggable adapter:** `search_backend_search(query, **kw) -> list[Result]`
 behind the cache. SearXNG is the implemented adapter; an Exa/Tavily adapter can
 drop in behind the same interface later if precise by-date news filtering ever
-justifies the cost (deprioritized, kept open-only).
+justifies the cost (deprioritized, kept open-only). The Python `web_search` /
+`fetch_web_page` tools that expose this adapter to the LLM are specified in
+[[WEB_SEARCH_TOOL_PLAN]].
 
 **Open caveat — date fidelity (vs Exa):** `time_range` is coarse
 (day/week/month/year), so the precise by-date news filtering praised in §2 is
