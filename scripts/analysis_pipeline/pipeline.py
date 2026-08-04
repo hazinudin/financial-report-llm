@@ -49,6 +49,7 @@ DB_PATH = _PROJECT_ROOT / "idx_data" / "pipeline.duckdb"
 RUNS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "runs"
 
 import opencode_client  # noqa: E402
+import xlsx_seed  # noqa: E402
 
 
 def _load_market_data(path: str | None) -> str | None:
@@ -69,6 +70,19 @@ def run_job(
     import preprocess, extract, merge, ratios, context, write, redflags  # noqa: F401
 
     job_id = db.upsert_job(ticker, year, quarter)
+    xlsx_sync = xlsx_seed.ensure_xlsx_coverage(
+        ticker, year, quarter, conn=db.conn, dry_run=dry_run,
+    )
+    if xlsx_sync.get("seeded") and xlsx_seed.fact_artifact_needs_seed(ticker, year, quarter):
+        # Existing fallback artifacts may have been generated before the XLSX
+        # appeared. Rebuild from extraction onward so XLSX becomes authoritative.
+        force = True
+        print("  [XLSX] existing fact artifact predates XLSX seed; rebuilding")
+    elif xlsx_sync.get("ingested"):
+        # Existing fallback artifacts may have been generated before the XLSX
+        # appeared. Rebuild from extraction onward so XLSX becomes authoritative.
+        force = True
+        print(f"  [XLSX] {xlsx_sync['status']}: {xlsx_sync.get('path', '')}")
 
     def mark(stage, status, error=None):
         if not dry_run:
@@ -138,7 +152,7 @@ def run_job(
         else:
             try:
                 res = extract.run(ticker, year, quarter, pre_path, force=force, dry_run=dry_run,
-                                  workers=workers)
+                                  workers=workers, db_conn=db.conn)
                 if not dry_run:
                     db.set_models(job_id, extract=res.get("model"))
                 tok = res.get("tokens", {})

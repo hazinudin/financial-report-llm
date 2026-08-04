@@ -9,8 +9,8 @@ Two modes, chosen automatically per report:
     details-only prompt (details + context_notes). Fewer, smaller, faster
     calls — and no LLM transcription of the big tables to fail validation.
 
-  FALLBACK (no xlsx coverage): the original full-fact-sheet extraction over
-    all chunks (statements + notes).
+  FALLBACK (no XLSX file or failed XLSX parsing): the original full-fact-sheet
+  extraction over all chunks (statements + notes).
 
 For each chunk built by chunker.py:
   1. Assemble the extraction prompt (system from prompts/extract_system.md +
@@ -242,11 +242,14 @@ def _clear_stale_outputs(ticker: str, quarter: str, year: int) -> int:
 def run(
     ticker: str, year: int, quarter: str,
     preprocessed_path: str, force: bool = False, dry_run: bool = False,
-    workers: int | None = None, cap: int | None = None,
+    workers: int | None = None, cap: int | None = None, db_conn=None,
 ) -> dict:
     """Run extraction for one report. Returns summary + per-chunk usage."""
     FACTS_DIR.mkdir(parents=True, exist_ok=True)
-    seeded = xlsx_seed.has_coverage(ticker, year, quarter)
+    xlsx_sync = xlsx_seed.ensure_xlsx_coverage(
+        ticker, year, quarter, conn=db_conn, dry_run=dry_run,
+    )
+    seeded = xlsx_sync["seeded"]
     chunks = build_chunks(preprocessed_path, cap=cap, include_statements=not seeded)
     line_keys = canonical_line_keys()
     settings = opencode_client.parse_model_settings("extract")
@@ -319,6 +322,7 @@ def run(
         "status": "success" if not failed else "partial",
         "model": model, "chunks": len(chunks), "ok": ok_count, "failed": len(failed),
         "seeded": seeded,
+        "xlsx": xlsx_sync,
         "tokens": {"prompt": total_prompt, "completion": total_completion},
     }
     if failed:
