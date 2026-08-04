@@ -194,9 +194,9 @@ def parse_xlsx(
         period_map = {
             "Tahunan": "audit", "I": "TW1", "II": "TW2", "III": "TW3", "IV": "TW4",
         }
-        if ticker and ticker_match:
+        if ticker is None and ticker_match:
             ticker = ticker_match.group("ticker")
-        if year and year_match:
+        if year is None and year_match:
             year = int(year_match.group("year"))
         for key, val in period_map.items():
             if key in stem and period is None:

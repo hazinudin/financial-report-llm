@@ -29,8 +29,9 @@ Conventions
 - 1410000 (changes in equity) is NOT used: its column-per-component layout
   does not survive the report_pipeline's 4-column parser.
 
-When no xlsx coverage exists for a ticker/period, seed_from_xlsx returns None
-and the pipeline falls back to full LLM statement extraction.
+When no complete xlsx coverage exists, ensure_xlsx_coverage attempts to parse the
+local FinancialStatement workbook before the pipeline falls back to full LLM
+statement extraction.
 """
 
 from __future__ import annotations
@@ -42,6 +43,8 @@ from schema import FactSheet, Meta, Statement
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_DB_PATH = _PROJECT_ROOT / "idx_data" / "pipeline.duckdb"
+REPORTS_DIR = _PROJECT_ROOT / "idx_data" / "reports"
+FACTS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "facts"
 
 QUARTER_TO_PERIOD = {"Q1": "tw1", "Q2": "tw2", "Q3": "tw3", "Q4": "audit"}
 
@@ -49,6 +52,12 @@ QUARTER_TO_PERIOD = {"Q1": "tw1", "Q2": "tw2", "Q3": "tw3", "Q4": "audit"}
 BS_SHEETS = ("1210000", "1220000")
 IS_SHEETS = ("1311000",)
 CF_SHEETS = ("1510000", "1520000")
+
+REQUIRED_SEED_KEYS = {
+    "income_statement": ("revenue", "gross_profit", "pbt", "net_profit"),
+    "balance_sheet": ("total_assets", "total_liabilities", "total_equity"),
+    "cash_flow": ("ocf", "net_change", "cash_end"),
+}
 
 # canonical key -> {"labels": [...], "mode": "first"|"sum", "minus": [...]}
 # Labels are matched case-insensitively against label_en.
@@ -276,35 +285,25 @@ def _connect(db_path: Path):
 
 
 def has_coverage(ticker: str, year: int, quarter: str, db_path: Path = DEFAULT_DB_PATH) -> bool:
-    """True when xlsx statement rows exist for this ticker/period."""
+    """True when a complete primary-statement XLSX seed can be built."""
     try:
-        conn = _connect(db_path)
+        return seed_from_xlsx(ticker, year, quarter, db_path) is not None
     except Exception:  # noqa: BLE001
         return False
-    try:
-        period = QUARTER_TO_PERIOD.get(quarter, quarter.lower())
-        n = conn.execute(
-            "SELECT COUNT(*) FROM xlsx_statements "
-            "WHERE ticker=? AND year=? AND period=? AND value_current IS NOT NULL",
-            (ticker, year, period),
-        ).fetchone()[0]
-        return n > 0
-    except Exception:  # noqa: BLE001
-        return False
-    finally:
-        conn.close()
 
 
 def seed_from_xlsx(
-    ticker: str, year: int, quarter: str, db_path: Path = DEFAULT_DB_PATH,
+    ticker: str, year: int, quarter: str, db_path: Path = DEFAULT_DB_PATH, conn=None,
 ) -> Optional[FactSheet]:
     """Build a FactSheet with meta + 3 primary statements from xlsx_statements.
     Returns None when no coverage (caller falls back to LLM extraction)."""
     import sys
 
     period = QUARTER_TO_PERIOD.get(quarter, quarter.lower())
+    own_conn = conn is None
     try:
-        conn = _connect(db_path)
+        if own_conn:
+            conn = _connect(db_path)
     except Exception as e:  # noqa: BLE001
         print(f"  [WARN] xlsx seed unavailable ({e}); falling back to LLM extraction", file=sys.stderr)
         return None
@@ -317,10 +316,13 @@ def seed_from_xlsx(
         bs_rows = _fetch_sheet_rows(conn, ticker, year, period, BS_SHEETS)
         is_rows = _fetch_sheet_rows(conn, ticker, year, period, IS_SHEETS)
         cf_rows = _fetch_sheet_rows(conn, ticker, year, period, CF_SHEETS)
+    except Exception:
+        return None
     finally:
-        conn.close()
+        if own_conn and conn is not None:
+            conn.close()
 
-    if not (bs_rows or is_rows or cf_rows):
+    if not (bs_rows and is_rows and cf_rows):
         return None
 
     currency, rounding, audit_status, period_end, prior_period_end = (
@@ -339,7 +341,101 @@ def seed_from_xlsx(
     income = _build_statement(_label_index(is_rows), IS_MAP, ["current", "prior_yoy"])
     balance = _build_statement(_label_index(bs_rows), BS_MAP, ["current", "prior_fy_end"])
     cash = _build_statement(_label_index(cf_rows), CF_MAP, ["current", "prior_yoy"])
-    return FactSheet(meta=meta, income_statement=income, balance_sheet=balance, cash_flow=cash)
+    seed = FactSheet(meta=meta, income_statement=income, balance_sheet=balance, cash_flow=cash)
+    return seed if _is_complete_seed(seed) else None
+
+
+def _is_complete_seed(sheet: FactSheet) -> bool:
+    """Require core current and comparative values before using XLSX-only mode."""
+    for statement_name, keys in REQUIRED_SEED_KEYS.items():
+        statement = getattr(sheet, statement_name)
+        for column in ("lines", "prior_lines"):
+            values = getattr(statement, column) or {}
+            if any(values.get(key) is None for key in keys):
+                return False
+    return True
+
+
+def _xlsx_path(ticker: str, year: int, quarter: str) -> Path | None:
+    period = QUARTER_TO_PERIOD.get(quarter.upper(), quarter.lower())
+    report_dir = REPORTS_DIR / ticker.upper()
+    candidates = sorted(
+        path for path in report_dir.glob(f"{year}_*/FinancialStatement*.xlsx")
+        if path.parent.name.split("_", 1)[-1].lower() == period
+    )
+    return candidates[0] if candidates else None
+
+
+def ensure_xlsx_coverage(
+    ticker: str,
+    year: int,
+    quarter: str,
+    db_path: Path = DEFAULT_DB_PATH,
+    conn=None,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    """Ingest a local XLSX when DuckDB lacks a complete seed."""
+    if seed_from_xlsx(ticker, year, quarter, db_path, conn=conn) is not None:
+        return {"status": "available", "seeded": True, "ingested": False}
+
+    xlsx_path = _xlsx_path(ticker, year, quarter)
+    if xlsx_path is None:
+        return {"status": "unavailable", "seeded": False, "ingested": False}
+    if dry_run:
+        return {"status": "would_ingest", "seeded": False, "ingested": False,
+                "path": str(xlsx_path)}
+
+    own_conn = conn is None
+    if own_conn:
+        import duckdb
+        conn = duckdb.connect(str(db_path))
+    try:
+        from scripts.report_pipeline.db import PipelineDB
+        from scripts.report_pipeline.xlsx_parser import parse_xlsx
+
+        pipeline_db = PipelineDB(conn)
+        pipeline_db.init_schema()
+        period = QUARTER_TO_PERIOD.get(quarter.upper(), quarter.lower())
+        meta, rows = parse_xlsx(str(xlsx_path), ticker=ticker.upper(), year=year, period=period)
+        if not rows:
+            return {"status": "parse_failed", "seeded": False, "ingested": False,
+                    "path": str(xlsx_path), "error": "no statement rows extracted"}
+
+        conn.execute("DELETE FROM xlsx_statements WHERE ticker=? AND year=? AND period=?",
+                     (ticker.upper(), year, period))
+        conn.execute("DELETE FROM xlsx_meta WHERE ticker=? AND year=? AND period=?",
+                     (ticker.upper(), year, period))
+        pipeline_db.upsert_xlsx_meta(meta)
+        pipeline_db.upsert_xlsx_statements(rows)
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "parse_failed", "seeded": False, "ingested": False,
+                "path": str(xlsx_path), "error": str(exc)}
+    finally:
+        if own_conn:
+            conn.close()
+
+    seeded = seed_from_xlsx(
+        ticker, year, quarter, db_path, conn=None if own_conn else conn,
+    ) is not None
+    if not seeded:
+        return {"status": "incomplete", "seeded": False, "ingested": True,
+                "path": str(xlsx_path), "error": "required statement values are missing"}
+    return {"status": "ingested", "seeded": True, "ingested": True,
+            "path": str(xlsx_path)}
+
+
+def fact_artifact_needs_seed(ticker: str, year: int, quarter: str) -> bool:
+    """Return whether an existing canonical fact file predates XLSX seeding."""
+    import yaml
+
+    path = FACTS_DIR / f"{ticker}_{quarter}_{year}.yaml"
+    if not path.exists():
+        return False
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError):
+        return True
+    return (data.get("meta") or {}).get("source_file") != "xlsx"
 
 
 def missing_keys(sheet: FactSheet) -> dict[str, list[str]]:
