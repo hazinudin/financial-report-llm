@@ -279,7 +279,7 @@ Track these as a small separate task against `schema.py` / `extract_system.md` /
 ```
 scripts/analysis_pipeline/
 ├── research.py                    # Stage 3b: triggers → classify → search → brief
-├── search_backend.py              # search_backend_search() SearXNG adapter + cache I/O + fetcher
+├── search_backend.py              # search_backend_search() SearXNG adapter + cache I/O + fetcher (owned by [[WEB_SEARCH_TOOL_PLAN]])
 └── prompts/
     ├── research_questions.md      # classify + freeform-question prompt (cheap model)
     └── research_synthesis.md      # evidence → RCA brief prompt (cheap model)
@@ -291,7 +291,7 @@ idx_data/analysis/research/        # gitignored
 ├── {TICKER}_{Q}_{YEAR}.research.yaml
 ├── {TICKER}_{Q}_{YEAR}.research.md
 └── cache/
-    ├── {query_hash}.json          # raw SearXNG results
+    ├── search/{query_hash}.json   # raw SearXNG results
     └── fetch/{url_hash}.json      # fetched+extracted page body (for the hybrid pass)
 
 # Sector snapshots live IN the vault (git-tracked, RAG-searchable):
