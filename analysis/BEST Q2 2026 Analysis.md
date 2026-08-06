@@ -1,27 +1,24 @@
 ---
 tags: ["#BEST", "#earnings", "#Q22026"]
 ---
+
 [[BEST Q1 2026 Analysis]]
+[[BEST Q2 2026 Analysis]]
 
-# BEST Tbk (BEST) — Q2 2026
+# BEST Tbk (BEST) — H1 2026
 ---
-[[TAPG Q1 2026 Analysis]]
-[[MSTI Q1 2026 Analysis]]
-[[TINS Q2 2026 Analysis]]
 
-All figures are presented in Indonesian Rupiah (IDR) nominal. This note is based on the unaudited interim financial statements for the six months ended 30 June 2026, with the balance-sheet comparative drawn from the audited fiscal year-end 31 December 2025 and the income-statement and cash-flow comparative drawn from the six months ended 30 June 2025.
+**Reporting basis:** Unaudited interim consolidated financial statements for the six months ended 30 June 2026 (H1 2026), with comparative H1 2025. No Q2 2026 standalone figures are disclosed; therefore this note treats H1 2026 as the operative period. All figures are in Indonesian Rupiah (IDR) full units unless otherwise stated. Source: BEST interim financial statements and internal notes.
+
+---
 
 ## 1. Executive Summary
 
-BEST Tbk delivered a dramatic operational inflection in Q2 2026, posting revenue of IDR 380,429,246,072 against IDR 94,315,623,322 in the prior-year period, a 303.4% year-on-year expansion per the pre-computed revenue-growth ratio. The turnaround was even more pronounced at the bottom line: net profit swung from a loss of IDR 58,530,926,770 in H1 2025 to a profit of IDR 144,317,767,533, driving basic EPS to IDR 14.96 from a prior-year loss of IDR 6.07. The industrial estate segment—represented by subsidiaries PT Bekasi Matra Industrial Estate and PT Bekasi Surya Pratama—remains the sole engine, contributing external sales of IDR 360,827,719,939 and gross profit of IDR 238,543,503,167. Gross margin expanded to 64.51%, while the net margin reached 37.94% and the pre-tax margin 38.46%. The effective tax rate printed at -1.37%, reflecting a tax benefit of IDR 2,001,846,265 that flattered net profit.
+BEST Tbk delivered an exceptional H1 2026, with revenue surging 303.4% year-on-year to IDR 380.4 billion and net profit swinging from a loss of IDR 58.5 billion to a profit of IDR 144.3 billion. The inflection was driven almost entirely by industrial estate land sales at MM2100 Bekasi, including a disclosed IDR 170 billion transaction with PT Handal Gemilang Sentosa that alone accounted for roughly 45% of H1 revenue. Gross margin expanded to 64.51% as fixed land-bank costs were absorbed over a fourfold revenue base, while general and administrative expenses actually declined 2.9% in absolute terms, amplifying operating leverage. Pre-tax margin reached 40.69% and net margin 37.94%, the latter inflated by a negative tax expense of IDR 10.5 billion that produced an effective tax rate of –6.76%—a clearly unsustainable anomaly.
 
-The balance sheet is conservative and liquid. Total assets were stable at IDR 5,777,851,744,920 (-0.46% versus December 2025), while total equity rose 3.24% to IDR 4,600,192,074,330. Net debt stands at IDR 565,609,655,498 for a net-debt-to-equity ratio of 0.123, and the debt-to-equity ratio is 0.256. Liquidity ratios are robust: current ratio 7.56, quick ratio 2.49, and cash ratio 1.40, underpinned by cash of IDR 409,505,529,053. Yet the asset base is dominated by inventories—current inventories alone are IDR 1,479,549,930,773, and note 7 discloses additional non-current inventories of IDR 3,252,919,201,978, implying the bulk of the group’s resources are tied up in land stock.
+The balance sheet remains fortress-like. Cash rose to IDR 409.5 billion, the current ratio stands at 7.56x, and net loan repayments of IDR 91.9 billion reduced the Bank Mandiri facility to IDR 1,071.2 billion net. Debt-to-equity is 0.256x and covenants are reported as complied. Operating cash flow was IDR 150.5 billion, covering net profit 1.04x. Yet the quality of earnings is questionable: customer concentration is extreme, other income includes a non-recurring IDR 1.8 billion asset sale gain, and the tax benefit is unlikely to repeat. With no market data provided, valuation multiples are unavailable and the stock cannot be benchmarked on a quantitative basis. We maintain a **HOLD (Moderate Risk)** stance pending Q3 2026 evidence that revenue is more than a one-off bulk sale and that the tax line normalizes.
 
-Cash generation turned sharply positive. Operating cash flow was IDR 150,530,920,920 versus a negative outflow of IDR 38,238,462,960 in H1 2025, with collections from customers at IDR 301,159,381,940 (79.16% of revenue). Core free cash flow after capex totalled IDR 165,545,195,022, comfortably covering IDR 91,906,031,250 in loan principal repayments and IDR 36,451,736,116 in interest paid. No dividends were distributed to owners in the period.
-
-Risks are concentrated, not dispersed. Customer concentration is acute: PT Handal Gemilang Sentosa alone booked IDR 170,000,000,000, and the percentage of sales is not disclosed. PT Kawasan Lintas Biru Digital— a related party under common key management—contributed IDR 20,540,624,826 (5.4% of sales), up from nil in H1 2025 per note 30c. PT Megalopolis Manunggal Industrial Development, another related party, supplied IDR 20,835,122,371 of cost of revenue (15.43% of COGS per note 30d, down from 42.55% in the prior year). Operating profit is not separately disclosed in the interim statements, leaving a blind spot in operating leverage. No market data is provided, rendering P/E, P/B, EV/EBITDA, and any target price unavailable.
-
-We rate BEST Tbk a **HOLD (Moderate Risk)**. The balance sheet is strong, the cash conversion is excellent, and the industrial estate model is demonstrably profitable; however, the extreme customer concentration, material related-party flows, and absence of market multiples prevent a constructive BUY stance. Target price range: not disclosed—market data unavailable. Key review triggers are the Q3 2026 interim report, any renewal of the KLBD telecom facilities agreement, and Bank Mandiri covenant compliance disclosure.
+---
 
 ## 2. Revenue Analysis
 
@@ -31,176 +28,187 @@ We rate BEST Tbk a **HOLD (Moderate Risk)**. The balance sheet is strong, the ca
 |--------|---------------|--------------------|--------|
 | H1 2026 | 380,429,246,072 | 94,315,623,322 | +303.36% |
 
-The pre-computed revenue-growth ratio of 3.033576 reflects an exceptional surge against the depressed H1 2025 base. Revenue more than quadrupled in nominal terms, driven by the industrial estate segment.
+The pre-computed revenue-growth ratio of 3.033576 reflects an exceptional surge against the depressed H1 2025 base. Revenue more than quadrupled, but the driver is volume-driven plot sales rather than a sustained recurring-lease ramp.
 
 ### 2.2 Revenue Drivers — Volume vs. Price
 
-The fact sheet contains no production, reserve, or volume disclosures (empty arrays), and management does not break out square-meters sold, lease rates, or pricing per plot. The revenue jump is therefore best characterised as a timing-driven acceleration in industrial estate sales and/or handovers rather than a measurable volume or price effect. Foreign-exchange tailwinds are marginal: the USD/IDR rate moved from 16,782 at December 2025 to 17,856 at June 2026, but the industrial estate model is domestically anchored. Note 32 flags a constant USD trade-payable balance with an altered IDR equivalent, suggesting limited FX translation impact on revenue.
+Segment disclosures show the industrial estate segment (“Kawasan industri”) contributed external sales of IDR 360,827,719,939 (94.8% of total), while “Lainnya” contributed IDR 19,601,526,133 (5.2%). No production or hectare-volume figures are disclosed in the interim statements. External research indicates BEST had a 72-hectare industrial land demand pipeline as of March 2026, dominated by foreign investors from Japan, China, Singapore, and Thailand, with relocation and supply-chain expansion themes ([Kontan, 8 Jun 2026](https://industri.kontan.co.id/news/best-bidik-pertumbuhan-moderat-pada-2026-permintaan-lahan-industri-capai-72-hektare)). CBRE Indonesia’s Q2 2026 market update recorded 62 hectares of industrial land absorbed in Jabodetabek, occupancy rising to 91.2%, with data center demand lifting land values higher ([CBRE Indonesia Q2 2026](https://indonesia.cbre.com/insights/reports/jakarta-property-market-update-q2-2026)). This macro tailwind supports pricing power, but the H1 surge is primarily volume-driven by the realization of the pipeline plus a bulk transaction. The USD/IDR rate depreciated to 17,856 at 30 June 2026 from 16,782 at 31 December 2025; a 5% Rupiah move would change H1 pre-tax profit by IDR 1.96 billion per Note 32.
 
 ### 2.3 Revenue Composition Observations
 
-Customer concentration is the defining feature. The interim statements disclose three material customers:
+Customer concentration is the dominant feature. Note 23 discloses two major customers exceeding 10% of revenue in H1 2026:
 
-| Customer | Amount (IDR) | % of Sales |
-|----------|--------------|------------|
+| Customer | Amount (IDR) | % of Sales (Disclosed) |
+|----------|--------------|----------------------|
 | PT Handal Gemilang Sentosa | 170,000,000,000 | not disclosed |
 | PT API International Indonesia | 47,360,000,000 | not disclosed |
-| PT Kawasan Lintas Biru Digital | 20,540,624,826 | 5.4% |
 
-PT Handal Gemilang Sentosa alone represents a material share of the IDR 380.4 billion top line. The domestic versus external geographic split is not disclosed. Segment composition shows the industrial estate segment at external sales of IDR 360,827,719,939 and the Others segment at IDR 19,601,526,133.
+Together these two customers account for IDR 217.36 billion, or approximately 57% of H1 revenue. The nature of the PT Handal Gemilang Sentosa transaction—whether a single plot, multiple plots, or a long-term lease—is **not disclosed** in the interim report and remains an unresolved item. All revenue is domestic, generated in Bekasi, West Java; the Group reports no geographic segments (Note 33). Related-party revenue from PT Kawasan Lintas Biru Digital (same key management) contributed IDR 20,540,624,826 (5.40% of total revenue), up from nil in H1 2025.
 
 ### 2.4 Revenue Sustainability and Forward Outlook
 
-Forward visibility is limited. No order backlog, pre-sale pipeline, or reserve runway is disclosed. Post-period-end, note 37 confirms no material events after 30 June 2026. The telecom facilities commitment to PT Kawasan Lintas Biru Digital was extended to 30 June 2026—meaning it expired at the reporting date—creating a near-term renewal catalyst. The assets held for sale (carrying amount IDR 10,374,032,215 at 31 December 2025) were disposed of in June 2026 for IDR 13,533,231,000, generating a gain of IDR 1,818,067,785 recorded in other income-net; this is non-recurring. A key watch item is whether the H1 2026 revenue spike reflects a bulk industrial-estate transaction or a sustainable run-rate.
+The 72-hectare pipeline reported in March 2026 provides near-term visibility, but industrial estate sales are inherently lumpy. The BEFA Industrial Hub—standard factory buildings and ready-built warehouse space launched in September 2025 with Phase 1 handover targeted for May 2026—offers a path to recurring income and diversifies away from one-off land plots ([Kompas, 17 Sep 2025](https://money.kompas.com/read/2025/09/17/184113526/bekasi-fajar-industrial-estate-best-bangun-industrial-hub-di-mm2100)). Post-period-end price moves are not disclosed. Key watch items are: (i) whether PT Handal Gemilang Sentosa’s purchase repeats in H2; (ii) renewal of the PT Kawasan Lintas Biru Digital telecom facilities agreement, which expired on 30 June 2026 per Note 34; and (iii) conversion of the remaining pipeline into binding sales contracts.
+
+---
 
 ## 3. Profitability Analysis
 
 ### 3.1 Gross Margin Analysis
 
-| Metric | H1 2026 (IDR) | H1 2025 (IDR) |
-|--------|---------------|---------------|
-| Revenue | 380,429,246,072 | 94,315,623,322 |
-| COGS | (135,000,531,588) | (41,477,909,057) |
-| Gross Profit | 245,428,714,484 | 52,837,714,265 |
-| Gross Margin | 64.51% | not disclosed |
-| bps change | n/a | n/a |
+| Item | H1 2026 (IDR) | % of Revenue |
+|------|---------------|--------------|
+| Revenue | 380,429,246,072 | 100.00% |
+| COGS | 135,000,531,588 | 35.49% |
+| Gross Profit | 245,428,714,484 | 64.51% |
 
-Gross margin expanded to 64.51% per the pre-computed ratio. The COGS mix shifted materially: note 30d indicates that cost of revenue to related party PT Megalopolis Manunggal Industrial Development fell to 15.43% of total COGS (IDR 20,835,122,371) from 42.55% in the prior year (IDR 17,644,140,001), implying that total COGS rose while the related-party share declined. Revenue growth significantly outpaced the increase in COGS, driving the margin expansion.
+Gross margin expanded to **64.51%** (computed ratio: 245,428,714,484 / 380,429,246,072). The prior-period gross margin is **not disclosed** in the computed ratios, so a basis-point change cannot be stated authoritatively. The expansion reflects operating leverage on fixed land-bank costs: COGS rose 225% while revenue rose 303%, spreading carrying costs over a far larger revenue base. Sector land-value appreciation in Bekasi (CBRE) likely supported average selling prices, but no external evidence of an accounting-policy change was found.
 
 ### 3.2 Operating Margin Analysis
 
-| Metric | H1 2026 (IDR) |
-|--------|---------------|
+| Item | H1 2026 (IDR) |
+|------|---------------|
 | Gross Profit | 245,428,714,484 |
 | Selling Expense | (3,467,373,468) |
 | G&A Expense | (59,894,963,458) |
-| Operating Profit | not disclosed |
-| Operating Margin | not disclosed |
+| **Operating Profit** | **not disclosed** |
 
-Operating profit is not separately disclosed in the interim income statement, and the pre-computed operating-margin ratio is null. Selling expenses increased to IDR 3,467,373,468 from IDR 1,898,276,462 in H1 2025, while G&A expenses declined to IDR 59,894,963,458 from IDR 61,731,491,388. The net effect on operating margin cannot be verified without a reported operating profit line.
+Operating profit and operating margin are **not disclosed** in the interim statement or computed ratios. Selling expenses rose 82.7% YoY, consistent with higher marketing sales activity, but G&A expenses **declined** 2.9% YoY to IDR 59.9 billion despite 303% revenue growth—an internal cost-structure shift that is **not fully explained** in the disclosures.
 
 ### 3.3 Net Finance Income/Expense and Other Income
 
-Finance costs (used as a proxy for interest expense) totalled IDR 34,418,894,897, down from IDR 49,779,880,648 in H1 2025, consistent with lower average debt after principal repayments. No separate interest income line appears in the P&L per the context notes. Other income-net of IDR 7,132,178,410 includes the IDR 1,818,067,785 gain on disposal of assets held for sale (note 35). Stripping this one-off, underlying other income would be lower, but the exact recurring figure is not disclosed.
+Interest expense fell 30.9% to IDR 34,418,894,897 (from IDR 49,779,880,648), driven by deleveraging and a stable BI-Rate at 4.75% ([BI, 2026](https://www.bi.go.id/id/publikasi/ruang-media/news-release/Pages/sp_2730425.aspx)). Note 27 confirms finance costs are mainly interest on the Bank Mandiri loan. Other income net rose 46.8% to IDR 6,689,435,222. This includes a non-recurring gain of IDR 1,818,067,785 on the sale of fiber optic equipment to related party PT Kawasan Lintas Biru Digital (cash received IDR 13,533,231,000, carrying value IDR 10,374,032,215 per Note 35). The remaining IDR 4.9 billion of other income is **not itemized** in the extracted notes; its recurrence is unresolved.
 
 ### 3.4 Net Profit Margin Analysis
 
-| Metric | H1 2026 (IDR) | H1 2025 (IDR) |
-|--------|---------------|---------------|
-| PBT | 146,319,613,798 | (57,450,896,555) |
-| Tax | (2,001,846,265) | (1,080,030,215) |
-| Net Profit | 144,317,767,533 | (58,530,926,770) |
-| Pre-tax Margin | 38.46% | not disclosed |
-| Net Margin | 37.94% | not disclosed |
-| ETR | -1.37% | not disclosed |
+| Item | H1 2026 (IDR) | % of Revenue |
+|------|---------------|--------------|
+| Profit Before Tax | 154,779,661,071 | 40.69% |
+| Tax | (10,461,893,538) | –2.75% |
+| Net Profit | 144,317,767,533 | 37.94% |
+| Pre-tax Margin | 40.69% | — |
+| Net Margin | 37.94% | — |
+| Effective Tax Rate | –6.76% | — |
 
-The negative tax expense produces an effective tax rate of -1.37% per the pre-computed ratio, likely reflecting utilisation of deferred tax assets or tax loss carryforwards generated in the prior-year deficit. Pre-tax margin is 38.46% and net margin is 37.94%.
+The tax line is the most anomalous item. Tax expense is negative—a benefit of IDR 10.46 billion—despite IDR 154.8 billion of pre-tax profit. The computed effective tax rate is **–6.76%**. Note 8d references an anomalous tax-expense table (likely a docling artifact) and states total tax expense of IDR 2,001,846,265 for both periods, which conflicts with the income-statement tax line. Note 8 also references a reconciliation showing consolidated profit before tax of IDR 146,319,613,798 (not IDR 154.8 billion), and taxable income of IDR 25,299,266,987. The **effective tax rate discrepancy (–6.76% per ratios vs –1.37% per text)** remains unresolved. The tax benefit is likely driven by deferred tax asset utilization or reassessment, but the exact mechanics are not disclosed.
 
 ### 3.5 Profitability Summary — Margin Waterfall
 
-| Step | Amount (IDR) |
-|------|--------------|
-| Revenue | 380,429,246,072 |
-| Less: COGS | (135,000,531,588) |
-| Gross Profit | 245,428,714,484 |
-| Less: Selling Expense | (3,467,373,468) |
-| Less: G&A Expense | (59,894,963,458) |
-| Operating Profit | not disclosed |
-| Other Income Net | 7,132,178,410 |
-| PBT | 146,319,613,798 |
-| Less: Tax | (2,001,846,265) |
-| Net Profit | 144,317,767,533 |
+| Margin Step | H1 2026 (IDR) | % of Revenue |
+|-------------|---------------|--------------|
+| Revenue | 380,429,246,072 | 100.00% |
+| COGS | (135,000,531,588) | (35.49%) |
+| **Gross Profit** | **245,428,714,484** | **64.51%** |
+| Selling Expense | (3,467,373,468) | (0.91%) |
+| G&A Expense | (59,894,963,458) | (15.74%) |
+| **Operating Profit** | **not disclosed** | **not disclosed** |
+| Interest Expense | (34,418,894,897) | (9.05%) |
+| Other Income Net | 6,689,435,222 | 1.76% |
+| **PBT** | **154,779,661,071** | **40.69%** |
+| Tax (benefit) | 10,461,893,538 | 2.75% |
+| **Net Profit** | **144,317,767,533** | **37.94%** |
 
-The waterfall highlights that gross profit absorbs the bulk of the value chain, but the absence of an operating profit disclosure prevents a clean view of SG&A leverage.
+*Note:* The reported tax benefit does not mechanically bridge reported PBT to reported net profit due to unresolved internal presentation differences (see §3.4). Operating profit is not disclosed in the interim report.
+
+---
 
 ## 4. Balance Sheet Analysis
 
 ### 4.1 Liquidity Analysis
 
-| Item | 30-Jun-2026 (IDR) | 31-Dec-2025 (IDR) |
-|------|-------------------|-------------------|
+| Item | 30-Jun-2026 | 31-Dec-2025 |
+|------|-------------|-------------|
 | Cash | 409,505,529,053 | 349,884,005,974 |
-| Trade Receivables | 134,839,281,355 | 121,292,087,873 |
-| Inventories | 1,479,549,930,773 | 1,551,346,257,986 |
+| Trade Receivables Net | 134,839,281,355 | 121,292,087,873 |
+| Prepaid Taxes | 5,838,951,887 | 31,439,068,318 |
 | Current Assets | 2,207,141,303,107 | 2,229,239,983,054 |
 | Current Liabilities | 291,932,586,684 | 353,615,257,503 |
 | Working Capital | 1,915,208,716,423 | 1,875,624,725,551 |
 
-Ratios: Current ratio 7.56; Quick ratio 2.49; Cash ratio 1.40. The liquidity profile is exceptionally strong on a headline basis, but inventories comprise 67% of current assets and cash is only 19% of current assets. The reduction in current liabilities by IDR 61.7 billion was driven by lower trade payables (down to IDR 20,323,456,125 from IDR 32,832,646,846) and lower accrued expenses (IDR 14,991,747,057 from IDR 16,812,106,070).
+| Ratio | 30-Jun-2026 | 31-Dec-2025 |
+|-------|-------------|-------------|
+| Current Ratio | 7.56x | not disclosed |
+| Quick Ratio | not disclosed | not disclosed |
+| Cash Ratio | 1.40x | not disclosed |
+
+Liquidity is exceptional. The current ratio of 7.56x and cash ratio of 1.40x provide a substantial buffer. Working capital expanded to IDR 1.92 trillion. However, prepaid taxes collapsed 81% from IDR 31.4 billion to IDR 5.8 billion, consistent with utilization against taxable income but representing a significant release of short-term liquidity.
 
 ### 4.2 Working Capital Components
 
-Days metrics (annualised): DSO 32.3 days; DIO 354.9 days; DPO 4.9 days; cash conversion cycle 382.4 days. The 355-day inventory cycle is structural for land-banking and industrial-estate development, yet it locks up enormous capital. Trade receivables rose to IDR 134.8 billion from IDR 121.3 billion at December 2025, but the related-party component of trade receivables collapsed to IDR 1,339,050,593 from IDR 7,364,847,378 (note 6), indicating far cleaner third-party collection. Prepaid taxes dropped sharply to IDR 5,838,951,887 from IDR 31,439,068,318. Other advances increased to IDR 176,140,403,627 from IDR 161,575,397,819. Advances received (uang muka diterima), a liability, fell to IDR 34,417,086,429 from IDR 100,067,915,620, suggesting fewer customer deposits on hand.
+Trade receivables grew 11.2% while revenue grew 303%, compressing DSO to **32.3 days** (annualized). This is a sharp improvement, though past-due and/or impaired receivables stand at IDR 3,108,701,505 (up from IDR 2,936,513,905 at December 2025)—a material impaired balance that warrants monitoring. Inventories and DIO are **not disclosed** in the computed ratios; Note 7 states land inventories of IDR 1,479,549,930,773 are classified as non-current (realizable >12 months), meaning virtually all inventory sits outside the current working-capital loop. Trade payables fell 38.1% to IDR 20.3 billion, producing a DPO of only **4.9 days**—extremely rapid supplier settlement. The reason for the payables reduction (accelerated payments vs reduced procurement) is **not disclosed**. Advances received from customers collapsed 65.6% to IDR 34.4 billion from IDR 100.1 billion, a counter-intuitive move alongside 303% revenue growth that suggests front-loaded contract execution rather than new pre-sales.
 
 ### 4.3 Solvency Analysis
 
-| Item | 30-Jun-2026 (IDR) | 31-Dec-2025 (IDR) |
-|------|-------------------|-------------------|
+| Item | 30-Jun-2026 | 31-Dec-2025 |
+|------|-------------|-------------|
 | Total Assets | 5,777,851,744,920 | 5,804,555,153,538 |
 | Total Liabilities | 1,177,659,670,590 | 1,348,644,118,159 |
 | Total Equity | 4,600,192,074,330 | 4,455,911,035,379 |
-| D/E | 0.256 | not disclosed |
-| Loans/Equity | 0.233 | not disclosed |
-| Net Debt | 565,609,655,498 | not disclosed |
-| Net D/E | 0.123 | not disclosed |
+| D/E (Computed) | 0.256 | 0.26* |
+| Loans / Equity | 0.233 | not disclosed |
+| Net Debt | not disclosed | not disclosed |
+| Net Debt / Equity | not disclosed | not disclosed |
 
-Total bank loans (net of provision) are IDR 1,071,187,483,411, entirely the PT Bank Mandiri facility split between current portion IDR 202,193,268,750 and non-current portion IDR 868,994,214,661. The debt-to-equity ratio of 0.256 and net-debt-to-equity of 0.123 are conservative. Total liabilities fell by IDR 171.0 billion, driven by loan amortisation and payables reduction.
+\*Note 32 cites a debt-to-equity ratio of 0.23 at 30 June 2026 and 0.26 at 31 December 2025; the minor difference from the computed 0.256 likely reflects rounding or definitional variance (gross vs net debt) in the issuer’s calculation.
+
+Total assets contracted 0.5% from year-end, driven by a reduction in PPE and non-current assets. Equity grew 3.2%, absorbing the H1 net profit. Net debt is **not disclosed** because securities (the third component of the net-debt formula) are null in the ratio inputs.
 
 ### 4.4 Non-Current Assets Analysis
 
-Non-current assets total IDR 3,570,710,441,813. Key items: securities non-current unchanged at IDR 96,072,298,860; PPE net down to IDR 101,639,894,704 from IDR 106,724,241,394; investment properties (note 12) at IDR 114,502,334,831 not mapped to the canonical balance-sheet keys. Non-current inventories (note 7) are IDR 3,252,919,201,978, bringing the combined inventory base to roughly IDR 4.73 trillion. Mining properties, exploration & evaluation assets, and restricted cash are not disclosed. The shares investment carrying amount is unchanged.
+PPE net fell 4.8% to IDR 101.6 billion, partly reflecting the absence of the fiber optic equipment category (transferred to assets held for sale in 2025 at IDR 14.98 billion). Investment properties declined to IDR 114.5 billion from IDR 118.9 billion, covering 65,221 sqm in MM2100. The 10% stake in PT Daiwa Manunggal Logistik Properti is carried at cost/FVOCI of IDR 96,072,298,860 (unchanged). Advances for land acquisition rose to IDR 174.0 billion from IDR 160.6 billion, all for Bekasi land. No impairment indications were assessed by management (Note 4).
 
 ### 4.5 Non-Controlling Interests (NCI)
 
-NCI in equity is IDR 421,456,863 (0.009% of total equity). NCI in profit is a loss of IDR 7,681,215. The breakdown per note 33: BMIE IDR 140,979,221, BSP IDR 46,268,407, BSN IDR 234,209,235. Profit retention is almost entirely captured by owners; the NCI share is immaterial and loss-making, driven partly by the hotel development subsidiary BSN.
+NCI in equity fell to IDR 421,456,863 from IDR 442,951,513. More strikingly, NCI’s share of H1 profit was a **loss of IDR 7,681,215**, versus a loss of IDR 5,334,850 in H1 2025, while owners’ profit surged to IDR 144.3 billion. This divergence suggests losses are concentrated in the minority-held subsidiary (likely PT Best Sinar Nusantara, the hotel unit) while the parent-consolidated industrial estate operations capture all profits. Note 21’s NCI table appears misaligned in the extraction, so the exact NCI profit-retention structure cannot be verified. Peer comparison is not available.
+
+---
 
 ## 5. Cash Flow Analysis
 
 ### 5.1 Operating Cash Flow
 
-| Item | H1 2026 (IDR) | H1 2025 (IDR) |
-|------|---------------|---------------|
+| Item | H1 2026 | H1 2025 |
+|------|---------|---------|
 | Collections from Customers | 301,159,381,940 | 114,234,250,895 |
 | Interest Received | 6,746,017,116 | 4,641,732,750 |
-| Payments to Suppliers | (91,743,920,455) | (55,946,824,320) |
 | Salaries Paid | (42,979,114,701) | (45,458,376,980) |
-| Operating Cash Flow | 150,530,920,920 | (38,238,462,960) |
+| **Operating Cash Flow** | **150,530,920,920** | **(38,238,462,960)** |
 
-Cash conversion ratio is 1.043 (OCF/net profit), and collections-to-revenue is 79.16%. The swing from a negative operating outflow to a positive IDR 150.5 billion inflection is the most important cash-flow event of the period. Collections more than doubled year-on-year, while salary payments declined slightly.
+OCF swung from negative IDR 38.2 billion to positive IDR 150.5 billion. The collections ratio (collections / revenue) was **79.2%**, indicating strong but not complete cash conversion of sales. Cash conversion (OCF / net profit) was **1.04x**, a clean relationship that supports earnings quality despite the tax anomaly. Note 36 warns that certain 6M25 accounts were reclassified to conform with 6M26 presentation, so YoY comparability of salary and tax payment lines is imperfect.
 
 ### 5.2 Investing Cash Flow
 
-| Item | H1 2026 (IDR) | H1 2025 (IDR) |
-|------|---------------|---------------|
-| Capex PPE | (1,593,995,179) | (1,285,049,820) |
-| Capex Other | (13,420,278,923) | (14,685,807,710) |
-| ICF | (1,290,709,760) | (14,956,622,698) |
+| Item | H1 2026 | H1 2025 |
+|------|---------|---------|
+| Investing Cash Flow | (1,290,709,760) | (14,956,622,698) |
 
-Total capex is IDR 15,014,274,102 per the pre-computed ratio. The "capex other" line—likely land development and infrastructure—dominates. ICF of only IDR 1.3 billion versus IDR 15.0 billion in the prior year suggests minimal securities or investment activity.
+Investing outflows collapsed to just IDR 1.3 billion from IDR 15.0 billion. Capex is **not disclosed** in the computed ratios. Cash from disposals was IDR 340 million (vs IDR 1.3 billion prior year), and the fiber-optic sale to KLBD generated IDR 13.5 billion in cash (Note 35), likely recorded within investing. The minimal net outflow suggests **maintenance-only capital deployment**; no aggressive land development or acquisition spend is visible.
 
 ### 5.3 Financing Cash Flow
 
-| Item | H1 2026 (IDR) | H1 2025 (IDR) |
-|------|---------------|---------------|
+| Item | H1 2026 | H1 2025 |
+|------|---------|---------|
 | Loan Repayments | (91,906,031,250) | (73,524,825,000) |
 | Interest Paid | (36,451,736,116) | (51,141,111,089) |
-| Dividends Paid | not disclosed | (3,179,982) |
+| Dividends Paid | not disclosed | not disclosed |
 
-Financing cash flow net is not disclosed. The group is in active deleveraging: principal repayments accelerated to IDR 91.9 billion, while interest paid fell materially from IDR 51.1 billion to IDR 36.5 billion, consistent with the lower loan balance.
+Financing cash flow is **not disclosed** as a net line. The dominant use of cash was debt service: IDR 91.9 billion of principal repayments and IDR 36.5 billion of interest paid. No dividends were disclosed in the cash flow or fact sheet. The repayment pace accelerated 25% YoY, consistent with management’s deleveraging priority.
 
 ### 5.4 Free Cash Flow Analysis
 
-Core free cash flow (OCF less total capex) is IDR 165,545,195,022 per the pre-computed ratio. Against revenue of IDR 380.4 billion, this implies a strong cash-generation profile, although the FCF margin is not pre-computed. The FCF fully covers debt service and leaves surplus cash for further amortisation.
+Reported free cash flow is **not disclosed** because capex is null in the ratio inputs. Core FCF (excluding the non-recurring asset sale gain and other one-offs) is also **not disclosed**. If one assumes the IDR 1.3 billion investing outflow approximates maintenance spend, implied FCF would approximate OCF less ICF, but this is an analyst estimate, not a reported figure. FCF margin is therefore **not disclosed**.
 
 ### 5.5 Cash Flow Summary and Net Change
 
-| Item | H1 2026 (IDR) | H1 2025 (IDR) |
-|------|---------------|---------------|
+| Item | H1 2026 | H1 2025 |
+|------|---------|---------|
 | Net Change in Cash | 57,334,179,910 | (126,723,090,640) |
-| Cash Opening | 349,884,005,974 | 327,134,890,603 |
-| Cash Closing | 409,505,529,053 | 200,549,270,739 |
+| FX Effect | not disclosed | not disclosed |
+| Opening Cash | 349,884,005,974 | 327,134,890,603 |
+| Closing Cash | 409,505,529,053 | 200,549,270,739 |
 
-FX impact and other reconciling items are not disclosed; the net change does not exactly bridge opening and closing cash by a small residual in H1 2026.
+The arithmetic reconciliation (Opening + Net Change) yields IDR 407,218,185,884 vs the reported closing cash of IDR 409,505,529,053, leaving an unexplained gap of approximately IDR 2.29 billion—likely FX translation or other non-cash adjustments not separately disclosed.
+
+---
 
 ## 6. Key Financial Ratios
 
@@ -210,9 +218,9 @@ FX impact and other reconciling items are not disclosed; the net change does not
 |-------|---------|
 | Gross Margin | 64.51% |
 | Operating Margin | not disclosed |
-| Pre-tax Margin | 38.46% |
+| Pre-tax Margin | 40.69% |
 | Net Margin | 37.94% |
-| Effective Tax Rate | -1.37% |
+| Effective Tax Rate | –6.76% |
 
 ### 6.2 Return Ratios (Annualized)
 
@@ -222,14 +230,16 @@ FX impact and other reconciling items are not disclosed; the net change does not
 | ROE (Owners) | 12.75% |
 | ROA | 9.97% |
 
+Returns are respectable on an annualized basis but are heavily dependent on the H1 revenue surge. If H2 normalizes, full-year ROE will be lower.
+
 ### 6.3 Liquidity Ratios
 
 | Ratio | H1 2026 |
 |-------|---------|
-| Current Ratio | 7.56 |
-| Quick Ratio | 2.49 |
-| Cash Ratio | 1.40 |
-| Working Capital (IDR) | 1,915,208,716,423 |
+| Current Ratio | 7.56x |
+| Quick Ratio | not disclosed |
+| Cash Ratio | 1.40x |
+| Working Capital | IDR 1,915,208,716,423 |
 
 ### 6.4 Solvency Ratios
 
@@ -237,247 +247,290 @@ FX impact and other reconciling items are not disclosed; the net change does not
 |-------|---------|
 | Debt-to-Equity | 0.256 |
 | Loans-to-Equity | 0.233 |
-| Equity Ratio | 79.62% |
-| Net Debt (IDR) | 565,609,655,498 |
-| Net Debt-to-Equity | 0.123 |
+| Net Debt-to-Equity | not disclosed |
 | Interest Coverage | not disclosed |
+
+Interest coverage is **not disclosed** because operating profit (the numerator) is not provided.
 
 ### 6.5 Efficiency Ratios
 
 | Ratio | H1 2026 |
 |-------|---------|
-| Asset Turnover (Annualized) | 0.263 |
+| Asset Turnover (Annualized) | 0.263x |
 | DSO | 32.3 days |
-| DIO | 354.9 days |
+| DIO | not disclosed |
 | DPO | 4.9 days |
-| Cash Conversion Cycle | 382.4 days |
-| Collections / Revenue | 79.16% |
+| Cash Conversion Cycle | not disclosed |
+| Collections Ratio | 79.2% |
 
 ### 6.6 Per-Share Metrics
 
 | Metric | H1 2026 |
 |--------|---------|
 | Shares Outstanding | 9,647,423,044.65 |
-| Book Value per Share | 476.79 |
-| EPS Basic | 14.96 |
-| EPS Growth | -346.46% |
+| EPS Basic | IDR 14.96 |
+| EPS Growth | –346.5% |
+| Book Value per Share | IDR 476.79 |
 
 ### 6.7 Valuation Ratios (Market Data as of …)
 
-Market data is not provided. Consequently, P/E (annualized), P/B, EV, EV/EBITDA, and dividend yield cannot be computed.
+Market data is **not provided**. P/E TTM, P/B, EV, and EV/EBITDA are therefore **not disclosed**.
+
+---
 
 ## 7. Segment and Subsidiary Analysis
 
 ### 7.1 Subsidiary Overview
 
-| Name | Ownership | Activity | Total Assets (IDR) |
-|------|-----------|----------|--------------------|
+| Name | Ownership | Activity | Total Assets (30-Jun-2026) |
+|------|-----------|----------|----------------------------|
 | PT Bekasi Matra Industrial Estate | 99.99% | Industrial estate | 1,834,441,122,646 |
 | PT Bekasi Surya Pratama | 99.99% | Industrial estate | 820,899,790,944 |
-| PT Best Sinar Nusantara | 99.71% | Hotel development | 83,532,897,316 |
+| PT Best Sinar Nusantara | 99.71% | Hotel & facilities | 83,532,897,316 |
 
-The ownership table in the notes contains a formatting misalignment between BMIE and BSN, but the parsed figures above reflect the separate disclosures.
+Context notes indicate December 2025 subsidiary assets were: BMIE IDR 1,936.1 billion, BSP IDR 924.0 billion, and BSN IDR 86.3 billion. All three subsidiaries saw asset contraction through H1 2026.
 
 ### 7.2 The Core Operating Business
 
-The industrial estate segment is the crown jewel. It recorded external sales of IDR 360,827,719,939, gross profit of IDR 238,543,503,167, net profit of IDR 141,802,285,766, and segment assets of IDR 5,597,386,992,222. This segment therefore carries the overwhelming majority of consolidated assets and profitability. No license expiry dates, reserve tonnages, or remaining land-bank square footage are disclosed. The segment’s customers include the top-three disclosed names, with PT Handal Gemilang Sentosa at IDR 170 billion. The segment profit in H1 2025 was negative (IDR 64,997,350,661 per note 33), underscoring the magnitude of the H1 2026 turnaround.
+The crown jewel is **PT Bekasi Matra Industrial Estate** (BMIE), which drives the consolidated industrial estate segment. Segment external sales were IDR 360.8 billion, segment gross profit IDR 238.5 billion, and segment net profit IDR 141.8 billion. Segment assets are IDR 5,597.4 billion, but this includes intercompany balances and the parent’s land bank. The MM2100 Industrial Town is the revenue engine, served by a third-party electricity agreement with PLN (valid indefinitely) and related-party infrastructure services from PT Megalopolis Manunggal Industrial Development. No reserve or license expiration disclosures are extracted.
 
 ### 7.3 Strategic Question Marks
 
-PT Best Sinar Nusantara (hotel development) is a question mark. Its management agreement with PT Hospitality & Quality Management was terminated on 30 June 2025, and the subsidiary recorded an NCI loss share. Assets held for sale (carrying amount IDR 10,374,032,215 at 31 December 2025) were sold in June 2026 for IDR 13,533,231,000, crystallising a gain of IDR 1,818,067,785. No other suspended or idled assets are noted.
+- **Hotel segment:** PT Best Sinar Nusantara’s hotel management agreement with PT PAPA Hotel Management (renamed PT Hospitality & Quality Management) for Enso Hotel was mutually terminated effective 30 June 2025. The subsidiary is now without an external hotel operator; its strategic direction is unclear and it is likely loss-making (implied by the NCI loss).
+- **Fiber optic:** The fiber optic equipment category was transferred to assets held for sale in 2025 and sold to related party KLBD in H1 2026. No remaining idled assets are noted.
+- **Tax disputes:** Outstanding Supreme Court judicial review (DG Tax vs Bekasi Fajar, 2017 dispute) and pending VAT STP refunds for BSP create contingent receivables with uncertain timing.
 
 ### 7.4 Growth Options
 
-The Others segment (IDR 19,601,526,133 external sales, IDR 2,515,481,767 net profit) includes telecom and ancillary services. The telecom facilities commitment to KLBD expired on 30 June 2026; renewal would provide a recurring second-leg revenue stream. No explicit ramp targets or capacity expansion plans are disclosed.
+- **BEFA Industrial Hub:** Ready-built factory/warehouse space broke ground September 2025, targeting logistics and data-center tenants. Phase 1 handover was targeted for May 2026, meaning H1 may have seen initial revenue recognition or deposits. This is the most credible near-term second leg.
+- **Pipeline monetization:** The 72-hectare demand pipeline (Mar 2026) provides a multi-year land-sale runway if converted.
 
 ### 7.5 Intercompany and Related-Party Dynamics
 
-Related-party flows are material. PT Megalopolis Manunggal Industrial Development (same key management) provides maintenance, industrial water, wastewater, security, and electricity revenue sharing in MM2100 Industrial Town. Cost of revenue to MMID was IDR 20,835,122,371, and trade payables to MMID dropped sharply to IDR 5,573,708,823 from IDR 20,789,734,381 at December 2025. PT Kawasan Lintas Biru Digital (same key management) generated revenue of IDR 20,540,624,826 in H1 2026 versus nil in H1 2025, and cooperates with BMIE on asset purchases and telecommunication network management. Internal eliminations are not quantified in the segment note.
+Related-party transactions are material and must be monitored:
+
+| Party | Item | Amount (IDR) |
+|-------|------|--------------|
+| PT Kawasan Lintas Biru Digital | Revenue | 20,540,624,826 |
+| PT Megalopolis Manunggal Industrial Development | Cost of Revenues | 20,835,122,371 |
+| Related parties | Maintenance, service, water, rental | 3,118,267,997 |
+| Related parties | Others | 999,849,585 |
+| PT Megalopolis Manunggal Industrial Development | Trade Receivables | 585,566,300 |
+| PT Megalopolis Manunggal Industrial Development | Trade Payables | 5,573,708,823 |
+
+The related-party COGS share to PT Megalopolis fell from 42.55% in H1 2025 to 15.43% in H1 2026. The reason—whether arm’s-length renegotiation, reduced outsourcing, or acquisition—is **not disclosed**. Trade receivables from PT Megalopolis collapsed 91.8%, and payables fell 73.2%, suggesting a significant settlement or restructuring of the related-party trading relationship.
+
+---
 
 ## 8. EPS and Valuation
 
 ### 8.1 EPS Analysis
 
-| Metric | H1 2026 (IDR) | H1 2025 (IDR) |
-|--------|---------------|---------------|
+| Item | H1 2026 | H1 2025 |
+|------|---------|---------|
 | Net Profit | 144,317,767,533 | (58,530,926,770) |
-| Owners' Share | 144,325,448,748 | (58,525,591,920) |
-| NCI Share | (7,681,215) | (5,334,850) |
-| EPS Basic | 14.96 | (6.07) |
-| EPS Growth | -346.46% | n/a |
+| Attributable to Owners | 144,325,448,748 | (58,525,591,920) |
+| Attributable to NCI | (7,681,215) | (5,334,850) |
+| EPS Basic (IDR) | 14.96 | (6.07) |
+| EPS Growth | –346.5% | n/m |
 
-The pre-computed EPS-growth ratio of -3.46458 captures the swing from loss to profit. Shares outstanding are 9,647,423,044.65.
+The mechanical EPS growth of –346.5% reflects the swing from a loss to profit. NCI’s widening loss while owners book massive profit indicates a consolidation effect favoring the parent; the standalone P&L of each subsidiary is **not disclosed**.
 
 ### 8.2 Valuation Assessment
 
-Market data is not provided. Market capitalisation, enterprise value, P/E, P/B, EV/EBITDA, and dividend yield are therefore not disclosed. The shares outstanding and book value per share of IDR 476.79 are the only available valuation anchors.
+Market capitalization, enterprise value, and trading multiples are **not disclosed** because no market data stub was provided. The following table cannot be populated:
+
+| Multiple | Value |
+|----------|-------|
+| P/E (TTM) | not disclosed |
+| P/E (Annualized) | not disclosed |
+| P/B | not disclosed |
+| EV/EBITDA | not disclosed |
+| Dividend Yield | not disclosed |
+
+Analysts may annualize H1 EPS to IDR 29.92 for illustrative purposes, but without a share price no investment conclusion on valuation can be drawn.
 
 ### 8.3 Dividend Analysis
 
-No dividends were paid to owners in H1 2026; the dividends_paid line is null. In H1 2025, only IDR 3,179,982 was paid to NCI. Payout ratio, dividend yield, and sustainability cannot be assessed.
+No dividends were paid or proposed in H1 2026 (not disclosed in the fact sheet). Payout ratio and dividend yield are therefore **not disclosed**. The absence of distributions alongside aggressive debt repayment suggests capital allocation is currently oriented toward balance-sheet repair rather than shareholder returns.
+
+---
 
 ## 9. Year-over-Year Comparison
 
 ### 9.1 Income Statement Comparison
 
-| Line | H1 2026 (IDR) | H1 2025 (IDR) |
-|------|---------------|---------------|
-| Revenue | 380,429,246,072 | 94,315,623,322 |
-| COGS | (135,000,531,588) | (41,477,909,057) |
-| Gross Profit | 245,428,714,484 | 52,837,714,265 |
-| Selling Expense | (3,467,373,468) | (1,898,276,462) |
-| G&A Expense | (59,894,963,458) | (61,731,491,388) |
-| Interest Expense | (34,418,894,897) | (49,779,880,648) |
-| Other Income Net | 7,132,178,410 | 4,880,361,053 |
-| PBT | 146,319,613,798 | (57,450,896,555) |
-| Tax | (2,001,846,265) | (1,080,030,215) |
-| Net Profit | 144,317,767,533 | (58,530,926,770) |
+| Item | H1 2026 | H1 2025 | Change |
+|------|---------|---------|--------|
+| Revenue | 380,429,246,072 | 94,315,623,322 | +303.4% |
+| COGS | 135,000,531,588 | 41,477,909,057 | +225.5% |
+| Gross Profit | 245,428,714,484 | 52,837,714,265 | +364.5% |
+| Selling Expense | 3,467,373,468 | 1,898,276,462 | +82.7% |
+| G&A Expense | 59,894,963,458 | 61,731,491,388 | –3.0% |
+| Interest Expense | 34,418,894,897 | 49,779,880,648 | –30.9% |
+| Other Income Net | 6,689,435,222 | 4,556,474,490 | +46.8% |
+| PBT | 154,779,661,071 | (55,691,573,180) | n/m |
+| Tax | (10,461,893,538) | (2,839,353,590) | n/m |
+| Net Profit | 144,317,767,533 | (58,530,926,770) | n/m |
+| EPS | 14.96 | (6.07) | n/m |
 
 ### 9.2 Balance Sheet Comparison
 
-| Line | 30-Jun-2026 (IDR) | 31-Dec-2025 (IDR) |
-|------|-------------------|-------------------|
-| Cash | 409,505,529,053 | 349,884,005,974 |
-| Trade Receivables | 134,839,281,355 | 121,292,087,873 |
-| Inventories | 1,479,549,930,773 | 1,551,346,257,986 |
-| Current Assets | 2,207,141,303,107 | 2,229,239,983,054 |
-| PPE Net | 101,639,894,704 | 106,724,241,394 |
-| Non-Current Assets | 3,570,710,441,813 | 3,575,315,170,484 |
-| Total Assets | 5,777,851,744,920 | 5,804,555,153,538 |
-| Trade Payables | 20,323,456,125 | 32,832,646,846 |
-| Current Liabilities | 291,932,586,684 | 353,615,257,503 |
-| Loans Current | 202,193,268,750 | 183,812,062,500 |
-| Loans Non-Current | 868,994,214,661 | 979,281,452,161 |
-| Total Liabilities | 1,177,659,670,590 | 1,348,644,118,159 |
-| Equity Owners | 4,599,770,617,467 | 4,455,468,083,866 |
-| NCI | 421,456,863 | 442,951,513 |
-| Total Equity | 4,600,192,074,330 | 4,455,911,035,379 |
+| Item | 30-Jun-2026 | 31-Dec-2025 | Change |
+|------|-------------|-------------|--------|
+| Cash | 409,505,529,053 | 349,884,005,974 | +17.0% |
+| Trade Receivables | 134,839,281,355 | 121,292,087,873 | +11.2% |
+| Prepaid Taxes | 5,838,951,887 | 31,439,068,318 | –81.4% |
+| Current Assets | 2,207,141,303,107 | 2,229,239,983,054 | –1.0% |
+| PPE Net | 101,639,894,704 | 106,724,241,394 | –4.8% |
+| Non-Current Assets | 3,570,710,441,813 | 3,575,315,170,484 | –0.1% |
+| Total Assets | 5,777,851,744,920 | 5,804,555,153,538 | –0.5% |
+| Trade Payables | 20,323,456,125 | 32,832,646,846 | –38.1% |
+| Current Liabilities | 291,932,586,684 | 353,615,257,503 | –17.4% |
+| Loans Current | 202,193,268,750 | 183,812,062,500 | +10.0% |
+| Loans Non-Current | 868,994,214,661 | 979,281,452,161 | –11.3% |
+| Total Loans | 1,071,187,483,411 | 1,163,093,514,661 | –7.9% |
+| Total Liabilities | 1,177,659,670,590 | 1,348,644,118,159 | –12.7% |
+| Equity Owners | 4,599,770,617,467 | 4,455,468,083,866 | +3.2% |
+| NCI | 421,456,863 | 442,951,513 | –4.9% |
+| Total Equity | 4,600,192,074,330 | 4,455,911,035,379 | +3.2% |
 
 ### 9.3 Cash Flow Comparison
 
-| Line | H1 2026 (IDR) | H1 2025 (IDR) |
-|------|---------------|---------------|
-| Collections | 301,159,381,940 | 114,234,250,895 |
-| Interest Received | 6,746,017,116 | 4,641,732,750 |
-| Payments to Suppliers | (91,743,920,455) | (55,946,824,320) |
-| Salaries Paid | (42,979,114,701) | (45,458,376,980) |
-| OCF | 150,530,920,920 | (38,238,462,960) |
-| Capex PPE | (1,593,995,179) | (1,285,049,820) |
-| Capex Other | (13,420,278,923) | (14,685,807,710) |
-| ICF | (1,290,709,760) | (14,956,622,698) |
-| Loan Repayments | (91,906,031,250) | (73,524,825,000) |
-| Interest Paid | (36,451,736,116) | (51,141,111,089) |
-| Net Change | 57,334,179,910 | (126,723,090,640) |
+| Item | H1 2026 | H1 2025 | Change |
+|------|---------|---------|--------|
+| Collections from Customers | 301,159,381,940 | 114,234,250,895 | +163.6% |
+| Interest Received | 6,746,017,116 | 4,641,732,750 | +45.3% |
+| Salaries Paid | (42,979,114,701) | (45,458,376,980) | –5.5% |
+| OCF | 150,530,920,920 | (38,238,462,960) | n/m |
+| ICF | (1,290,709,760) | (14,956,622,698) | –91.4% |
+| Loan Repayments | (91,906,031,250) | (73,524,825,000) | +25.0% |
+| Interest Paid | (36,451,736,116) | (51,141,111,089) | –28.7% |
+| Net Change in Cash | 57,334,179,910 | (126,723,090,640) | n/m |
 
 ### 9.4 Key Ratio Comparison
 
-| Ratio | H1 2026 | Prior / FYE 2025 |
-|-------|---------|------------------|
-| Revenue Growth | +303.36% | n/a |
-| Gross Margin | 64.51% | not disclosed |
-| Net Margin | 37.94% | not disclosed |
-| ROE (Annualized) | 12.75% | not disclosed |
-| Current Ratio | 7.56 | not disclosed |
-| D/E | 0.256 | not disclosed |
-| Net D/E | 0.123 | not disclosed |
+| Ratio | H1 2026 | Prior / FYE 2025 | Source |
+|-------|---------|------------------|--------|
+| Revenue Growth | +303.36% | n/a | Computed |
+| Gross Margin | 64.51% | not disclosed | Computed |
+| Net Margin | 37.94% | not disclosed | Computed |
+| ROE (Annualized) | 12.75% | not disclosed | Computed |
+| Current Ratio | 7.56x | not disclosed | Computed |
+| D/E | 0.256 | 0.26 (Dec 2025, Note 32) | Computed / Note 32 |
+| Loans / Equity | 0.233 | not disclosed | Computed |
+| Cash Ratio | 1.40x | not disclosed | Computed |
+| DSO | 32.3 days | not disclosed | Computed |
+| DPO | 4.9 days | not disclosed | Computed |
+
+---
 
 ## 10. Strengths
 
 ### 10.1 Financial Strengths
-
-Conservative leverage with D/E of 0.26 and net D/E of 0.12. Exceptional liquidity: current ratio 7.56, cash ratio 1.40, and cash on hand of IDR 409.5 billion. Positive OCF and core FCF generation. The group is self-funding its debt amortisation.
+- **Exceptional liquidity:** Current ratio of 7.56x and cash ratio of 1.40x provide a deep buffer against operational or funding shocks.
+- **Positive cash conversion:** OCF of IDR 150.5 billion covers net profit 1.04x, and collections from customers reached 79.2% of revenue.
+- **Deleveraging trajectory:** Net loans fell IDR 91.9 billion, interest expense dropped 31%, and D/E is 0.256x—well below the Bank Mandiri covenant ceiling of 0.6x.
+- **Equity growth:** Total equity expanded 3.2% in six months, absorbing the full H1 profit.
 
 ### 10.2 Operational Strengths
-
-Industrial estate segment dominance with disclosed gross profit of IDR 238.5 billion. Gross margin of 64.5% indicates strong pricing power or land-cost advantage. Cash collections at 79.2% of revenue demonstrate high cash conversion. Interest burden is declining with deleveraging.
+- **Dominant land-bank platform:** MM2100 Bekasi is a core industrial estate with a 72-hectare demand pipeline and FDI inflows from multiple jurisdictions.
+- **Margin leverage:** Fixed land costs generated 64.5% gross margin on 4x revenue, demonstrating the scalability of the asset-light sales model (once land is developed).
+- **Recurring-income pivot:** BEFA Industrial Hub diversifies toward ready-built factory/warehouse rentals, reducing pure land-sale lumpiness.
 
 ### 10.3 Strategic Strengths
+- **Tight subsidiary control:** 99.99% ownership of BMIE and BSP ensures full profit capture.
+- **Strategic shareholder:** Daiwa House (via Nomura) holds 10%, lending credibility to the industrial estate franchise.
+- **Infrastructure lock-in:** Indefinite PLN electricity agreement and captive water/wastewater services via PT Megalopolis entrench tenant stickiness.
 
-Control of the MM2100 Industrial Town ecosystem through BMIE and BSP. Embedded infrastructure agreements, including the PLN electricity sale-purchase agreement with no termination clause. Vertical integration with MMID for utilities and services reduces third-party dependency, albeit at related-party prices.
+---
 
 ## 11. Concerns and Risk Factors
 
-### 11.1 Near-Term Risks — HIGH
+### 11.1 Near-Term Risks
+- **HIGH — Customer concentration:** PT Handal Gemilang Sentosa (IDR 170 billion) and PT API International Indonesia (IDR 47.4 billion) represent roughly 57% of H1 revenue. The nature of the Handal transaction (single plot, multiple plots, or lease) is **not disclosed**, and there is no assurance of repeat business.
+- **HIGH — Tax anomaly:** A negative tax expense is unsustainable. Normalization to the statutory 19% rate (if applicable) or 22% would reduce H1 net profit by approximately IDR 29–34 billion (20–24% of reported net). The effective tax rate discrepancy between –6.76% (ratio) and –1.37% (text) is unresolved, and prepaid taxes collapsed 81%, suggesting a one-time release rather than a recurring shield.
+- **MODERATE — Related-party revenue expiry:** PT Kawasan Lintas Biru Digital contributed IDR 20.5 billion (5.4% of revenue) under a telecom cooperation agreement that expired on 30 June 2026. Renewal status is **not confirmed**.
+- **MODERATE — Working capital tension:** Trade payables fell 38% and advances received fell 66% despite surging revenue. DPO of 4.9 days is extremely tight; any supplier pressure could strain cash timing.
 
-**Customer concentration.** PT Handal Gemilang Sentosa booked IDR 170 billion; the percentage of sales is not disclosed, but the absolute figure is material. Any delay, default, or non-repeat order would have an outsized impact on revenue. **KLBD contract expiry.** The telecom facilities commitment to PT Kawasan Lintas Biru Digital expired on 30 June 2026. Non-renewal would remove a disclosed revenue stream that contributed IDR 20.5 billion (5.4% of sales) in H1 2026 and was nil in the prior year.
+### 11.2 Structural Risks
+- **MODERATE — Lumpy revenue model:** Land sales are non-recurring by nature. Until BEFA and recurring leases scale meaningfully, quarterly earnings will remain volatile.
+- **MODERATE — NCI profit allocation:** NCI losses while the parent books massive profit suggest minority stakes are trapped in loss-making units (likely BSN). If those losses deepen, equity attrition at the margin could accelerate.
+- **LOW — FX exposure:** USD/IDR at 17,856; a 5% Rupiah move impacts PBT by only IDR 1.96 billion (1.3% of H1 PBT).
 
-### 11.2 Structural Risks — MODERATE
+### 11.3 Market and Regulatory Risks
+- **MODERATE — Interest-rate pass-through:** The Bank Mandiri loan repriced in October 2025 to 90-day Compounded IndONIA + spread + margin. A +50bps rate hike would reduce H1 PBT by IDR 2.8 billion (Note 32). BI-Rate is currently stable at 4.75%, but the repricing mechanism creates lagged sensitivity.
+- **MODERATE — Tax disputes and amnesty:** The 2017 corporate tax dispute is under Supreme Court judicial review (DG Tax filed November 2025, unresolved). BSP’s remaining IDR 1.11 billion VAT STP refund is pending. Note 20c references tax amnesty assets of IDR 22.0 billion (Group portion from subsidiary) and company-declared net assets of Rp 8.72 billion; the ongoing tax exposure is unresolved.
+- **LOW — Article 31E rate inconsistency:** The fact sheet cites a 19% effective statutory rate under Article 31E eligibility (gross revenue <= Rp50 billion), yet consolidated H1 revenue alone is IDR 380 billion. Whether this concession applies to a specific subsidiary or is an extraction error is **not resolved**.
 
-**Inventory illiquidity.** Current inventories of IDR 1.48 trillion and non-current inventories of IDR 3.25 trillion dominate the asset base. DIO is 355 days. Management states no impairment allowance is held against land inventory; a downturn in industrial-land demand would erode net asset value. **Undisclosed operating profit.** The absence of a reported operating profit line prevents verification of SG&A leverage and sustainable operating margin. **BSN drag.** The hotel subsidiary is loss-making at the NCI level and its management agreement was terminated.
+### 11.4 Valuation Concerns
+- **No market data:** P/E, P/B, EV/EBITDA, and dividend yield are unavailable. The stock cannot be assessed against sector multiples or its own history.
+- **Earnings quality:** 27% of other income net is the non-recurring KLBD asset sale. If stripped, net margin would compress slightly. The tax benefit is non-recurring. “Core” net profit is likely materially lower than the reported IDR 144.3 billion.
 
-### 11.3 Market and Regulatory Risks — MODERATE
-
-**Bank Mandiri covenants.** The credit facility requires: (i) aggregate CFO plus cash / LTM principal plus interest >= 1.1x; (ii) capitalisation rate <= 60%; (iii) cash / current portion of long-term debt >= 0.8x; and (iv) D/E <= 0.6x. While the group appears compliant today, a revenue reversal in H2 2026 could pressure covenant headroom. **FX exposure.** The USD/IDR rate moved to 17,856 from 16,782; trade payables denominated in USD carry translation risk, though the absolute USD payable balance is small.
-
-### 11.4 Valuation Concerns — LOW
-
-No market data is provided, making it impossible to assess whether the stock is overvalued or undervalued. This is a data gap rather than a fundamental concern, but it prevents entry timing.
+---
 
 ## 12. Management and Governance
 
 ### 12.1 Leadership
-
-Management names and board composition are not disclosed in the interim financial inputs.
+The Board of Commissioners and Directors are not named individually in the extracted fact sheet beyond the Audit Committee (Chairman Herbudianto, members Hasan Anggono and Didin Wahyudin) and Corporate Secretary Herdian (appointed 2015). Ultimate control rests with the Argo Manunggal Group property division, the family of the late Mr. The Ning King, via parent PT Argo Manunggal Land Development (48.13% direct ownership).
 
 ### 12.2 Management Actions and Commentary
-
-Management disposed of assets held for sale for IDR 13,533,231,000, recognising a gain of IDR 1,818,067,785. The KLBD telecom facilities commitment was extended through the reporting date. The BSN hotel management agreement was terminated effective 30 June 2025. Note 36 indicates a reclassification of 2025 accounts to improve comparability. No material post-reporting events were identified per note 37.
+- **Remuneration discipline:** Board of Commissioners pay rose to IDR 4.25 billion in H1 2026 from IDR 3.10 billion, but Directors’ pay was cut to IDR 7.80 billion from IDR 10.71 billion—a reduction of 27% despite the revenue explosion.
+- **Deleveraging:** Management prioritized IDR 91.9 billion of loan repayments over dividends or growth capex.
+- **Strategic repositioning:** Termination of the Enso Hotel management agreement and launch of BEFA Industrial Hub signal a pivot away from hospitality and toward pure industrial/logistics real estate.
 
 ### 12.3 Governance Observations
-
-Related-party transactions with same-key-management entities are material and pervasive. MMID supplies core utilities and services; KLBD contributes revenue and cooperates on asset purchases. The sharp reduction in trade payables to MMID—from IDR 20.8 billion at December 2025 to IDR 5.6 billion at June 2026—suggests improved settlement discipline. Ownership is fully concentrated through 99.99% operating subsidiaries, leaving no free-float at the asset level.
+- **Related-party density:** 15.4% of COGS flows to PT Megalopolis Manunggal Industrial Development (same key management), and 5.4% of revenue comes from PT Kawasan Lintas Biru Digital. The sharp reduction in related-party receivables and payables suggests settlement, but the economic rationale for the related-party cost structure is **not disclosed**.
+- **Shareholder stability:** No change in the shareholder register. Nomura/Daiwa House’s 10% stake provides a governance anchor.
+- **Audit integrity:** The interim statements are unaudited. Note 36 acknowledges reclassification of 6M25 accounts, and Note 21’s NCI table appears misaligned, raising minor data-quality flags.
 
 ### 12.4 Capital Allocation
+Capital allocation in H1 2026 was conservative: debt reduction dominated, capex was negligible, and no dividends were paid. Cash was parked in third-party time deposits at 5.75%–6.25% (IDR) and 4.00%–4.75% (USD). This is prudent given the lumpy revenue model, but if the land-sale surge proves sustained, the absence of reinvestment could constrain long-term inventory replenishment.
 
-No dividends to owners in H1 2026. Capex is maintenance-light at IDR 15.0 billion. The primary use of cash is debt repayment (IDR 91.9 billion). If the H1 2026 cash generation run-rate persists, the Mandiri facility could be materially reduced over the medium term.
+---
 
 ## 13. Overall Assessment
 
-### 13.1 Financial Health Score: 8/10
+### 13.1 Financial Health Score: 7/10
+Liquidity and solvency are excellent, but the tax anomaly, impaired receivables, and unresolved net-debt definition drag the score. OCF quality is strong.
 
-Strong liquidity, low leverage, positive cash conversion, and a net-debt-to-equity ratio below 0.13 support a high score. Deductions for the inventory-heavy asset base and the undisclosed operating margin.
+### 13.2 Operational Performance Score: 7/10
+Revenue execution and margin expansion are impressive, yet extreme customer concentration and the lumpy land-sale model create operational fragility. BEFA is promising but unproven.
 
-### 13.2 Operational Performance Score: 8/10
+### 13.3 Growth Score: 6/10
+The H1 surge is likely non-recurring. The 72-hectare pipeline and BEFA Hub provide visibility, but conversion timing is uncertain and no new licenses or reserves were disclosed.
 
-Exceptional revenue inflection, gross margin expansion, and cash collections. Deductions for extreme customer concentration, related-party reliance, and lack of volume or reserve disclosure.
-
-### 13.3 Growth Score: 7/10
-
-303% revenue growth is outstanding, but sustainability is unproven and the prior base was depressed. The KLBD contract expiry and one-off asset sale create uncertainty about H2 run-rates.
-
-### 13.4 Valuation Score: 5/10
-
-Market data is not provided; a neutral score is assigned because P/E, P/B, and EV/EBITDA cannot be computed.
+### 13.4 Valuation Score: 4/10
+Market data is absent, and earnings quality is compromised by non-recurring items and the tax benefit. Quantitative valuation is impossible.
 
 ### 13.5 Risk Profile
+**Moderate-to-High.** The balance sheet provides a buffer, but revenue concentration, tax normalization, and related-party dependencies dominate the risk landscape. A single customer loss or tax reversal could cut reported earnings by 20–30%.
 
-MODERATE. The balance sheet is fortress-like, but revenue concentration, related-party dependency, and covenant sensitivity to a CFO reversal keep the risk profile from being LOW.
+---
 
 ## 14. Investment Thesis
 
 ### 14.1 Bull Case
-
-Industrial estate demand in the MM2100 corridor remains robust, allowing BEST to sustain H1 gross margins above 60%. Continued deleveraging reduces finance costs, and the group initiates a dividend policy once the Mandiri facility is further amortised. KLBD renews its telecom agreement, adding a recurring high-margin revenue layer.
+Bekasi industrial land demand remains robust on FDI, data center, and logistics tailwinds. BEST monetizes its 72-hectare pipeline through 2026–2027, and BEFA Industrial Hub generates recurring rental income that smooths lumpy land sales. Deleveraging continues, interest expense falls further, and net margins stabilize above 25% on a normalized tax basis. If H1 run-rate continues, annualized net profit exceeds IDR 280 billion, and the stock would likely rerate on earnings momentum once market data is available.
 
 ### 14.2 Bear Case
-
-PT Handal Gemilang Sentosa does not repeat its H1 order, causing revenue to revert toward a sub-100 billion run-rate. The IDR 4.7 trillion inventory position (current plus non-current) becomes illiquid in a softer land market, straining liquidity despite the current cash buffer. A covenant breach on the Bank Mandiri facility triggers acceleration.
+H1 revenue is a one-off bulk sale to PT Handal Gemilang Sentosa; H2 normalizes below IDR 150 billion. Tax expense reverts to a statutory 19–22% rate, cutting net profit by ~20%. The PT Kawasan Lintas Biru Digital agreement is not renewed, removing IDR 20+ billion of annual related-party revenue. BI-Rate hikes lift IndONIA-linked loan costs from the October 2025 reset. NCI losses at BSN/BSP deepen, eroding consolidated equity. The 38% payables reduction signals strained supplier relations or project delays.
 
 ### 14.3 Key Catalysts
-
-1. Q3 2026 interim financial statements—specifically customer-mix and industrial estate segment profit.
-2. Disclosure of Bank Mandiri covenant compliance tests for June 2026.
-3. Renewal or replacement of the KLBD telecom facilities agreement.
-4. Any announcement on dividend policy or capital structure.
+- Q3 2026 interim results (Oct/Nov 2026): evidence of revenue normalization vs H1 bulk sale.
+- Renewal status of PT Kawasan Lintas Biru Digital telecom agreement.
+- BEFA Industrial Hub Phase 1 occupancy/leasing announcements.
+- Resolution of the DG Tax Supreme Court judicial review (2017 dispute).
+- Any new >10% customer disclosures.
 
 ### 14.4 Recommendation
+**HOLD (Moderate Risk).** Target price range: **not disclosed** — market data unavailable. Without a share price, market cap, or peer multiples, a quantitative target cannot be established. The stock is fundamentally unrateable on a valuation basis until market data is restored. **Review trigger:** Release of Q3 2026 interim results and any update on related-party contract renewals or covenant compliance. If market data becomes available, reassess P/E against annualized H1 EPS of IDR 29.92.
 
-**HOLD (Moderate Risk).** Target price range: not disclosed—market data unavailable. Review trigger: Release of Q3 2026 interim results and any update on related-party contract renewals or covenant compliance.
+---
 
 ## Related Analysis
-- [[TAPG Q1 2026 Analysis]]
-- [[MSTI Q1 2026 Analysis]]
-- [[TINS Q2 2026 Analysis]]
+- [[BEST Q1 2026 Analysis]]
+- [[BEST Q2 2026 Analysis]]
 
 ---
 
