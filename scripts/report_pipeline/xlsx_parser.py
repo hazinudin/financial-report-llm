@@ -7,11 +7,16 @@ Parses FinancialStatement-*.xlsx files downloaded from IDX, extracting:
     income statement, cash flow, etc.)
 
 Each XLSX follows the IDX XBRL taxonomy with standard sheet codes:
-  1210000 / 1220000 — Balance Sheet (current/non-current or order of liquidity)
-  1311000 / 1312000 — Income Statement (by function / by nature)
-  1321000 / 1322000 — Other Comprehensive Income
-  1410000           — Statement of Changes in Equity
-  1510000 / 1520000 — Cash Flow (direct / indirect)
+  1210000 / 1220000 — Balance Sheet (legacy taxonomy)
+  1311000 / 1312000 — Income Statement (legacy taxonomy)
+  1321000 / 1322000 — Other Comprehensive Income (legacy taxonomy)
+  1410000           — Statement of Changes in Equity (legacy taxonomy)
+  1510000 / 1520000 — Cash Flow (legacy taxonomy)
+  2210000 / 2220000 — Balance Sheet (industry taxonomy)
+  2311000 / 2312000 — Income Statement (industry taxonomy)
+  2321000 / 2322000 — Other Comprehensive Income (industry taxonomy)
+  2410000           — Statement of Changes in Equity (industry taxonomy)
+  2510000 / 2520000 — Cash Flow (industry taxonomy)
   Plus several notes/disclosure sheets (161xxxx, 162xxxx, etc.)
 
 Usage:
@@ -149,15 +154,12 @@ def _to_float(val: Any) -> float | None:
 
 # Standard statement sheets in the IDX XBRL taxonomy
 STATEMENT_SHEET_CODES = [
-    "1210000",  # Balance Sheet (current/non-current)
-    "1220000",  # Balance Sheet (order of liquidity)
-    "1311000",  # Income Statement (by function)
-    "1312000",  # Income Statement (by nature)
-    "1321000",  # OCI (before tax)
-    "1322000",  # OCI (net of tax)
-    "1410000",  # Changes in Equity
-    "1510000",  # Cash Flow (direct method)
-    "1520000",  # Cash Flow (indirect method)
+    # Legacy taxonomy.
+    "1210000", "1220000", "1311000", "1312000",
+    "1321000", "1322000", "1410000", "1510000", "1520000",
+    # Industry taxonomy used by newer IDX workbooks.
+    "2210000", "2220000", "2311000", "2312000",
+    "2321000", "2322000", "2410000", "2510000", "2520000",
 ]
 
 

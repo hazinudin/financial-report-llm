@@ -10,7 +10,7 @@ All pipeline state is persisted in a local DuckDB database (idx_data/pipeline.du
 enabling monitoring, retry of failed stages, and structured queries across companies.
 
 Usage:
-    # Full pipeline: download -> identify -> collect -> convert
+    # Full pipeline: download -> identify -> collect -> convert -> parse XLSX
     python pipeline.py --tickers ESSA,BBCA --years 2024,2025
 
     # Convert only (skip download, use already downloaded files)
@@ -537,7 +537,7 @@ def run_pipeline(
     convert: bool = True,
     identify_only: bool = False,
     dry_run: bool = False,
-    parse_xlsx: bool = False,
+    parse_xlsx: bool = True,
     retry_failed: bool = False,
     retry_stage: str | None = None,
     force: bool = False,
@@ -549,6 +549,7 @@ def run_pipeline(
       2. Identify the financial report PDF in each company/period
       3. Copy identified PDFs to raw/
       4. Convert to markdown using docling
+      5. Parse XLSX financial statements into DuckDB
     All state is tracked in DuckDB.
     """
     import duckdb as _duckdb
@@ -883,7 +884,7 @@ def _run_stages(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="IDX Financial Report Pipeline: download -> identify -> convert",
+        description="IDX Financial Report Pipeline: download -> identify -> convert -> parse XLSX",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
@@ -933,8 +934,12 @@ def main():
         help="Re-convert even if results already exist (skip the existence check).",
     )
     parser.add_argument(
-        "--parse-xlsx", action="store_true",
-        help="Scan for FinancialStatement-*.xlsx files and parse them into DuckDB.",
+        "--parse-xlsx", dest="parse_xlsx_only", action="store_true",
+        help="Parse XLSX files only, without running the rest of the pipeline.",
+    )
+    parser.add_argument(
+        "--no-parse-xlsx", action="store_true",
+        help="Skip the default XLSX parsing step.",
     )
     parser.add_argument(
         "--scan-disk", action="store_true",
@@ -981,7 +986,7 @@ def main():
         return
 
     # ── Parse XLSX only mode ─────────────────────────────────────
-    if args.parse_xlsx and not args.convert_only and \
+    if args.parse_xlsx_only and not args.no_parse_xlsx and not args.convert_only and \
        not args.identify_only and not args.retry_failed:
         conn = get_db(DB_PATH)
         try:
@@ -1014,10 +1019,10 @@ def main():
         output_dir=args.output,
         delay=args.delay,
         download=not args.convert_only,
-        convert=not args.no_convert and not args.parse_xlsx,
+        convert=not args.no_convert,
         identify_only=args.identify_only,
         dry_run=args.dry_run,
-        parse_xlsx=args.parse_xlsx,
+        parse_xlsx=not args.no_parse_xlsx,
         retry_failed=args.retry_failed,
         retry_stage=args.stage,
         force=args.force,

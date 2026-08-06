@@ -43,6 +43,15 @@ def _make_workbook(path: Path) -> None:
             ("2", 100, 90, "Total net increase (decrease) in cash and cash equivalents"),
             ("3", 1100, 1000, "Cash and cash equivalents cash flows, end of the period"),
         ],
+        "2210000": [
+            ("1", 7000, 6500, "Total assets"),
+        ],
+        "2311000": [
+            ("1", 1200, 1100, "Sales and revenue"),
+        ],
+        "2510000": [
+            ("1", 300, 280, "Total net cash flows received from (used in) operating activities"),
+        ],
     }
     for code, values in rows.items():
         sheet = wb.create_sheet(code)

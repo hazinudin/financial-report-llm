@@ -14,8 +14,9 @@ fill keys the seed leaves null (e.g. dividends_paid, operating_profit) plus
 Conventions
 -----------
 - Label matching is EXACT on lowercased `label_en` within a preferred sheet
-  (1210000 balance sheet, 1311000 income statement by function, 1510000 direct
-  cash flow). The IDX taxonomy makes these labels stable across issuers.
+  (1210000/2210000 balance sheet, 1311000/2311000 income statement by
+  function, 1510000/2510000 direct cash flow). The IDX taxonomy makes these
+  labels stable across issuers.
 - `mode: "sum"` aggregates composed lines (e.g. trade_receivables_net =
   third-party + related-party rows); `mode: "first"` takes the first candidate
   with a value. `minus` labels are subtracted (other_income_net).
@@ -49,9 +50,9 @@ FACTS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "facts"
 QUARTER_TO_PERIOD = {"Q1": "tw1", "Q2": "tw2", "Q3": "tw3", "Q4": "audit"}
 
 # Preferred sheet per statement (first sheet with rows wins).
-BS_SHEETS = ("1210000", "1220000")
-IS_SHEETS = ("1311000",)
-CF_SHEETS = ("1510000", "1520000")
+BS_SHEETS = ("1210000", "1220000", "2210000", "2220000")
+IS_SHEETS = ("1311000", "1312000", "2311000", "2312000", "2321000", "2322000")
+CF_SHEETS = ("1510000", "1520000", "2510000", "2520000")
 
 REQUIRED_SEED_KEYS = {
     "income_statement": ("revenue", "gross_profit", "pbt", "net_profit"),
