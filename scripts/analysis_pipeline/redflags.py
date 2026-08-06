@@ -18,11 +18,13 @@ from pathlib import Path
 import yaml
 
 import opencode_client
+import research
 from schema import FactSheet
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 FACTS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "facts"
 RUNS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "runs"
+RESEARCH_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "research"
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 
 PROMPT = """Read the provided fact sheet and computed ratios. Identify up to 10 concrete
@@ -34,6 +36,49 @@ markdown bullet list naming the two facts in tension and the section to address.
 def load_prompt() -> str:
     p = PROMPTS_DIR / "redflags.md"
     return p.read_text(encoding="utf-8") if p.exists() else PROMPT
+
+
+def audit_research_sources(ticker: str, year: int, quarter: str) -> list[str]:
+    """Audit research citations against the persisted tool trace."""
+    brief_path = RESEARCH_DIR / f"{ticker}_{quarter}_{year}.research.yaml"
+    trace_path = RESEARCH_DIR / f"{ticker}_{quarter}_{year}.research_trace.json"
+    if not brief_path.exists():
+        return []
+    try:
+        brief = yaml.safe_load(brief_path.read_text(encoding="utf-8")) or {}
+        trace = yaml.safe_load(trace_path.read_text(encoding="utf-8")) if trace_path.exists() else {}
+        trace = trace if isinstance(trace, dict) else {}
+        audit = research._validate_brief_sources(
+            brief, trace.get("tool_trace", []),
+            no_tool_calls=not trace.get("tool_trace"),
+        )
+    except (OSError, yaml.YAMLError, TypeError):
+        return ["- Research citation audit could not read the research artifact or trace."]
+
+    bullets: list[str] = []
+    for item in audit.get("unverified_sources", []):
+        bullets.append(
+            f"- Research citation is not present in the tool trace: "
+            f"{item.get('url', '(missing URL)')}"
+        )
+    if audit.get("no_tool_calls") and brief.get("findings"):
+        bullets.append("- Research brief contains findings but the tool trace has zero tool calls.")
+    for finding in brief.get("findings", []) or []:
+        for source in finding.get("sources", []) or []:
+            if not source.get("published_date"):
+                bullets.append(
+                    f"- Research source has no publication date: {source.get('url', '(missing URL)')}"
+                )
+    for item in trace.get("tool_trace", []) or []:
+        result = item.get("result") or {}
+        if item.get("tool_name") == "fetch_web_page" and result.get("status") in {
+            "degraded", "unsupported", "blocked", "error",
+        }:
+            bullets.append(
+                f"- Research page fetch failed or was blocked: "
+                f"{result.get('url', '(missing URL)')} ({result.get('error', result.get('status'))})"
+            )
+    return bullets
 
 
 def run(ticker: str, year: int, quarter: str, dry_run: bool = False) -> dict:
@@ -64,6 +109,9 @@ def run(ticker: str, year: int, quarter: str, dry_run: bool = False) -> dict:
     resp = opencode_client.chat(model, load_prompt(), payload, temperature=settings["temperature"],
                                 max_tokens=settings["max_tokens"])
     bullets = resp["content"].strip()
+    citation_bullets = audit_research_sources(ticker, year, quarter)
+    if citation_bullets:
+        bullets = (bullets + "\n" if bullets else "") + "\n".join(citation_bullets)
     out_path = RUNS_DIR / f"{ticker}_{year}_{quarter}.redflags.md"
     out_path.write_text(bullets + "\n", encoding="utf-8")
     print(f"  [DONE] {out_path}\n")

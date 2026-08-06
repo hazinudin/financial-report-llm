@@ -3,8 +3,9 @@ Stage 4 — writer call (ONE call, strongest model).
 
 Assembles the writer input package (kept <= ~30K tokens): writer system prompt
 + the 14-section skeleton + the canonical fact sheet + computed ratios +
-static company profile + <= 3 vault hits + the market-data stub. Then calls the
-configured writer model and writes the analysis markdown to analysis/.
+static company profile + research brief + <= 3 vault hits + the market-data
+stub. Then calls the configured writer model and writes the analysis markdown to
+analysis/.
 
 Style rules mirror the existing human analyses (frontmatter tags, wikilinks,
 tables, severity-ranked risks, disclaimer) via writer_system.md.
@@ -23,6 +24,7 @@ from schema import FactSheet
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 FACTS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "facts"
+RESEARCH_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "research"
 RUNS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "runs"
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 ANALYSIS_DIR = _PROJECT_ROOT / "analysis"
@@ -37,6 +39,94 @@ def _fmt_num(v):
     return "" if v is None else v
 
 
+def _load_yaml_mapping(path: Path) -> dict:
+    """Load a research artifact without making writing depend on it."""
+    if not path.exists():
+        return {}
+    try:
+        value = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def _load_research_context(ticker: str, year: int, quarter: str) -> str:
+    """Render bounded, provenance-aware research context for the writer.
+
+    The raw planner response and tool trace are intentionally excluded. The
+    writer receives the structured plan, findings, confidence/period labels,
+    source URLs, and unresolved internal items instead.
+    """
+    stem = f"{ticker}_{quarter}_{year}"
+    plan = _load_yaml_mapping(RESEARCH_DIR / f"{stem}.research_plan.yaml")
+    brief = _load_yaml_mapping(RESEARCH_DIR / f"{stem}.research.yaml")
+    if not plan and not brief:
+        return "(no external research available)"
+
+    plan_context = {
+        "analytical_framing": plan.get("analytical_framing", ""),
+        "priority_themes": plan.get("priority_themes", []) or [],
+        "themes": [
+            {
+                "name": theme.get("name", ""),
+                "priority": theme.get("priority", "medium"),
+                "rationale": theme.get("rationale", ""),
+            }
+            for theme in plan.get("themes", []) or []
+            if isinstance(theme, dict)
+        ],
+        "questions": [
+            {
+                "id": question.get("id", ""),
+                "theme": question.get("theme", ""),
+                "question": question.get("question", ""),
+            }
+            for question in plan.get("questions", []) or []
+            if isinstance(question, dict)
+        ],
+        "hypotheses": plan.get("hypotheses", []) or [],
+    }
+
+    findings = []
+    for finding in brief.get("findings", []) or []:
+        if not isinstance(finding, dict):
+            continue
+        sources = [
+            {
+                "title": source.get("title", ""),
+                "url": source.get("url", ""),
+                "published_date": source.get("published_date"),
+            }
+            for source in finding.get("sources", []) or []
+            if isinstance(source, dict) and source.get("url")
+        ]
+        findings.append({
+            "event": finding.get("event", ""),
+            "explanation": finding.get("explanation", ""),
+            "confidence": finding.get("confidence", "low"),
+            "period": finding.get("period", "in-period"),
+            "sources": sources,
+            "writer_hint": finding.get("writer_hint", ""),
+        })
+
+    research_context = {
+        "usage": (
+            "Planning and external evidence only. The canonical fact sheet and "
+            "computed ratios remain authoritative for company financial figures."
+        ),
+        "plan": plan_context,
+        "findings": findings,
+        "internal_must_explain": [
+            item for item in brief.get("internal_must_explain", []) or []
+            if isinstance(item, str)
+        ],
+        "source_audit": (brief.get("meta", {}) or {}).get("source_audit", {}),
+    }
+    return yaml.safe_dump(
+        research_context, sort_keys=False, allow_unicode=True,
+    )
+
+
 def _build_user(ticker, year, quarter, sheet: FactSheet, ratios: dict, package: dict) -> str:
     facts_yaml = yaml.safe_dump(sheet.model_dump(exclude_none=False), sort_keys=False, allow_unicode=True)
     ratios_yaml = yaml.safe_dump(ratios, sort_keys=False, allow_unicode=True)
@@ -44,6 +134,7 @@ def _build_user(ticker, year, quarter, sheet: FactSheet, ratios: dict, package: 
     skeleton = package.get("skeleton", "")
     md = package.get("market_data", {}) or {}
     hits = package.get("vault_hits", []) or []
+    research = package.get("research_context", "(no external research available)")
 
     md_block = yaml.safe_dump(md, sort_keys=False, allow_unicode=True) if md else "(no market data provided)"
     hits_block = "\n".join(
@@ -56,8 +147,10 @@ def _build_user(ticker, year, quarter, sheet: FactSheet, ratios: dict, package: 
     return f"""# TASK
 Write a complete equity-analysis markdown document titled "{title}", following
 the skeleton below EXACTLY (all sections, in order). Populate every section from
-the facts and ratios provided. You are the analyst; synthesize, but you may ONLY
-use numbers that appear in the fact sheet, the ratios, or the market-data stub.
+the canonical facts, ratios, and research context provided. You are the analyst;
+synthesize, but you may ONLY use company numbers from the fact sheet or ratios,
+valuation numbers from the market-data stub, and explicitly cited external
+figures from the research context.
 Do not invent figures. Where a ratio is null/missing, say so rather than estimating.
 
 # OUTLINE SKELETON (follow this structure)
@@ -71,6 +164,9 @@ Do not invent figures. Where a ratio is null/missing, say so rather than estimat
 
 # COMPUTED RATIOS (deterministic — use these verbatim)
 {ratios_yaml}
+
+# RESEARCH PLAN AND EXTERNAL RESEARCH
+{research}
 
 # VAULT CONTEXT (prior analyses / commodity notes — cite as wikilinks)
 {hits_block}
@@ -112,6 +208,7 @@ def run(ticker: str, year: int, quarter: str, market_data_path: str | None = Non
     else:
         from context import run as ctx_run  # local import to avoid cycle
         package = ctx_run(ticker, year, quarter, market_data_path)["package"]
+    package["research_context"] = _load_research_context(ticker, year, quarter)
 
     settings = opencode_client.parse_model_settings("write")
     model = settings["model"]
