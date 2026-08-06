@@ -23,7 +23,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 IDX_DATA_DIR = _PROJECT_ROOT / "idx_data"
 DEFAULT_DB_PATH = IDX_DATA_DIR / "pipeline.duckdb"
 
-STAGES = ("preprocess", "extract", "merge", "context", "write", "redflags")
+STAGES = ("preprocess", "extract", "merge", "context", "research", "write", "redflags")
 
 
 def get_db(db_path: str | Path = DEFAULT_DB_PATH, read_only: bool = False) -> duckdb.DuckDBPyConnection:
@@ -53,6 +53,7 @@ class AnalysisDB:
                 stage_extract     VARCHAR DEFAULT 'pending',
                 stage_merge       VARCHAR DEFAULT 'pending',
                 stage_context     VARCHAR DEFAULT 'pending',
+                stage_research    VARCHAR DEFAULT 'pending',
                 stage_write       VARCHAR DEFAULT 'pending',
                 stage_redflags    VARCHAR DEFAULT 'pending',
                 model_extract     VARCHAR,
@@ -64,6 +65,9 @@ class AnalysisDB:
                 updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
+        )
+        self.conn.execute(
+            "ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS stage_research VARCHAR DEFAULT 'pending'"
         )
         return self
 
@@ -171,10 +175,10 @@ class AnalysisDB:
         cols = [d[0] for d in res.description]
         print(
             f"\n{'Ticker':<8} {'Year':<6} {'Qtr':<5} "
-            f"{'Pre':<11} {'Extract':<11} {'Merge':<11} {'Context':<11} {'Write':<11} {'Redflags':<11} "
+            f"{'Pre':<11} {'Extract':<11} {'Merge':<11} {'Context':<11} {'Research':<11} {'Write':<11} {'Redflags':<11} "
             f"{'Tok(p/c)':<14} {'Output/Error'}"
         )
-        print("-" * 124)
+        print("-" * 136)
         for r in rows:
             d = dict(zip(cols, r))
             tp = d.get("tokens_prompt") or 0
@@ -185,6 +189,7 @@ class AnalysisDB:
                 f"{d.get('ticker',''):<8} {d.get('year',''):<6} {d.get('quarter',''):<5} "
                 f"{d.get('stage_preprocess','?'):<11} {d.get('stage_extract','?'):<11} "
                 f"{d.get('stage_merge','?'):<11} {d.get('stage_context','?'):<11} "
+                f"{d.get('stage_research','?'):<11} "
                 f"{d.get('stage_write','?'):<11} {d.get('stage_redflags','?'):<11} "
                 f"{tok:<14} {str(out)[:34]}"
             )

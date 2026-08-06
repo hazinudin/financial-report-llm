@@ -66,23 +66,29 @@ def run_job(
     stages: set[str] | None = None, from_stage: str | None = None,
     market_data_path: str | None = None, workers: int | None = None,
     inject_redflags: bool = False,
+    skip_search: bool = False,
+    research_tool_mode: str | None = None,
+    refresh_research_cache: bool = False,
 ) -> dict:
-    import preprocess, extract, merge, ratios, context, write, redflags  # noqa: F401
+    import preprocess, extract, merge, ratios, context, write, redflags, research  # noqa: F401
 
     job_id = db.upsert_job(ticker, year, quarter)
-    xlsx_sync = xlsx_seed.ensure_xlsx_coverage(
-        ticker, year, quarter, conn=db.conn, dry_run=dry_run,
-    )
-    if xlsx_sync.get("seeded") and xlsx_seed.fact_artifact_needs_seed(ticker, year, quarter):
-        # Existing fallback artifacts may have been generated before the XLSX
-        # appeared. Rebuild from extraction onward so XLSX becomes authoritative.
-        force = True
-        print("  [XLSX] existing fact artifact predates XLSX seed; rebuilding")
-    elif xlsx_sync.get("ingested"):
-        # Existing fallback artifacts may have been generated before the XLSX
-        # appeared. Rebuild from extraction onward so XLSX becomes authoritative.
-        force = True
-        print(f"  [XLSX] {xlsx_sync['status']}: {xlsx_sync.get('path', '')}")
+    # XLSX discovery is only needed by the financial-data stages. Avoid doing
+    # it for a research-only refresh, which should consume existing facts.
+    if stages is None or {"preprocess", "extract", "merge"} & stages:
+        xlsx_sync = xlsx_seed.ensure_xlsx_coverage(
+            ticker, year, quarter, conn=db.conn, dry_run=dry_run,
+        )
+        if xlsx_sync.get("seeded") and xlsx_seed.fact_artifact_needs_seed(ticker, year, quarter):
+            # Existing fallback artifacts may have been generated before the XLSX
+            # appeared. Rebuild from extraction onward so XLSX becomes authoritative.
+            force = True
+            print("  [XLSX] existing fact artifact predates XLSX seed; rebuilding")
+        elif xlsx_sync.get("ingested"):
+            # Existing fallback artifacts may have been generated before the XLSX
+            # appeared. Rebuild from extraction onward so XLSX becomes authoritative.
+            force = True
+            print(f"  [XLSX] {xlsx_sync['status']}: {xlsx_sync.get('path', '')}")
 
     def mark(stage, status, error=None):
         if not dry_run:
@@ -205,6 +211,32 @@ def run_job(
                 print(f"\n[{job_id}] context FAILED: {e}")
                 return summary
 
+    # ── Stage 3b: research ────────────────────────────────────────────
+    if want("research"):
+        mark( "research", "running")
+        if should_skip("research"):
+            summary["stages"]["research"] = "skipped"
+        else:
+            try:
+                res = research.run(ticker, year, quarter, force=force, dry_run=dry_run,
+                                    skip_search=skip_search,
+                                    tool_mode=research_tool_mode,
+                                    refresh_cache=refresh_research_cache)
+                if not dry_run:
+                    tok = res.get("token_usage", {})
+                    if tok:
+                        db.add_tokens(job_id, tok.get("prompt_tokens", 0), tok.get("completion_tokens", 0))
+                status = res.get("status", "success")
+                mark( "research", "completed" if status != "failed" else "failed",
+                     error=res.get("error"))
+                summary["stages"]["research"] = status
+                if res.get("mode") == "degraded":
+                    print(f"  [RESEARCH] degraded: {res.get('error', '')[:80]}")
+            except Exception as e:  # noqa: BLE001
+                mark( "research", "failed", error=str(e))
+                summary["stages"]["research"] = "failed"
+                print(f"\n[{job_id}] research FAILED: {e}")
+
     # ── Stage 4: write ───────────────────────────────────────────────
     out_path = None
     if want("write"):
@@ -278,7 +310,15 @@ def main():
     parser.add_argument("--stage", type=str, default=None, choices=list(STAGES),
                         help="Limit --retry-failed to a stage, or start from a stage.")
     parser.add_argument("--extract-only", action="store_true", help="Run only preprocess + extract.")
+    parser.add_argument("--research-only", action="store_true", help="Run through research and stop before writing.")
     parser.add_argument("--write-only", action="store_true", help="Run only context + write (facts/ratios must exist).")
+    parser.add_argument("--skip-research", action="store_true", help="Skip the research stage.")
+    parser.add_argument("--no-search", action="store_true", help="Run research triggers + internal analysis without web search.")
+    parser.add_argument("--research-tool-mode", type=str, default=None,
+                        choices=["llm_tools", "deterministic_fallback"],
+                        help="Override research tool mode.")
+    parser.add_argument("--refresh-research-cache", action="store_true",
+                        help="Bypass research query/page cache.")
     parser.add_argument("--redflags", action="store_true", help="Run the Stage 5 red-flag pass after writing.")
     parser.add_argument("--inject-redflags", action="store_true", help="With --redflags, re-run the writer to address each flag.")
     args = parser.parse_args()
@@ -317,7 +357,10 @@ def main():
             stage = args.stage or next((s for s in STAGES if job.get(f"stage_{s}") == "failed"), "preprocess")
             run_job(t, y, q, db, from_stage=stage, force=True,
                     market_data_path=args.market_data, workers=args.workers,
-                    inject_redflags=args.inject_redflags)
+                    inject_redflags=args.inject_redflags,
+                    skip_search=args.no_search,
+                    research_tool_mode=args.research_tool_mode,
+                    refresh_research_cache=args.refresh_research_cache)
         conn.close()
         return
 
@@ -332,8 +375,17 @@ def main():
     stages: set[str] | None = None
     if args.extract_only:
         stages = {"preprocess", "extract"}
+    elif args.research_only:
+        if args.refresh_research_cache:
+            # Refreshing external research must not force unrelated upstream
+            # stages to rerun; they only provide inputs to research.
+            stages = {"research"}
+        else:
+            stages = {"preprocess", "extract", "merge", "context", "research"}
     elif args.write_only:
-        stages = {"context", "write"}
+        stages = {"context", "research", "write"}
+    elif args.skip_research:
+        stages = {"preprocess", "extract", "merge", "context", "write", "redflags"}
 
     combos = [(t, y, q) for t in tickers for y in years for q in quarters]
     print("=" * 60)
@@ -344,7 +396,10 @@ def main():
             print(f"\n==== {t} {q} {y} ====")
             run_job(t, y, q, db, force=args.force, dry_run=args.dry_run, stages=stages,
                     market_data_path=args.market_data, workers=args.workers,
-                    inject_redflags=args.redflags and args.inject_redflags)
+                    inject_redflags=args.redflags and args.inject_redflags,
+                    skip_search=args.no_search,
+                    research_tool_mode=args.research_tool_mode,
+                    refresh_research_cache=args.refresh_research_cache)
     finally:
         conn.close()
 
