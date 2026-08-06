@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "companies/$KLBF.md",
+                "file": "commodities/Aluminium.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "$KLBF"
+              "title": "Aluminium"
             }
           }
         ]
@@ -185,6 +185,11 @@
   },
   "active": "0b3474618a5cab48",
   "lastOpenFiles": [
+    "commodities/updates/Aluminium_July_2026_Update.md",
+    "commodities/updates/Aluminium_May_2026_Update.md",
+    "commodities/updates/Ammonia_July_2026_Update.md",
+    "INKP Q1 2026 Analysis.md",
+    "companies/$KLBF.md",
     "TPMA Q2 2026 Analysis.md",
     "companies/$TPMA.md",
     "companies/$PTPS.md",
@@ -196,7 +201,6 @@
     "companies/$ELSA.md",
     "companies/$ESSA.md",
     "companies/$INDR.md",
-    "companies/$KLBF.md",
     "KAI Analysis.md",
     "SEAL Q2 2026 Analysis - From PTPS Financial Report.md",
     "PTPS Q2 2026 Analysis.md",
@@ -207,10 +211,6 @@
     "TINS Q1 2026 Analysis.md",
     "ESSA Q2 2026 Analysis.md",
     "DKFT Q1 2026 Analysis - Gemma.md",
-    "articles/Gold Lags but Mining Equities Outperform on Stock-Specific Catalysts.md",
-    "KLBF Q1 2026 Analysis.md",
-    "commodities/Ammonia.md",
-    "geopolitics/Strait_of_Hormuz_Crisis.md",
     "geopolitics",
     "commodities/updates",
     "Clippings"
