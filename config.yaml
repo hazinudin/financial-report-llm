@@ -11,13 +11,23 @@ analysis:
     base_url: https://opencode.ai/zen/go/v1
     # API key read from OPENCODE_API_KEY in .env (do not commit the key)
     timeout_sec: 300
+  # Per-role request timeouts prevent a stalled research request from
+  # occupying the pipeline for the global timeout x retry count.
+  timeouts:
+    research_plan: 120
+    research: 90
   models:
     # Extraction is lookup-style on preprocessed chunks; temperature 0.
     # Confirm exact IDs via: uv run scripts/analysis_pipeline/pipeline.py --list-models
-     extract: hy3
-     redflags: hy3
-    # The only call where reasoning quality is binding.
-     write: kimi-k2.6
+    extract: hy3
+    redflags: hy3
+    # The only calls where reasoning quality is binding.
+    write: kimi-k2.6
+    # Research-plan formulation (reads analyses + facts, themes questions).
+    # Strong reasoning needed to derive period arithmetic and spot drivers.
+    research_plan: kimi-k2.6
+    # Research synthesis (cheap model; guided by the plan)
+    research: hy3
   max_tokens:
     # Seeded mode asks note chunks for details+context_notes only (~1-2K out).
     # deepseek-v4-flash is a REASONING model: reasoning tokens count against
@@ -26,14 +36,20 @@ analysis:
     extract: 16384
     write: 32768
     redflags: 4096
+    # Leave headroom for the themed plan if the model emits internal reasoning.
+    research_plan: 16384
+    research: 8192
   temperature:
     extract: 0.0
     write: 0.3
     redflags: 0.0
+    research: 0.0
   # Extraction is copy/lookup — low reasoning effort is faster and avoids
   # burning the token budget on hidden reasoning. Honored by deepseek-v4.
   reasoning_effort:
     extract: low
+    research_plan: none
+    research: none
   # Hard token cap per LLM call (§9 budget). Chunks exceeding this are split.
   call_token_cap: 32000
   # Max INPUT tokens fed to an extraction call (leaves headroom for the ~8K
@@ -45,3 +61,104 @@ analysis:
   extraction_workers: 4
   # XLSX cross-validation tolerance (deviation as a fraction of the XLSX value).
   xlsx_deviation_tolerance: 0.005
+  # ── External Research (Stage 3b) ────────────────────────────────────
+  research:
+    enabled: true
+    tool_mode: llm_tools              # llm_tools | deterministic_fallback
+    search_backend: searxng           # searxng (default)
+    searxng:
+      base_url: http://localhost:8080
+      health_path: /healthz
+      timeout_s: 15
+      engines:
+        - duckduckgo
+        - brave
+        - bing
+    max_tool_rounds: 6
+    max_parallel_calls_per_round: 8
+    max_search_calls: 36
+    max_fetch_calls: 8
+    max_results_per_search: 5
+    max_page_chars: 30000
+    max_total_evidence_chars: 120000
+    search_timeout_s: 15
+    fetch_timeout_s: 20
+    max_redirects: 5
+    # The single fetch allow-list; empty = fetch_web_page always blocked.
+    # Populated from the authoritative set: Reuters, Bloomberg, ministry
+    # portals, IDX filings, major Indonesian news.
+    fetch_allow_domains:
+      - reuters.com
+      - bloomberg.com
+      - cnbc.com
+      - cnbcindonesia.com
+      - bisnis.com
+      - kontan.co.id
+      - kompas.com
+      - antaranews.com
+      - tempo.co
+      - idx.co.id
+      - esdm.go.id
+      - bi.go.id
+      - setkab.go.id
+      - kemenkeu.go.id
+      - kemenperin.go.id
+      - kemen-esdm.go.id
+      - bappebti.go.id
+      - bps.go.id
+      - investing.com
+      - gidji.com
+      - siaiair.com
+    # Dispatcher rejects fetches not tied to a low-confidence finding
+    fetch_requires_low_confidence: true
+    # Cache-busting version: increment to invalidate all page caches
+    extractor_config_version: "1"
+    max_questions: 12
+    max_queries_per_question: 3
+    brief_token_cap: 4000
+    # Max chars of prior-quarter analysis markdown fed to the research-plan
+    # LLM (keeps the planner prompt bounded across tickers with long histories).
+    max_planner_analysis_chars: 12000
+    sector_pack_max_age_days: 31
+    triggers:
+      margin_bps: 500
+      expense_zero_or_double: true
+      receivables_growth_pct: 50
+      collections_ratio_floor: 0.80
+      ocf_np_divergence: [0.8, 1.5]
+      balance_sheet_move_pct: 30
+    source_classification:
+      government:
+        domains:
+          - esdm.go.id
+          - bi.go.id
+          - bps.go.id
+          - setkab.go.id
+          - kemenkeu.go.id
+          - kemenperin.go.id
+          - kemen-esdm.go.id
+          - bappebti.go.id
+          - dpr.go.id
+      filing:
+        domains:
+          - idx.co.id
+      news:
+        domains:
+          - reuters.com
+          - bloomberg.com
+          - cnbc.com
+          - cnbcindonesia.com
+          - bisnis.com
+          - kontan.co.id
+          - kompas.com
+          - tribunnews.com
+          - detik.com
+          - antaranews.com
+          - tempo.co
+          - liputan6.com
+      research:
+        domains:
+          - stockbit.com
+          - samuel.co.id
+          - miraeasset.co.id
+          - indopremier.com
