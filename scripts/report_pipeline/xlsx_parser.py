@@ -17,6 +17,11 @@ Each XLSX follows the IDX XBRL taxonomy with standard sheet codes:
   2321000 / 2322000 — Other Comprehensive Income (industry taxonomy)
   2410000           — Statement of Changes in Equity (industry taxonomy)
   2510000 / 2520000 — Cash Flow (industry taxonomy)
+  3210000 / 3220000 — Balance Sheet (infrastructure taxonomy)
+  3311000 / 3312000 — Income Statement (infrastructure taxonomy)
+  3321000 / 3322000 — Other Comprehensive Income (infrastructure taxonomy)
+  3410000           — Statement of Changes in Equity (infrastructure taxonomy)
+  3510000 / 3520000 — Cash Flow (infrastructure taxonomy)
   Plus several notes/disclosure sheets (161xxxx, 162xxxx, etc.)
 
 Usage:
@@ -160,6 +165,9 @@ STATEMENT_SHEET_CODES = [
     # Industry taxonomy used by newer IDX workbooks.
     "2210000", "2220000", "2311000", "2312000",
     "2321000", "2322000", "2410000", "2510000", "2520000",
+    # Infrastructure taxonomy used by newer IDX workbooks.
+    "3210000", "3220000", "3311000", "3312000",
+    "3321000", "3322000", "3410000", "3510000", "3520000",
 ]
 
 
