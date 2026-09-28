@@ -19,6 +19,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import yaml
 
@@ -58,9 +59,13 @@ WEB_SEARCH_SCHEMA: dict[str, Any] = {
                 },
                 "topic": {
                     "type": "string",
-                    "enum": ["news", "finance", "general"],
-                    "default": "news",
-                    "description": "Search category: news, finance, or general",
+                    "enum": ["news", "general"],
+                    "default": "general",
+                    "description": (
+                        "Search category: 'general' queries all configured "
+                        "engines at full strength (recommended default); "
+                        "'news' restricts to news-tagged engines."
+                    ),
                 },
                 "time_range": {
                     "type": "string",
@@ -118,10 +123,43 @@ class BudgetState:
     search_errors: list[str] = field(default_factory=list)
     fetch_errors: list[str] = field(default_factory=list)
     force_refresh: bool = False
+    # Hosts and URLs surfaced by prior web_search calls in this run. Used by
+    # the fetch_requires_low_confidence gate to reject blind fetches the LLM
+    # invents without first discovering them via search.
+    seen_search_hosts: set[str] = field(default_factory=set)
+    seen_search_urls: set[str] = field(default_factory=set)
+
+
+_VALID_TOPICS = ("news", "general")
+
+
+def _coerce_topic(topic: Any) -> str:
+    """Defensive coercion of the LLM-supplied topic.
+
+    Resilient to list-typed args (e.g. ``"['news']"`` repr strings or actual
+    lists) that have been observed from some tool-calling clients. Unknown
+    values fall back to 'general' so SearXNG queries all configured engines.
+    """
+    if isinstance(topic, (list, tuple)):
+        topic = topic[0] if topic else "general"
+    if isinstance(topic, str):
+        t = topic.strip().lower().strip("\"'[] ")
+        if t in _VALID_TOPICS:
+            return t
+    return "general"
+
+
+def _host_matches_set(hostname: str, allowed: set[str]) -> bool:
+    hostname = (hostname or "").lower()
+    if not hostname:
+        return False
+    for d in allowed:
+        if hostname == d or hostname.endswith("." + d) or d.endswith("." + hostname):
+            return True
+    return False
 
 
 def _is_domain_allowed(url: str) -> bool:
-    from urllib.parse import urlparse
     cfg = _research_config()
     allowed = cfg.get("fetch_allow_domains", []) or []
     if not allowed:
@@ -139,6 +177,7 @@ def execute_tool(
     arguments: dict[str, Any],
     budget: BudgetState,
 ) -> dict[str, Any]:
+    cfg = _research_config()
     if tool_name == "web_search":
         if budget.search_count >= budget.max_searches:
             return {
@@ -146,10 +185,11 @@ def execute_tool(
                 "error": "search budget exhausted",
             }
         budget.search_count += 1
+        topic = _coerce_topic(arguments.get("topic"))
         try:
             resp = search_backend.web_search(
                 query=str(arguments.get("query", "")),
-                topic=arguments.get("topic", "news"),  # type: ignore[arg-type]
+                topic=topic,
                 time_range=arguments.get("time_range"),
                 max_results=int(arguments.get("max_results", 5)),
                 force_refresh=budget.force_refresh,
@@ -158,6 +198,13 @@ def execute_tool(
             budget.search_errors.append(str(exc))
             return {"status": "degraded", "error": str(exc)}
         budget.search_errors.extend(resp.errors)
+        for r in resp.results or []:
+            url = str(r.get("url", "")) if isinstance(r, dict) else ""
+            host = str(r.get("source_domain", "")) if isinstance(r, dict) else ""
+            if url:
+                budget.seen_search_urls.add(url)
+            if host:
+                budget.seen_search_hosts.add(host)
         return {
             "status": resp.status,
             "query": resp.query,
@@ -175,6 +222,21 @@ def execute_tool(
                 "url": url,
                 "error": "domain not in fetch allow-list",
             }
+        if cfg.get("fetch_requires_low_confidence", False):
+            parsed = urlparse(url)
+            host = (parsed.hostname or "").lower()
+            if (
+                url not in budget.seen_search_urls
+                and not _host_matches_set(host, budget.seen_search_hosts)
+            ):
+                return {
+                    "status": "blocked",
+                    "url": url,
+                    "error": (
+                        "fetch_requires_low_confidence: URL not present in any "
+                        "prior web_search result; run web_search first"
+                    ),
+                }
         if budget.fetch_count >= budget.max_fetches:
             return {
                 "status": "degraded",

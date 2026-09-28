@@ -211,9 +211,27 @@ def check_health() -> bool:
         return False
 
 
+_VALID_TOPICS = ("news", "general")
+
+
+def _coerce_topic(topic: str | None) -> str:
+    """Normalize the LLM-supplied topic to a SearXNG-supported category.
+
+    SearXNG has no built-in ``finance`` category; unknown values (including
+    list-typed args parsed from malformed tool calls) fall back to ``general``
+    so all configured engines (duckduckgo, brave, bing) are queried at full
+    strength instead of being restricted to a sparse ``news`` engine subset.
+    """
+    if isinstance(topic, str):
+        t = topic.strip().lower()
+        if t in _VALID_TOPICS:
+            return t
+    return "general"
+
+
 def _searxng_search(
     query: str,
-    topic: str = "news",
+    topic: str = "general",
     time_range: str | None = None,
     max_results: int = 5,
 ) -> dict:
@@ -225,7 +243,7 @@ def _searxng_search(
     params: dict[str, str | int] = {
         "q": query,
         "format": "json",
-        "categories": topic,
+        "categories": _coerce_topic(topic),
     }
     if time_range:
         params["time_range"] = time_range
@@ -267,7 +285,7 @@ def _searxng_search(
 def web_search(
     query: str,
     *,
-    topic: Literal["news", "finance", "general"] = "news",
+    topic: Literal["news", "general"] = "general",
     time_range: Literal["day", "week", "month", "year"] | None = None,
     max_results: int = 5,
     ticker: str | None = None,  # noqa: ARG001 — available to tool registry
@@ -275,6 +293,7 @@ def web_search(
     period_end: str | None = None,  # noqa: ARG001
     force_refresh: bool = False,
 ) -> SearchResponse:
+    topic = _coerce_topic(topic)  # type: ignore[assignment]
     if not check_health():
         return SearchResponse(
             status="degraded",
