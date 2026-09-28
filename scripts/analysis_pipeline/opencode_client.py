@@ -19,6 +19,7 @@ import concurrent.futures
 import json
 import os
 import time
+import uuid
 from pathlib import Path
 from typing import Any, Callable
 
@@ -28,6 +29,8 @@ import yaml
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _ENV_PATH = _PROJECT_ROOT / ".env"
 _CONFIG_PATH = _PROJECT_ROOT / "config.yaml"
+_SESSION_ID = os.environ.get("OPENCODE_SESSION_ID", str(uuid.uuid4()))
+_USER_AGENT = "financial-report-llm-analysis-pipeline/1.0"
 
 
 def _load_env_file(path: Path = _ENV_PATH) -> None:
@@ -61,6 +64,20 @@ def get_api_key() -> str:
     return key
 
 
+def get_session_id() -> str:
+    """Return the stable session ID used for this pipeline process."""
+    return _SESSION_ID
+
+
+def _request_headers() -> dict[str, str]:
+    return {
+        "Authorization": f"Bearer {get_api_key()}",
+        "Content-Type": "application/json",
+        "User-Agent": _USER_AGENT,
+        "x-opencode-session": get_session_id(),
+    }
+
+
 def _base_url() -> str:
     cfg = load_analysis_config()
     return (cfg.get("opencode", {}) or {}).get("base_url", "https://openrouter.ai/api/v1/")
@@ -80,7 +97,7 @@ class APIError(RuntimeError):
 def list_models() -> list[str]:
     r = httpx.get(
         f"{_base_url()}/models",
-        headers={"Authorization": f"Bearer {get_api_key()}"},
+        headers=_request_headers(),
         timeout=_timeout(),
     )
     if r.status_code != 200:
@@ -106,10 +123,7 @@ def chat(
     low effort both speeds up copy-style tasks and avoids finish_reason=length
     with empty content.
     """
-    headers = {
-        "Authorization": f"Bearer {get_api_key()}",
-        "Content-Type": "application/json",
-    }
+    headers = _request_headers()
     payload = {
         "model": model,
         "temperature": temperature,
@@ -185,10 +199,7 @@ def _model_call(
     timeout_sec: float | None = None,
 ) -> dict[str, Any]:
     """Low-level POST to /chat/completions. Returns parsed JSON response dict."""
-    headers = {
-        "Authorization": f"Bearer {get_api_key()}",
-        "Content-Type": "application/json",
-    }
+    headers = _request_headers()
     payload: dict[str, Any] = {
         "model": model,
         "temperature": temperature,

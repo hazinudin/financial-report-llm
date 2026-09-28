@@ -227,7 +227,8 @@ def run(ticker: str, year: int, quarter: str, market_data_path: str | None = Non
     system = load_writer_prompt()
     print(f"  [WRITE] {model} (user prompt ~{len(user)//4} tok)")
     resp = opencode_client.chat(
-        model, system, user, temperature=settings["temperature"], max_tokens=settings["max_tokens"]
+        model, system, user, temperature=settings["temperature"], max_tokens=settings["max_tokens"],
+        timeout_sec=settings["timeout_sec"],
     )
     content = resp["content"].strip()
     out_path.write_text(content + ("\n" if not content.endswith("\n") else ""), encoding="utf-8")
