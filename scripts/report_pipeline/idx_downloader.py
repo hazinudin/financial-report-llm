@@ -44,11 +44,11 @@ from curl_cffi import requests as cffi_requests
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _DEFAULT_OUTPUT_DIR = str(_PROJECT_ROOT / "idx_data")
 
-BASE_URL = "https://www.idx.co.id"
+BASE_URL = "https://www.idx.id"
 BROWSER_HEADERS = {
     "Accept": "application/json, text/plain, */*",
     "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
-    "Referer": "https://www.idx.co.id/",
+    "Referer": "https://www.idx.id/",
     "Upgrade-Insecure-Requests": "1",
     "User-Agent": (
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "

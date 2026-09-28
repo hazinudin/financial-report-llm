@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "curl-cffi>=0.15.0",
+    "curl-cffi>=0.16.0",
     "docling>=2.90.0",
     "duckdb>=1.2.0",
     "glmocr[selfhosted]>=0.1.5",
