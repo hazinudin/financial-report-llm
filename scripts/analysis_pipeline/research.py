@@ -5,13 +5,15 @@ Inserted between context.py and write.py. Performs:
   1. Deterministic triggers over facts + ratios → events needing explanation
   2. Research-plan formulation (writer model reads analyses + facts, produces
      a themed, prioritized plan with questions + hypotheses BEFORE searching)
-  3. Web search via tool-call loop, guided by the plan
+  3. Web research via a headless pi agent, guided by the plan
   4. Synthesize research brief YAML + Markdown
 
 research_plan.py formulates the plan (LLM); research_questions.py supplies the
-deterministic fallback questions. Web search tools (web_search, fetch_web_page)
-are exposed to the LLM through an OpenAI-compatible tool-calling loop. The
-dispatcher enforces budgets, domain allow-lists, and URL safety rules.
+deterministic fallback questions. The search/synthesis loop runs as a headless
+``pi -p --mode json`` agent (pi_agent.py) whose tools come from the pinned
+project pi packages: ``exa_search`` (pi-exa-search; EXA_API_KEY from .env) and
+``fetch_content`` (pi-web-access). Every cited URL is audited against the
+agent's tool trace before the brief is saved.
 """
 
 from __future__ import annotations
@@ -24,8 +26,7 @@ from urllib.parse import urlparse, urlunparse
 import yaml
 
 import opencode_client
-import tool_registry
-import search_backend
+import pi_agent
 import research_questions
 import research_plan
 
@@ -33,8 +34,6 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _IDX_DATA = _PROJECT_ROOT / "idx_data"
 RESEARCH_DIR = _IDX_DATA / "analysis" / "research"
 FACTS_DIR = _IDX_DATA / "analysis" / "facts"
-PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
-RAG_SCRIPT = _PROJECT_ROOT / "scripts" / "notes_rag" / "rag.py"
 
 
 def _research_config() -> dict:
@@ -65,20 +64,33 @@ def _save_research_brief(ticker: str, year: int, quarter: str, brief: dict) -> P
 def _build_research_prompt(
     ticker: str, year: int, quarter: str, facts_summary: str, events: str,
     questions: str, identity: research_questions.CompanyIdentity,
-) -> list[dict[str, Any]]:
+    *,
+    max_search_calls: int = 16,
+    max_fetch_calls: int = 8,
+    preferred_domains: list[str] | None = None,
+) -> tuple[str, str]:
+    """Build the (system, user) prompts for the pi research agent."""
     system = (
-        "You are a financial research analyst. You have access to web_search "
-        "and fetch_web_page tools to find external context for financial events.\n\n"
+        "You are a financial research analyst. You have access to two tools:\n"
+        "- exa_search: semantic web search for news, financial and general "
+        "information. Returns ranked results with titles, URLs, published "
+        "dates, and short highlights. Batch related angles into one call via "
+        "the `queries` parameter (2-4 varied queries per call).\n"
+        "- fetch_content: fetches the full text of one or more URLs (news "
+        "articles, PDFs, filings, Indonesian-language sources). Use it on the "
+        "strongest URLs when highlights are not enough.\n\n"
         "Rules:\n"
-        "1. For each external event, use web_search to find relevant news. "
-        "Use fetch_web_page only for authoritative sources when snippets are insufficient.\n"
-        "2. If an event is purely internal (answer found in company notes), "
-        "do NOT search for it — list it under internal_must_explain.\n"
-        "3. Cite ONLY URLs returned by web_search or fetch_web_page tool results. "
-        "Never construct, guess, or recall a URL. If no tool result supports a claim, "
-        "use sources: [] and confidence: low.\n"
-        "4. Company identity is authoritative. Do not substitute another ticker or "
-        "company name. Never use sources for a forbidden identity.\n"
+        f"1. Work through the research plan in priority order. Budget: at most "
+        f"{max_search_calls} exa_search calls and {max_fetch_calls} "
+        f"fetch_content calls — prefer a few well-chosen queries over many "
+        f"narrow ones.\n"
+        "2. If an event is purely internal (the answer is inside the company's "
+        "own notes), do NOT search for it — list it under internal_must_explain.\n"
+        "3. Cite ONLY URLs returned by exa_search or fetch_content tool results. "
+        "Never construct, guess, or recall a URL. If no tool result supports a "
+        "claim, use sources: [] and confidence: low.\n"
+        "4. Company identity is authoritative. Do not substitute another ticker "
+        "or company name. Never use sources for a forbidden identity.\n"
         "5. Financial numbers come from the fact sheet, not the web.\n"
         "6. Label each finding as in-period or post-period.\n"
         "7. You are given a THEMED research plan with question IDs (e.g. A1, B2). "
@@ -100,6 +112,12 @@ def _build_research_prompt(
         "internal_must_explain:\n"
         "  - \"...\""
     )
+    domains_line = ""
+    if preferred_domains:
+        domains_line = (
+            "Preferred source domains (advisory — sources are not restricted): "
+            + ", ".join(preferred_domains[:40]) + "\n\n"
+        )
     user = (
         f"Analyze these events for {ticker} {quarter} {year}:\n\n"
         f"Company identity:\n"
@@ -110,13 +128,11 @@ def _build_research_prompt(
         f"Financial context:\n{facts_summary[:2000]}\n\n"
         f"Events needing explanation:\n{events[:2000]}\n\n"
         f"Bounded research questions:\n{questions[:4000]}\n\n"
+        f"{domains_line}"
         "Search for external context. Synthesize findings. "
         "Output ONLY valid YAML in the specified structure."
     )
-    return [
-        {"role": "system", "content": system},
-        {"role": "user", "content": user},
-    ]
+    return system, user
 
 
 def _normalise_source_url(url: str) -> str:
@@ -132,21 +148,12 @@ def _normalise_source_url(url: str) -> str:
 
 
 def _trace_source_urls(tool_trace: list[dict[str, Any]]) -> set[str]:
+    """Normalized URLs surfaced by the agent's exa_search / fetch_content calls."""
     urls: set[str] = set()
-    for entry in tool_trace:
-        result = entry.get("result") or {}
-        if entry.get("tool_name") == "web_search":
-            for item in result.get("results", []) or []:
-                normalized = _normalise_source_url(item.get("url", ""))
-                if normalized:
-                    urls.add(normalized)
-        elif entry.get("tool_name") == "fetch_web_page":
-            if result.get("status") != "ok":
-                continue
-            for key in ("url", "canonical_url"):
-                normalized = _normalise_source_url(result.get(key, ""))
-                if normalized:
-                    urls.add(normalized)
+    for raw in pi_agent.extract_tool_urls(tool_trace):
+        normalized = _normalise_source_url(raw)
+        if normalized:
+            urls.add(normalized)
     return urls
 
 
@@ -300,28 +307,23 @@ def _detect_events(ticker: str, year: int, quarter: str) -> str:  # noqa: ARG001
     return "\n".join(f"- {e}" for e in events) if events else "(No material events detected)"
 
 
-def _run_tool_loop(
+def _preferred_domains(cfg: dict) -> list[str]:
+    """Advisory authoritative-source domains from config (not enforced)."""
+    classification = cfg.get("source_classification", {}) or {}
+    domains: list[str] = []
+    for source_type in ("filing", "government", "news", "research"):
+        spec = classification.get(source_type) or {}
+        for domain in spec.get("domains", []) or []:
+            if domain not in domains:
+                domains.append(domain)
+    return domains
+
+
+def _run_pi_agent(
     ticker: str, year: int, quarter: str, tool_mode: str,
-    refresh_cache: bool = False,
+    refresh_cache: bool = False,  # noqa: ARG001 — kept for CLI back-compat
 ) -> dict[str, Any]:
     cfg = _research_config()
-    model_cfg = opencode_client.parse_model_settings("research")
-    model = model_cfg.get("model")
-    if not model:
-        return {
-            "brief": {"findings": [], "internal_must_explain": []},
-            "mode": "deterministic_fallback",
-            "search_count": 0,
-            "fetch_count": 0,
-            "backend_health": search_backend.check_health(),
-            "error": "no research model configured",
-        }
-
-    budget = tool_registry.BudgetState(
-        max_searches=int(cfg.get("max_search_calls", 36)),
-        max_fetches=int(cfg.get("max_fetch_calls", 8)),
-        force_refresh=refresh_cache,
-    )
 
     facts_summary = _build_facts_summary(ticker, year, quarter)
     events = _detect_events(ticker, year, quarter)
@@ -343,9 +345,6 @@ def _run_tool_loop(
         )
 
     plan_prompt = research_plan.plan_questions_for_prompt(plan)
-    messages = _build_research_prompt(
-        ticker, year, quarter, facts_summary, events, plan_prompt, identity,
-    )
 
     if tool_mode == "deterministic_fallback":
         return {
@@ -363,34 +362,39 @@ def _run_tool_loop(
             "mode": "deterministic_fallback",
             "search_count": 0,
             "fetch_count": 0,
-            "backend_health": search_backend.check_health(),
             "questions": research_questions.questions_as_dicts(deterministic_qs),
             "plan": research_plan.plan_as_dicts(plan),
             "plan_obj": plan,
         }
 
-    def _executor(name: str, args: dict) -> dict:
-        return tool_registry.execute_tool(name, args, budget)
+    pi_cfg = dict(cfg.get("pi", {}) or {})
+    if not pi_cfg.get("model"):
+        # Fall back to the canonical model registry entry if the pi block
+        # has no explicit model.
+        models_cfg = opencode_client.load_analysis_config().get("models", {}) or {}
+        if models_cfg.get("research"):
+            pi_cfg["model"] = models_cfg["research"]
+    max_search_calls = int(pi_cfg.get("max_search_calls", 16))
+    max_fetch_calls = int(pi_cfg.get("max_fetch_calls", 8))
+    system_prompt, user_prompt = _build_research_prompt(
+        ticker, year, quarter, facts_summary, events, plan_prompt, identity,
+        max_search_calls=max_search_calls,
+        max_fetch_calls=max_fetch_calls,
+        preferred_domains=_preferred_domains(cfg),
+    )
 
+    run_dir = RESEARCH_DIR / f"{ticker}_{quarter}_{year}.research_pi"
     print(
-        f"  [RESEARCH] starting synthesis {model} with {len(plan.questions)} "
-        f"plan questions (max_tool_rounds={int(cfg.get('max_tool_rounds', 6))})",
+        f"  [RESEARCH] starting pi agent "
+        f"model={pi_cfg.get('model', '(default)')} "
+        f"questions={len(plan.questions)} "
+        f"timeout={pi_cfg.get('timeout_sec', 900)}s",
         flush=True,
     )
-    result = opencode_client.chat_with_tools(
-        model=model,
-        messages=messages,
-        tools=tool_registry.TOOL_SCHEMAS,
-        tool_executor=_executor,
-        max_tool_rounds=int(cfg.get("max_tool_rounds", 6)),
-        max_parallel_calls=int(cfg.get("max_parallel_calls_per_round", 8)),
-        temperature=model_cfg.get("temperature", 0.0),
-        max_tokens=model_cfg.get("max_tokens", 4096),
-        reasoning_effort=model_cfg.get("reasoning_effort"),
-        timeout_sec=model_cfg.get("timeout_sec"),
+    result = pi_agent.run_agent(
+        system_prompt, user_prompt, cfg=pi_cfg, run_dir=run_dir,
     )
 
-    brief: dict[str, Any]
     raw_content = result.get("content", "")
     try:
         stripped = raw_content.strip()
@@ -407,23 +411,41 @@ def _run_tool_loop(
     if not isinstance(brief, dict):
         brief = {}
 
+    pi_meta = dict(result.get("pi_meta", {}) or {})
+    tool_calls = dict(pi_meta.get("tool_calls", {}) or {})
+    search_count = int(tool_calls.get("exa_search", 0))
+    fetch_count = int(tool_calls.get("fetch_content", 0))
+
     no_tool_calls = not result.get("tool_rounds", 0) and not result.get("tool_trace")
-    if no_tool_calls and result.get("mode") == "llm_tools":
-        result["mode"] = "llm_tools_no_calls"
+    mode = result.get("mode", "pi_agent")
+    if no_tool_calls and mode == "pi_agent":
+        mode = "pi_agent_no_calls"
     source_audit = _validate_brief_sources(
         brief, result.get("tool_trace", []), no_tool_calls=no_tool_calls,
     )
+
+    budget_warnings: list[str] = []
+    if search_count > max_search_calls:
+        budget_warnings.append(
+            f"exa_search calls {search_count} exceeded budget {max_search_calls}"
+        )
+    if fetch_count > max_fetch_calls:
+        budget_warnings.append(
+            f"fetch_content calls {fetch_count} exceeded budget {max_fetch_calls}"
+        )
+
     brief["meta"] = {
         "ticker": ticker,
         "quarter": quarter,
         "year": year,
-        "tool_mode": result.get("mode", "llm_tools"),
-        "search_count": budget.search_count,
-        "fetch_count": budget.fetch_count,
+        "tool_mode": mode,
+        "search_count": search_count,
+        "fetch_count": fetch_count,
         "tool_rounds": result.get("tool_rounds", 0),
         "finish_reason": result.get("finish_reason"),
         "tool_error": result.get("error"),
-        "backend_health": search_backend.check_health(),
+        "pi": pi_meta,
+        "budget_warnings": budget_warnings,
         "source_audit": source_audit,
     }
     if not brief.get("findings"):
@@ -433,10 +455,10 @@ def _run_tool_loop(
 
     return {
         "brief": brief,
-        "mode": result.get("mode", "llm_tools"),
-        "search_count": budget.search_count,
-        "fetch_count": budget.fetch_count,
-        "backend_health": search_backend.check_health(),
+        "mode": mode,
+        "search_count": search_count,
+        "fetch_count": fetch_count,
+        "pi_meta": pi_meta,
         "questions": [
             {
                 "id": q.id, "theme": q.theme, "question": q.question,
@@ -471,11 +493,8 @@ def run(
     if existing and not force:
         return {"status": "skipped", "brief": existing}
 
-    search_backend.SEARCH_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    search_backend.FETCH_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-
     cfg = _research_config()
-    effective_mode = tool_mode or cfg.get("tool_mode", "llm_tools")
+    effective_mode = tool_mode or cfg.get("agent", "pi")
 
     if skip_search:
         effective_mode = "deterministic_fallback"
@@ -483,7 +502,7 @@ def run(
     if dry_run:
         return {"status": "dry", "ticker": ticker, "year": year, "quarter": quarter}
 
-    result = _run_tool_loop(
+    result = _run_pi_agent(
         ticker, year, quarter, effective_mode, refresh_cache=refresh_cache,
     )
     brief = result["brief"]
@@ -512,7 +531,7 @@ def run(
             "quarter": quarter,
             "year": year,
             "mode": result.get("mode"),
-            "backend_health": result.get("backend_health", search_backend.check_health()),
+            "pi": result.get("pi_meta", {}),
             "questions": result.get("questions", []),
             "plan": result.get("plan", {}),
             "tool_trace": result.get("tool_trace", []),
@@ -550,7 +569,7 @@ if __name__ == "__main__":
     p.add_argument("--quarter", required=True)
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--no-search", action="store_true")
-    p.add_argument("--research-tool-mode", choices=["llm_tools", "deterministic_fallback"], default=None)
+    p.add_argument("--research-tool-mode", choices=["pi", "deterministic_fallback"], default=None)
     p.add_argument("--refresh-research-cache", action="store_true")
     p.add_argument("--force", action="store_true")
     args = p.parse_args()
