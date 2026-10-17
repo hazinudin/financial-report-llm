@@ -160,6 +160,8 @@ Ordering and reuse rules:
 
 ### Search backend — SearXNG via Docker (resolved, §12)
 
+> **Superseded (2026-10-15):** Stage 3b now runs a headless pi agent with Exa-backed search (`exa_search`) and `fetch_content` fetches — see [[PI_RESEARCH_AGENT_PLAN]]. The mechanics below are kept as a historical record.
+
 **Adopted:** self-hosted **SearXNG** in a Docker container, queried through its
 JSON API. Free, keyless, private, no `.env` secret, no pay-per-use — fits the
 plan's cost and privacy ethos, and the JSON response maps cleanly onto the
@@ -356,7 +358,7 @@ Phase 1 exit criteria: DKFT trigger list matches the human-identified event set 
 
 ## 12. Open Questions
 
-1. **Search backend** (§5): ~~Exa/Tavily key vs. verifying OpenCode Go tool-calling on glm models.~~ **Resolved (operator discussion 2026-07-31):** self-hosted **SearXNG via Docker**, queried through its JSON API, with a hybrid snippet→conditional-fetch content-depth policy. Free, keyless, replayable via the query-hash cache (§5.3), container-down → `degraded` (§7.5). Exa/Tavily kept as a deprioritized pluggable adapter behind the same `search_backend_search()` cache interface. See §5 for the container contract and the date-fidelity caveat.
+1. **Search backend** (§5): ~~Exa/Tavily key vs. verifying OpenCode Go tool-calling on glm models.~~ **Resolved (operator discussion 2026-07-31):** self-hosted **SearXNG via Docker**, queried through its JSON API, with a hybrid snippet→conditional-fetch content-depth policy. Free, keyless, replayable via the query-hash cache (§5.3), container-down → `degraded` (§7.5). Exa/Tavily kept as a deprioritized pluggable adapter behind the same `search_backend_search()` cache interface. See §5 for the container contract and the date-fidelity caveat. **Superseded (2026-10-15):** Stage 3b now runs a headless pi agent with Exa-backed search (`exa_search`) and `fetch_content` fetches — see [[PI_RESEARCH_AGENT_PLAN]]; the SearXNG container, `search_backend.py`, `tool_registry.py`, and the OpenAI-compatible tool loop were retired.
 2. **Sector-pack authorship:** ~~fully auto-generated monthly, or human-curated with auto-append of dated news items?~~ **Resolved (operator discussion 2026-07-31):** two genres, both vault-resident (§5.2). Stable primers stay hand-curated; monthly snapshots are auto-generated into `analysis/commodities/snapshots/`, git-tracked and RAG-searchable. Open sub-questions remaining: (a) regenerate snapshot in-place vs. diff-append; (b) whether snapshots should carry a `generated_at` header + `confidence` per claim to keep them auditable alongside curated notes.
 3. **Post-period window:** how far past quarter-end may "post-period" context extend (report date vs. analysis run date)? Proposal: up to run date, always labeled.
 4. **Paywalled sources** (Wood Mackenzie etc.): brief must mark `confidence: low` when the only support is secondary citation; never present as verified.

@@ -3,6 +3,7 @@
 **Status:** Draft for review  
 **Author:** OpenCode session  
 **Date:** 2026-08-04  
+**Superseded by:** [[PI_RESEARCH_AGENT_PLAN]] (2026-10-15) — the Python `web_search` / `fetch_web_page` tool loop (`search_backend.py`, `tool_registry.py`, `search_extractors.py`) was retired in favor of a headless pi agent (`exa_search` + `fetch_content`). Kept as a historical record.  
 **Scope:** Add a local Python web-search and page-fetching tool that can be called by the LLM during the external-research stage. The tool is not an MCP server. It runs inside the analysis pipeline, uses SearXNG for discovery, fetches page content when requested, and returns structured evidence to the model.
 
 **Related plan:** `EXTERNAL_RESEARCH_PLAN.md`  
