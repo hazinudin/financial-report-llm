@@ -18,15 +18,15 @@ analysis:
   models:
     # Extraction is lookup-style on preprocessed chunks; temperature 0.
     # Confirm exact IDs via: uv run scripts/analysis_pipeline/pipeline.py --list-models
-    extract: glm-5.3-flash
-    redflags: glm-5.3-flash
+    extract: deepseek-v4.1-flash
+    redflags: deepseek-v4.1-flash
     # Canonical writer model (pi --model for Stage 4); analysis.write.pi.model
     # falls back to this when unset. The only calls where reasoning quality is
     # binding.
     write: glm-5.3
     # Research-plan formulation (reads analyses + facts, themes questions).
     # Strong reasoning needed to derive period arithmetic and spot drivers.
-    research_plan: kimi-k2.6
+    research_plan: glm-5.3
     # Research synthesis: pi agent --model. Operator choice "for now";
     # rollback → glm-5.3-flash (see PI_RESEARCH_AGENT_PLAN.md §1 decision 4).
     research: deepseek-v4.1-flash
