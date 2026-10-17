@@ -1,11 +1,17 @@
 """
-Stage 4 — writer call (ONE call, strongest model).
+Stage 4 — writer agent (headless pi, strongest model).
 
 Assembles the writer input package (kept <= ~30K tokens): writer system prompt
 + the 14-section skeleton + the canonical fact sheet + computed ratios +
 static company profile + research brief + <= 3 vault hits + the market-data
-stub. Then calls the configured writer model and writes the analysis markdown to
-analysis/.
+stub + an ``# ARTIFACTS ON DISK`` block. Then runs a headless
+``pi -p --mode json`` agent (the shared ``pi_agent.run_agent``) with a
+**read-only** tool allowlist (``read``, ``duckdb_query``, ``notes_search``,
+``notes_fetch``) so the model can re-check inputs, ground peer comparisons, and
+trade the vault for prior-period figures before writing. The final assistant
+message is the analysis markdown, written to analysis/; the run directory and a
+``write_trace.json`` audit artifact record the tool trace, usage/cost, and
+budget counts.
 
 Style rules mirror the existing human analyses (frontmatter tags, wikilinks,
 tables, severity-ranked risks, disclaimer) via writer_system.md.
@@ -17,17 +23,20 @@ import json
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel
 
 import opencode_client
+import pi_agent
 from schema import FactSheet
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 FACTS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "facts"
 RESEARCH_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "research"
 RUNS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "runs"
+WRITE_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "write"
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 ANALYSIS_DIR = _PROJECT_ROOT / "analysis"
+
+_DEFAULT_WRITE_TOOLS = ["read", "duckdb_query", "notes_search", "notes_fetch"]
 
 
 def load_writer_prompt() -> str:
@@ -35,8 +44,171 @@ def load_writer_prompt() -> str:
     return p.read_text(encoding="utf-8") if p.exists() else ""
 
 
-def _fmt_num(v):
-    return "" if v is None else v
+def _write_config() -> dict:
+    """The ``analysis.write`` config block (mirrors ``research._research_config``)."""
+    cfg = opencode_client.load_analysis_config()
+    return cfg.get("write", {}) or {}
+
+
+def _resolve_pi_cfg(cfg: dict) -> dict:
+    """Resolve the pi runner config for the writer.
+
+    ``model`` falls back to ``models.write`` (the canonical writer model, mirrors
+    ``research._run_pi_agent``); ``tools`` falls back to the read-only set, but an
+    explicit ``[]`` survives (it means ``--no-tools`` / harness-only).
+    """
+    pi_cfg = dict(cfg.get("pi", {}) or {})
+    if not pi_cfg.get("provider"):
+        pi_cfg["provider"] = "opencode-go"
+    if not pi_cfg.get("model"):
+        models_cfg = opencode_client.load_analysis_config().get("models", {}) or {}
+        if models_cfg.get("write"):
+            pi_cfg["model"] = models_cfg["write"]
+    if pi_cfg.get("tools") is None:
+        pi_cfg["tools"] = list(_DEFAULT_WRITE_TOOLS)
+    if pi_cfg.get("timeout_sec") is None:
+        pi_cfg["timeout_sec"] = 1800
+    return pi_cfg
+
+
+def _tools_section(pi_cfg: dict) -> str:
+    """A short markdown section describing the enabled read-only tools + budgets.
+
+    Returns ``""`` when no tools are enabled (``tools: []`` ⇒ harness-only run).
+    """
+    tools = pi_cfg.get("tools")
+    if tools is None:
+        tools = _DEFAULT_WRITE_TOOLS
+    enabled = [str(t) for t in tools]
+    if not enabled:
+        return ""
+
+    max_db = int(pi_cfg.get("max_db_queries", 6))
+    max_notes_search = int(pi_cfg.get("max_notes_search", 4))
+    max_notes_fetch = int(pi_cfg.get("max_notes_fetch", 4))
+
+    bullets: list[str] = []
+    if "read" in enabled:
+        bullets.append(
+            "- read: re-read any input file listed in the ARTIFACTS ON DISK block."
+        )
+    if "duckdb_query" in enabled:
+        bullets.append(
+            "- duckdb_query: read-only SQL over idx_data/pipeline.duckdb. Use ONLY "
+            "for (a) peer comparison (financial_ratios: per, pbv, roe, roa, der by "
+            "code+period; values in billions IDR except eps) and (b) this company's "
+            "OWN prior periods. NEVER source the current-period company figures in "
+            "this document from duckdb_query — the fact sheet wins, always. If a DB "
+            "figure contradicts the fact sheet for the current period, use the fact "
+            "sheet and flag the discrepancy."
+        )
+    if "notes_search" in enabled or "notes_fetch" in enabled:
+        bullets.append(
+            "- notes_search / notes_fetch: vault search for prior analyses / "
+            "commodity notes; prefer these over the 3 snippet hits when you need a "
+            "prior-quarter number or a full cited section."
+        )
+
+    budgets: list[str] = []
+    if "duckdb_query" in enabled:
+        budgets.append(f"{max_db} duckdb_query")
+    if "notes_search" in enabled:
+        budgets.append(f"{max_notes_search} notes_search")
+    if "notes_fetch" in enabled:
+        budgets.append(f"{max_notes_fetch} notes_fetch")
+    directive = (
+        "Ground the comparison sections before drafting: run one duckdb_query "
+        "for peer multiples (same sector/commodity peers, latest available "
+        "period) to support §6/§8, and use notes_search/notes_fetch when a "
+        "prior-quarter figure would anchor a trend in §9. If a tool returns "
+        "nothing useful, continue drafting — do not stall. The DB universe is "
+        "small (only tickers this pipeline has ingested): confirm a peer code "
+        "exists (e.g. SELECT DISTINCT code, name FROM financial_ratios WHERE "
+        "name ILIKE '%gold%') before quoting it, and omit the comp rather than "
+        "guessing if it does not."
+    )
+    budget_line = (
+        "Budget: at most " + ", ".join(budgets) + " calls — then write. "
+        "The fact sheet and computed ratios win for the company's current-period "
+        "figures. Label every non-fact-sheet figure with its source "
+        '("per pipeline DB", "[[note]]"). In "Related Analysis", prefer wikilinks '
+        "to notes you actually read or that appear in VAULT CONTEXT."
+    )
+    return "\n".join(
+        ["## Tools (read-only — for context, never for company figures)"]
+        + bullets + [directive, budget_line]
+    )
+
+
+def _artifacts_block(ticker: str, year: int, quarter: str) -> str:
+    """Absolute on-disk paths so the ``read`` tool has something to read."""
+    stem = f"{ticker}_{quarter}_{year}"
+    facts = FACTS_DIR / f"{stem}.yaml"
+    ratios = FACTS_DIR / f"{stem}.ratios.yaml"
+    brief = RESEARCH_DIR / f"{stem}.research.yaml"
+    plan = RESEARCH_DIR / f"{stem}.research_plan.yaml"
+    context = RUNS_DIR / f"{ticker}_{year}_{quarter}.context.json"
+    return (
+        "# ARTIFACTS ON DISK (re-read with the read tool to re-check any input)\n"
+        f"- Canonical fact sheet: {facts}\n"
+        f"- Computed ratios:      {ratios}\n"
+        f"- Research brief:       {brief}\n"
+        f"- Research plan:        {plan}\n"
+        f"- Context package:      {context}"
+    )
+
+
+def _strip_outer_fence(text: str) -> str:
+    """Strip ``` fences only when the *entire* text is wrapped.
+
+    Same logic as the research runner's inline stripping: an inner fenced block
+    inside a markdown document (which does not start with a fence) is preserved.
+    """
+    stripped = (text or "").strip()
+    if not stripped.startswith("```"):
+        return text
+    lines = stripped.split("\n")
+    if lines[0].startswith("```"):
+        lines = lines[1:]
+    if lines and lines[-1].strip() == "```":
+        lines = lines[:-1]
+    return "\n".join(lines)
+
+
+def _budget_warnings(pi_meta: dict, pi_cfg: dict) -> list[str]:
+    """Post-hoc tool-call counts vs the prompt budgets (same shape as research)."""
+    tool_calls = dict((pi_meta or {}).get("tool_calls", {}) or {})
+    max_db = int(pi_cfg.get("max_db_queries", 6))
+    max_notes_search = int(pi_cfg.get("max_notes_search", 4))
+    max_notes_fetch = int(pi_cfg.get("max_notes_fetch", 4))
+
+    warnings: list[str] = []
+    db_calls = int(tool_calls.get("duckdb_query", 0))
+    if db_calls > max_db:
+        warnings.append(f"duckdb_query calls {db_calls} exceeded budget {max_db}")
+    notes_search = int(tool_calls.get("notes_search", 0))
+    if notes_search > max_notes_search:
+        warnings.append(
+            f"notes_search calls {notes_search} exceeded budget {max_notes_search}"
+        )
+    notes_fetch = int(tool_calls.get("notes_fetch", 0))
+    if notes_fetch > max_notes_fetch:
+        warnings.append(
+            f"notes_fetch calls {notes_fetch} exceeded budget {max_notes_fetch}"
+        )
+    return warnings
+
+
+def _run_pi_writer(user: str, *, pi_cfg: dict, run_dir: Path) -> tuple[str, dict]:
+    """Run the writer pi agent; raise on failure, return ``(content, result)``."""
+    system = load_writer_prompt() + "\n\n" + _tools_section(pi_cfg)
+    result = pi_agent.run_agent(system, user, cfg=pi_cfg, run_dir=run_dir)
+    if result.get("error"):
+        raise RuntimeError(f"pi writer failed: {result['error']}")
+    content = _strip_outer_fence(result.get("content", "")).strip()
+    if not content:
+        raise RuntimeError("pi writer produced an empty document")
+    return content, result
 
 
 def _load_yaml_mapping(path: Path) -> dict:
@@ -210,32 +382,62 @@ def run(ticker: str, year: int, quarter: str, market_data_path: str | None = Non
         package = ctx_run(ticker, year, quarter, market_data_path)["package"]
     package["research_context"] = _load_research_context(ticker, year, quarter)
 
-    settings = opencode_client.parse_model_settings("write")
-    model = settings["model"]
+    cfg = _write_config()
+    pi_cfg = _resolve_pi_cfg(cfg)
+    model = pi_cfg.get("model")
     if not model:
         raise RuntimeError("config.yaml: analysis.models.write not set (run --list-models)")
 
     user = _build_user(ticker, year, quarter, sheet, ratios, package)
+    user += "\n\n" + _artifacts_block(ticker, year, quarter)
     if inject_redflags:
         user += f"\n\n# RED FLAGS TO ADDRESS EXPLICITLY\n{inject_redflags}\n\nAddress each of these in the relevant section (do not just append them)."
 
     if dry_run:
         print(f"  [DRY] would write {out_path.name} with {model} "
-              f"(facts={sum(1 for v in sheet.income_statement.lines.values() if v is not None)} IS lines)")
+              f"(facts={sum(1 for v in sheet.income_statement.lines.values() if v is not None)} IS lines, "
+              f"user_chars={len(user)})")
         return {"status": "dry", "model": model, "user_chars": len(user)}
 
-    system = load_writer_prompt()
-    print(f"  [WRITE] {model} (user prompt ~{len(user)//4} tok)")
-    resp = opencode_client.chat(
-        model, system, user, temperature=settings["temperature"], max_tokens=settings["max_tokens"],
-        timeout_sec=settings["timeout_sec"],
-    )
-    content = resp["content"].strip()
+    run_dir = WRITE_DIR / f"{ticker}_{quarter}_{year}.write_pi"
+    content, result = _run_pi_writer(user, pi_cfg=pi_cfg, run_dir=run_dir)
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(content + ("\n" if not content.endswith("\n") else ""), encoding="utf-8")
+
+    pi_meta = dict(result.get("pi_meta", {}) or {})
+    tool_trace = result.get("tool_trace", []) or []
+    usage = result.get("usage", {}) or {}
+    tool_calls = dict(pi_meta.get("tool_calls", {}) or {})
+    budget_warnings = _budget_warnings(pi_meta, pi_cfg)
+    resolved_model = pi_meta.get("model") or model
+
+    WRITE_DIR.mkdir(parents=True, exist_ok=True)
+    trace_path = WRITE_DIR / f"{ticker}_{quarter}_{year}.write_trace.json"
+    trace_path.write_text(
+        json.dumps({
+            "ticker": ticker,
+            "quarter": quarter,
+            "year": year,
+            "pi": pi_meta,
+            "tool_trace": tool_trace,
+            "usage": usage,
+            "finish_reason": result.get("finish_reason"),
+            "tool_calls": tool_calls,
+            "budget_warnings": budget_warnings,
+            "output": str(out_path),
+        }, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    n_tool_calls = sum(int(v) for v in tool_calls.values())
+    print(f"  [WRITE] pi_agent model={resolved_model} "
+          f"tools={n_tool_calls}"
+          + (f" warnings={len(budget_warnings)}" if budget_warnings else ""))
     print(f"  [DONE] {out_path} ({len(content.splitlines())} lines)")
     return {
-        "status": "success", "output": str(out_path), "model": model,
-        "usage": resp["usage"],
+        "status": "success", "output": str(out_path), "model": resolved_model,
+        "usage": usage, "pi_meta": pi_meta, "tool_trace": tool_trace,
     }
 
 
