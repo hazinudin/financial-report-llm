@@ -9,6 +9,7 @@ as the model API.
 ```bash
 # Set your API key in .env (gitignored)
 # OPENCODE_API_KEY=your-key-here
+# EXA_API_KEY=your-exa-key-here   # Stage 3b external research
 
 # List available model IDs under your subscription
 uv run scripts/analysis_pipeline/pipeline.py --list-models
@@ -29,12 +30,13 @@ uv run scripts/analysis_pipeline/pipeline.py --status
 |-------|--------|-------------|-------|
 | 0 | `preprocess.py` | Strip policy boilerplate, front matter, page banners from docling output | None |
 | 1a | `xlsx_seed.py` | Build meta + 3 primary statements deterministically from the IDX XBRL xlsx (pipeline.duckdb) | None |
-| 1b | `chunker.py` + `extract.py` | Seeded mode: note chunks only, slim prompt (details + context_notes). Fallback (no xlsx): full statement extraction per chunk | Cheap (deepseek-v4-flash, reasoning_effort=low) |
+| 1b | `chunker.py` + `extract.py` | Seeded mode: note chunks only, slim prompt (details + context_notes). Fallback (no xlsx): full statement extraction per chunk | Cheap (glm-5.3-flash, reasoning_effort=low) |
 | 2a | `merge.py` | Seed is priority 0; LLM sheets gap-fill null keys + details. Conflicts logged (LLM-vs-seed = hallucination signal) | None |
 | 2b | `ratios.py` | Compute all ratios deterministically (no LLM arithmetic) | None |
 | 3 | `context.py` | Assemble static profile, outline skeleton, vault hits, market stub | None |
-| 4 | `write.py` | One call to strongest model → analysis markdown | Strong (hy3) |
-| 5 | `redflags.py` | Contradiction pass → bullet list for operator review | Cheap (deepseek-v4-flash) |
+| 3b | `research.py` | External events: headless pi agent (`pi -p --mode json`) with `exa_search` + `fetch_content`, then source-provenance audit | `deepseek-v4.1-flash` |
+| 4 | `write.py` | Headless pi agent (`pi -p --mode json`) with read-only tools (`read`, `duckdb_query`, `notes_search`, `notes_fetch`) → analysis markdown | Strong (glm-5.3) |
+| 5 | `redflags.py` | Contradiction pass → bullet list for operator review | Cheap (glm-5.3-flash) |
 
 ### XLSX seeding (Stage 1a)
 
@@ -53,6 +55,51 @@ Requires the report pipeline to have parsed the filing's
 
 Without coverage the pipeline falls back to the original full-statement LLM
 extraction unchanged.
+
+### External research (Stage 3b)
+
+Runs when deterministic triggers fire on the fact sheet. The stage builds a
+research plan (`research_plan.py`), then runs a **headless pi agent**
+(`pi -p --mode json`) whose tools are allowlisted to:
+
+- `exa_search` — from the `pi-exa-search` extension, authenticated with
+  `EXA_API_KEY` from `.env` (batched queries, recency/domain filters, highlights)
+- `fetch_content` — from the `pi-web-access` extension (full page/PDF retrieval)
+
+The agent emits a YAML brief; a source-provenance audit then checks every cited
+URL against the tool trace and drops/downgrades anything unverified. `--no-search`
+still forces the deterministic fallback, which skips the agent entirely.
+
+Requirements: `pi` CLI ≥ 1.1 on `PATH`, Node ≥ 22.19, and `EXA_API_KEY` in
+`.env` (gitignored). Project pi packages are declared (pinned) in
+`.pi/settings.json` and loaded with `--approve` (project trust).
+
+### Writer (Stage 4)
+
+The writer also runs as a **headless pi agent** (`pi -p --mode json`) through
+the shared runner `pi_agent.py`, configured under `analysis.write.pi` in
+`config.yaml`. Its model falls back to the canonical writer model
+`models.write` (`glm-5.3`) when `analysis.write.pi.model` is unset. Tools are
+allowlisted to a **read-only** set:
+
+- `read` — re-read any input file listed in the `# ARTIFACTS ON DISK` block
+- `duckdb_query` — read-only SQL for peer comparison and this company's own
+  prior periods (never for current-period company figures; the fact sheet wins)
+- `notes_search` / `notes_fetch` — pull prior analyses / commodity notes from
+  the vault
+
+There are no web tools — external evidence stays owned by Stage 3b. An explicit
+`analysis.write.pi.tools: []` downgrades the run to harness-only
+(`--no-tools`).
+
+Each run writes `idx_data/analysis/write/{TICKER}_{Q}_{YEAR}.write_pi/`
+(`system.md`, `user.md`, `events.jsonl`) and an adjacent
+`.write_trace.json` recording the pi meta (including cost), the correlated tool
+trace, usage, and any budget warnings (prompt budgets: `max_db_queries: 6`,
+`max_notes_search: 4`, `max_notes_fetch: 4`). A pi failure fails the `write`
+stage — there is no automatic fallback. The pi session itself is persisted
+(`analysis.write.pi.save_session: true`) under `~/.pi/agent/sessions/`, so it can
+be browsed/resumed with `pi --resume`; its id is recorded in `write_trace.json`.
 
 ## Stage Controls
 
@@ -99,19 +146,32 @@ analysis:
     base_url: https://opencode.ai/zen/go/v1
     timeout_sec: 300
   models:
-    extract: deepseek-v4-flash
-    write: hy3
-    redflags: deepseek-v4-flash
+    extract: glm-5.3-flash
+    write: glm-5.3
+    redflags: glm-5.3-flash
+  # Stage 4 writer: headless pi agent with read-only tools (see below).
+  write:
+    pi:
+      provider: opencode-go
+      # model omitted → falls back to models.write (glm-5.3)
+      thinking: "off"
+      timeout_sec: 1800
+      approve: true
+      load_skills: false
+      load_context_files: false
+      save_session: true   # persist the pi session (~/.pi/agent/sessions/; resumable)
+      tools: [read, duckdb_query, notes_search, notes_fetch]  # [] → --no-tools
+      max_db_queries: 6
+      max_notes_search: 4
+      max_notes_fetch: 4
   max_tokens:
     extract: 16384   # repair retry bumps to 32768 (truncation safety)
-    write: 32768
     redflags: 4096
   temperature:
     extract: 0.0
-    write: 0.3
     redflags: 0.0
-  # deepseek-v4-flash is a reasoning model; reasoning tokens count against
-  # max_tokens. Keep extraction at low effort (copy task) to stay fast.
+  # Extraction is copy/lookup; reasoning tokens count against max_tokens, so
+  # keep effort low (copy task) to stay fast and leave output headroom.
   reasoning_effort:
     extract: low
   extraction_input_token_cap: 16000
@@ -131,6 +191,11 @@ idx_data/analysis/
 ├── runs/{TICKER}_{YEAR}_{Q}.merge.log         # conflict/warning log
 ├── runs/{TICKER}_{YEAR}_{Q}.context.json      # Stage 3 package
 ├── runs/{TICKER}_{YEAR}_{Q}.redflags.md       # Stage 5 output
+├── research/{TICKER}_{Q}_{YEAR}.research.yaml        # Stage 3b brief (+ plan yaml/md, raw md)
+├── research/{TICKER}_{Q}_{YEAR}.research_pi/         # pi run dir: events.jsonl (raw stream), system.md, user.md
+├── research/{TICKER}_{Q}_{YEAR}.research_trace.json  # tool trace + source-provenance audit + pi meta
+├── write/{TICKER}_{Q}_{YEAR}.write_pi/               # Stage 4 pi run dir: events.jsonl (raw stream), system.md, user.md
+├── write/{TICKER}_{Q}_{YEAR}.write_trace.json        # pi meta (incl. cost) + tool trace + usage + budget warnings
 └── market/{TICKER}.yaml                       # optional market data stubs
 ```
 

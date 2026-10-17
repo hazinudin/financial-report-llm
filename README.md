@@ -23,7 +23,7 @@ Downloads financial reports from the Indonesia Stock Exchange (IDX), identifies 
 │   │   ├── merge.py             # Stage 2a merge + XLSX cross-check
 │   │   ├── ratios.py            # Stage 2b deterministic ratios
 │   │   ├── context.py           # Stage 3 profile/vault/market
-│   │   ├── write.py             # Stage 4 writer call
+│   │   ├── write.py             # Stage 4 writer agent
 │   │   ├── redflags.py          # Stage 5 contradiction pass
 │   │   └── prompts/             # System/user prompt files
 │   └── notes_rag/
@@ -183,7 +183,20 @@ Results include an `obsidian://` link that opens the note directly in Obsidian.
 Automates equity-analysis markdown generation from converted reports using the
 OpenCode Go subscription model API. Six-stage pipeline: deterministic
 preprocessing → bounded chunk extraction (cheap model) → merge + deterministic
-ratios → context assembly → writer call (strong model) → red-flag pass.
+ratios → context assembly → writer pi agent (strong model) → red-flag pass.
+
+Stage 3b (external research) runs a **headless pi agent** (`pi -p --mode json`)
+to explain the external events behind the reported numbers: `exa_search` (from
+the `pi-exa-search` extension, using `EXA_API_KEY`) for discovery and
+`fetch_content` (from `pi-web-access`) for full-page retrieval. A
+source-provenance audit checks every cited URL against the agent's tool trace.
+Project pi packages are declared (pinned) in `.pi/settings.json` and loaded with
+`--approve` (project trust).
+
+Stage 4 (writer) also runs as a **headless pi agent**, using the canonical
+`glm-5.3` writer model with a read-only tool allowlist (`read`,
+`duckdb_query`, `notes_search`, `notes_fetch`); external evidence stays owned
+by Stage 3b. A pi failure fails the `write` stage.
 
 ```bash
 # Full run
@@ -207,3 +220,11 @@ design documentation.
 Set `OPENCODE_API_KEY` in `.env` (gitignored). Model IDs are configured in
 `config.yaml` under `analysis.models`. Run `--list-models` after key setup to
 confirm available IDs.
+
+Stages 3b (external research) and 4 (writer) additionally require:
+
+- `pi` CLI ≥ 1.1 on `PATH`
+- Node ≥ 22.19
+
+Stage 3b also requires `EXA_API_KEY` in `.env` (gitignored); Stage 4 uses no
+new `.env` keys.
