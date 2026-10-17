@@ -110,6 +110,15 @@ uv run scripts/analysis_pipeline/pipeline.py --tickers DKFT --years 2026 --quart
 # Write only (requires fact sheets + ratios on disk from a prior extract+merge)
 uv run scripts/analysis_pipeline/pipeline.py --tickers DKFT --years 2026 --quarters Q1 --write-only
 
+# Research only (triggers + plan + pi agent; stops before writing)
+uv run scripts/analysis_pipeline/pipeline.py --tickers DKFT --years 2026 --quarters Q1 --research-only
+
+# Research without web search (deterministic fallback: triggers + internal must-explain only)
+uv run scripts/analysis_pipeline/pipeline.py --tickers DKFT --years 2026 --quarters Q1 --no-search
+
+# Force a specific research mode (pi agent | deterministic_fallback)
+uv run scripts/analysis_pipeline/pipeline.py --tickers DKFT --years 2026 --quarters Q1 --research-tool-mode deterministic_fallback
+
 # Red-flag pass (+ optionally re-write to address each flag)
 uv run scripts/analysis_pipeline/pipeline.py --tickers DKFT --years 2026 --quarters Q1 --redflags --inject-redflags
 

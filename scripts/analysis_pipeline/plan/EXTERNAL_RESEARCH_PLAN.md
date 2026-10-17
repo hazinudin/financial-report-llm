@@ -1,11 +1,11 @@
 # External Research Stage — Implementation Plan
 
-**Status:** Draft for review
+**Status:** Implemented; **§5 search mechanics superseded (2026-10-15)** — the SearXNG Docker container, `search_backend.py`, `tool_registry.py`, and the OpenAI-compatible tool loop were retired. See [[PI_RESEARCH_AGENT_PLAN]].
 **Author:** OpenCode session (post-DKFT Q1 2026 report comparison)
 **Date:** 2026-07-27
 **Scope:** Add an external-research layer to the analysis pipeline so that events found in the financial statements are *explained* (commodity prices, quota/policy, FX, sector news), not just restated — closing the gap between report-only output (e.g., `analysis/DKFT Q1 2026 Analysis - Gemma.md`) and context-enriched output (e.g., `analysis/DKFT Q1 2026 Analysis.md`).
 
-**Companion plan:** [[WEB_SEARCH_TOOL_PLAN]] — the LLM-callable Python search/fetch tool that implements the search mechanics described in §5.
+**Companion plan:** [[PI_RESEARCH_AGENT_PLAN]] — replaces the §5 search mechanics (Python `web_search` / `fetch_web_page` over SearXNG) with a headless pi agent (`exa_search` + `fetch_content`). The trigger rules, planner, question generation, brief schema, and provenance audit described here remain current.
 
 ---
 

@@ -31,9 +31,10 @@ Identification strategies (`--strategy`): `auto` (default), `financial_statement
 
 ## Analysis pipeline — LLM equity research (needs `OPENCODE_API_KEY`)
 
-Six stages: deterministic preprocess → bounded chunk extraction → merge + deterministic
-ratios → context assembly → writer → red-flag pass. Writes markdown to `analysis/`
-(or `idx_data/analysis/`, gitignored).
+Stages: deterministic preprocess → bounded chunk extraction → merge + deterministic
+ratios → context assembly → external research (headless pi agent; needs `EXA_API_KEY`
+plus `pi`/Node) → writer (headless pi agent) → red-flag pass. Writes markdown to
+`analysis/` (or `idx_data/analysis/`, gitignored).
 
 ```bash
 uv run scripts/analysis_pipeline/pipeline.py --tickers DKFT --years 2026 --quarters Q1
@@ -47,7 +48,8 @@ Model IDs and timeouts are configured in `config.yaml` under `analysis`. See
 
 ## Notes
 
-- `OPENCODE_API_KEY` must be set in `.env` (gitignored).
+- `OPENCODE_API_KEY` must be set in `.env` (gitignored). Stage 3b external
+  research also needs `EXA_API_KEY`, plus `pi` ≥ 1.1 and Node ≥ 22.19 on `PATH`.
 - `duckdb_query` reflects pipeline state via `pipeline_jobs`, `downloaded_files`,
   `xlsx_statements`, and `financial_ratios` — check those before re-running work.
 - Prefer the narrowest command (e.g. `--parse-xlsx`, `--dry-run`) to avoid long runs.

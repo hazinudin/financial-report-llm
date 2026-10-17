@@ -23,6 +23,10 @@ Downloads financial reports from the Indonesia Stock Exchange (IDX), identifies 
 │   │   ├── merge.py             # Stage 2a merge + XLSX cross-check
 │   │   ├── ratios.py            # Stage 2b deterministic ratios
 │   │   ├── context.py           # Stage 3 profile/vault/market
+│   │   ├── research.py          # Stage 3b external research (pi agent)
+│   │   ├── research_plan.py     # Stage 3b research planning (LLM)
+│   │   ├── research_questions.py # Stage 3b deterministic questions
+│   │   ├── pi_agent.py          # shared headless pi runner
 │   │   ├── write.py             # Stage 4 writer agent
 │   │   ├── redflags.py          # Stage 5 contradiction pass
 │   │   └── prompts/             # System/user prompt files
@@ -181,9 +185,10 @@ Results include an `obsidian://` link that opens the note directly in Obsidian.
 ## Analysis Pipeline
 
 Automates equity-analysis markdown generation from converted reports using the
-OpenCode Go subscription model API. Six-stage pipeline: deterministic
+OpenCode Go subscription model API. Seven-stage pipeline: deterministic
 preprocessing → bounded chunk extraction (cheap model) → merge + deterministic
-ratios → context assembly → writer pi agent (strong model) → red-flag pass.
+ratios → context assembly → external research (pi agent) → writer pi agent
+(strong model) → red-flag pass.
 
 Stage 3b (external research) runs a **headless pi agent** (`pi -p --mode json`)
 to explain the external events behind the reported numbers: `exa_search` (from
