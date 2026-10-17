@@ -142,12 +142,3 @@ def build_questions(
 
 def questions_as_dicts(questions: list[ResearchQuestion]) -> list[dict[str, str]]:
     return [asdict(question) for question in questions]
-
-
-def format_questions(questions: list[ResearchQuestion]) -> str:
-    if not questions:
-        return "(No external research questions generated)"
-    return "\n".join(
-        f"- [{q.question_id}] {q.question}\n  Suggested search: {q.search_query}"
-        for q in questions
-    )

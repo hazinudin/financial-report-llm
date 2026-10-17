@@ -70,14 +70,18 @@ def audit_research_sources(ticker: str, year: int, quarter: str) -> list[str]:
                     f"- Research source has no publication date: {source.get('url', '(missing URL)')}"
                 )
     for item in trace.get("tool_trace", []) or []:
+        if not isinstance(item, dict) or item.get("tool_name") != "fetch_content":
+            continue
         result = item.get("result") or {}
-        if item.get("tool_name") == "fetch_web_page" and result.get("status") in {
-            "degraded", "unsupported", "blocked", "error",
-        }:
-            bullets.append(
-                f"- Research page fetch failed or was blocked: "
-                f"{result.get('url', '(missing URL)')} ({result.get('error', result.get('status'))})"
-            )
+        if not isinstance(result, dict) or not result.get("isError"):
+            continue
+        details = result.get("details") if isinstance(result.get("details"), dict) else {}
+        urls = [u for u in (details.get("urls") or []) if isinstance(u, str) and u]
+        target = urls[0] if urls else "(missing URL)"
+        error = details.get("error") or "fetch failed"
+        bullets.append(
+            f"- Research page fetch failed: {target} ({str(error)[:200]})"
+        )
     return bullets
 
 
@@ -116,7 +120,7 @@ def run(ticker: str, year: int, quarter: str, dry_run: bool = False) -> dict:
     out_path.write_text(bullets + "\n", encoding="utf-8")
     print(f"  [DONE] {out_path}\n")
     for line in bullets.splitlines():
-        if line.strip().startswith(("-", "*", "1.", "##")) or line.strip():
+        if line.strip():
             print("  " + line)
     return {"status": "success", "output": str(out_path), "bullets": bullets, "usage": resp["usage"]}
 

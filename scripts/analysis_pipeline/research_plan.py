@@ -6,7 +6,7 @@ company profile) and asks the writer model to produce a themed, prioritized
 research plan: analytical framing, themes, prioritized questions, hypotheses.
 
 This deliberately does NOT call web tools; that is the job of the downstream
-search loop in research.py. The planner formulates *all* questions first,
+pi research agent in research.py. The planner formulates *all* questions first,
 matching the analyst workflow demonstrated for SRSN Q2 2026.
 """
 
@@ -190,7 +190,7 @@ Structure:
 
 _QUESTION_ID_RE = re.compile(r"^([A-Z]\d+)$")
 _TOP_LEVEL_KEYS = ("analytical_framing", "themes", "hypotheses", "priority_themes")
-_TEXT_KEYS = {"analytical_framing", "rationale", "question", "search_query", "name", "explanation"}
+_TEXT_KEYS = {"analytical_framing", "rationale", "question", "search_query", "name"}
 
 
 def _extract_yaml_block(raw: str) -> str:

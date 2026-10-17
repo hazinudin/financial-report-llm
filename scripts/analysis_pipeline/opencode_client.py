@@ -77,8 +77,6 @@ def _request_headers() -> dict[str, str]:
 def _base_url() -> str:
     cfg = load_analysis_config()
     return (cfg.get("opencode", {}) or {}).get("base_url", "https://openrouter.ai/api/v1/")
-    # return (cfg.get("opencode", {}) or {}).get("base_url", "https://ollama.com/api/chat")
-    # return (cfg.get("opencode", {}) or {}).get("base_url", "https://opencode.ai/zen/go/v1")
 
 
 def _timeout() -> float:
