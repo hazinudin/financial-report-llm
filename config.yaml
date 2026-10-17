@@ -14,43 +14,57 @@ analysis:
   # Per-role request timeouts prevent a stalled research request from
   # occupying the pipeline for the global timeout x retry count.
   timeouts:
-    write: 1200
     research_plan: 120
-    research: 90
   models:
     # Extraction is lookup-style on preprocessed chunks; temperature 0.
     # Confirm exact IDs via: uv run scripts/analysis_pipeline/pipeline.py --list-models
     extract: glm-5.3-flash
     redflags: glm-5.3-flash
-    # The only calls where reasoning quality is binding.
-    write: kimi-k2.6
+    # Canonical writer model (pi --model for Stage 4); analysis.write.pi.model
+    # falls back to this when unset. The only calls where reasoning quality is
+    # binding.
+    write: glm-5.3
     # Research-plan formulation (reads analyses + facts, themes questions).
     # Strong reasoning needed to derive period arithmetic and spot drivers.
     research_plan: kimi-k2.6
-    # Research synthesis (cheap model; guided by the plan)
-    research: glm-5.3-flash
+    # Research synthesis: pi agent --model. Operator choice "for now";
+    # rollback → glm-5.3-flash (see PI_RESEARCH_AGENT_PLAN.md §1 decision 4).
+    research: deepseek-v4.1-flash
+  # ── Writer (Stage 4) ────────────────────────────────────────────────
+  # Headless pi agent; read-only tools (PI_WRITER_AGENT_PLAN.md §4.3/§4.5).
+  write:
+    pi:
+      provider: opencode-go
+      # model omitted → falls back to models.write (glm-5.3)
+      thinking: "off"
+      timeout_sec: 1800
+      approve: true
+      load_skills: false
+      load_context_files: false
+      # Persist the agent's session under ~/.pi/agent/sessions/ (browsable /
+      # resumable via `pi --resume`). Session id is also in the run trace.
+      save_session: true
+      tools: [read, duckdb_query, notes_search, notes_fetch]  # [] → --no-tools
+      max_db_queries: 6
+      max_notes_search: 4
+      max_notes_fetch: 4
   max_tokens:
     # Seeded mode asks note chunks for details+context_notes only (~1-2K out).
     # deepseek-v4-flash is a REASONING model: reasoning tokens count against
     # max_tokens, so keep headroom even with reasoning_effort=low (empty
     # content with finish_reason=length was observed at 8192 on big chunks).
     extract: 16384
-    write: 32768
     redflags: 4096
     # Leave headroom for the themed plan if the model emits internal reasoning.
     research_plan: 16384
-    research: 8192
   temperature:
     extract: 0.0
-    write: 0.3
     redflags: 0.0
-    research: 0.0
   # Extraction is copy/lookup — low reasoning effort is faster and avoids
   # burning the token budget on hidden reasoning. Honored by deepseek-v4.
   reasoning_effort:
     extract: low
     research_plan: none
-    research: none
   # Hard token cap per LLM call (§9 budget). Chunks exceeding this are split.
   call_token_cap: 32000
   # Max INPUT tokens fed to an extraction call (leaves headroom for the ~8K
@@ -65,60 +79,22 @@ analysis:
   # ── External Research (Stage 3b) ────────────────────────────────────
   research:
     enabled: true
-    tool_mode: llm_tools              # llm_tools | deterministic_fallback
-    search_backend: searxng           # searxng (default)
-    searxng:
-      base_url: http://localhost:8080
-      health_path: /healthz
-      timeout_s: 15
-      engines:
-        - duckduckgo
-        - brave
-        - bing
-    max_tool_rounds: 10
-    max_parallel_calls_per_round: 8
-    max_search_calls: 36
-    max_fetch_calls: 8
-    max_results_per_search: 5
-    max_page_chars: 30000
-    max_total_evidence_chars: 120000
-    search_timeout_s: 15
-    fetch_timeout_s: 20
-    max_redirects: 5
-    # The single fetch allow-list; empty = fetch_web_page always blocked.
-    # Populated from the authoritative set: Reuters, Bloomberg, ministry
-    # portals, IDX filings, major Indonesian news.
-    fetch_allow_domains:
-      - reuters.com
-      - bloomberg.com
-      - cnbc.com
-      - cnbcindonesia.com
-      - bisnis.com
-      - kontan.co.id
-      - kompas.com
-      - antaranews.com
-      - tempo.co
-      - idx.co.id
-      - esdm.go.id
-      - bi.go.id
-      - setkab.go.id
-      - kemenkeu.go.id
-      - kemenperin.go.id
-      - kemen-esdm.go.id
-      - bappebti.go.id
-      - bps.go.id
-      - investing.com
-      - gidji.com
-      - siaiair.com
-      - idxchannel.com
-      - rollingstock.id
-      - wartaekonomi.co.id
-      - swa.co.id
-      - detik.com
-    # Dispatcher rejects fetches not tied to a low-confidence finding
-    fetch_requires_low_confidence: true
-    # Cache-busting version: increment to invalidate all page caches
-    extractor_config_version: "1"
+    agent: pi                       # pi | deterministic_fallback
+    # pi-agent research stage (PI_RESEARCH_AGENT_PLAN.md §4.7).
+    pi:
+      provider: opencode-go
+      model: deepseek-v4.1-flash
+      thinking: "off"
+      timeout_sec: 900
+      approve: true
+      load_skills: false
+      load_context_files: false
+      # Persist the agent's session under ~/.pi/agent/sessions/ (browsable /
+      # resumable via `pi --resume`). Session id is also in the run trace.
+      save_session: true
+      tools: [exa_search, fetch_content]
+      max_search_calls: 16
+      max_fetch_calls: 8
     max_questions: 12
     max_queries_per_question: 3
     brief_token_cap: 4000
