@@ -321,7 +321,6 @@ def _preferred_domains(cfg: dict) -> list[str]:
 
 def _run_pi_agent(
     ticker: str, year: int, quarter: str, tool_mode: str,
-    refresh_cache: bool = False,  # noqa: ARG001 — kept for CLI back-compat
 ) -> dict[str, Any]:
     cfg = _research_config()
 
@@ -406,7 +405,7 @@ def _run_pi_agent(
                 lines = lines[:-1]
             stripped = "\n".join(lines)
         brief = yaml.safe_load(stripped) or {}
-    except (yaml.YAMLError, Exception):
+    except Exception:  # noqa: BLE001 — any parse failure falls back to an empty brief
         brief = {}
     if not isinstance(brief, dict):
         brief = {}
@@ -485,7 +484,6 @@ def run(
     dry_run: bool = False,
     skip_search: bool = False,
     tool_mode: str | None = None,
-    refresh_cache: bool = False,
 ) -> dict[str, Any]:
     RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -502,9 +500,7 @@ def run(
     if dry_run:
         return {"status": "dry", "ticker": ticker, "year": year, "quarter": quarter}
 
-    result = _run_pi_agent(
-        ticker, year, quarter, effective_mode, refresh_cache=refresh_cache,
-    )
+    result = _run_pi_agent(ticker, year, quarter, effective_mode)
     brief = result["brief"]
 
     _save_research_brief(ticker, year, quarter, brief)
@@ -570,7 +566,6 @@ if __name__ == "__main__":
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--no-search", action="store_true")
     p.add_argument("--research-tool-mode", choices=["pi", "deterministic_fallback"], default=None)
-    p.add_argument("--refresh-research-cache", action="store_true")
     p.add_argument("--force", action="store_true")
     args = p.parse_args()
     print(run(
@@ -578,6 +573,5 @@ if __name__ == "__main__":
         dry_run=args.dry_run,
         skip_search=args.no_search,
         tool_mode=args.research_tool_mode,
-        refresh_cache=args.refresh_research_cache,
         force=args.force,
     ))

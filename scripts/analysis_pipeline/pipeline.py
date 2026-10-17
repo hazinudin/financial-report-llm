@@ -11,7 +11,8 @@ model API, within a small-context, low-call architecture:
   Stage 2 merge+ratios  deterministic merge (conflict rules + XLSX cross-check)
                        + all ratios (no LLM arithmetic)
   Stage 3 context      static profile + outline skeleton + vault hits + market stub
-  Stage 4 write        ONE strongest-model call -> analysis/{TICKER} {Q} {Y}.md
+  Stage 3b research    headless pi agent (exa_search + fetch_content) -> brief
+  Stage 4 write        headless pi writer agent -> analysis/{TICKER} {Q} {Y}.md
   Stage 5 redflags     cheap-model contradiction pass (+ optional re-write)
 
 All state is tracked in idx_data/pipeline.duckdb (analysis_jobs table).
@@ -87,6 +88,7 @@ def _connection_path(conn) -> Path:
         pass
     return DB_PATH
 
+
 def _load_market_data(path: str | None) -> str | None:
     return path
 
@@ -103,7 +105,6 @@ def run_job(
     inject_redflags: bool = False,
     skip_search: bool = False,
     research_tool_mode: str | None = None,
-    refresh_research_cache: bool = False,
 ) -> dict:
     import preprocess, extract, merge, ratios, context, write, redflags, research  # noqa: F401
 
@@ -256,8 +257,7 @@ def run_job(
                 with _db_lock_released(db):
                     res = research.run(ticker, year, quarter, force=force, dry_run=dry_run,
                                         skip_search=skip_search,
-                                        tool_mode=research_tool_mode,
-                                        refresh_cache=refresh_research_cache)
+                                        tool_mode=research_tool_mode)
                 if not dry_run:
                     tok = res.get("token_usage", {})
                     if tok:
@@ -266,8 +266,6 @@ def run_job(
                 mark( "research", "completed" if status != "failed" else "failed",
                      error=res.get("error"))
                 summary["stages"]["research"] = status
-                if res.get("mode") == "degraded":
-                    print(f"  [RESEARCH] degraded: {res.get('error', '')[:80]}")
             except Exception as e:  # noqa: BLE001
                 mark( "research", "failed", error=str(e))
                 summary["stages"]["research"] = "failed"
@@ -353,10 +351,8 @@ def main():
     parser.add_argument("--skip-research", action="store_true", help="Skip the research stage.")
     parser.add_argument("--no-search", action="store_true", help="Run research triggers + internal analysis without web search.")
     parser.add_argument("--research-tool-mode", type=str, default=None,
-                        choices=["llm_tools", "deterministic_fallback"],
-                        help="Override research tool mode.")
-    parser.add_argument("--refresh-research-cache", action="store_true",
-                        help="Bypass research query/page cache.")
+                        choices=["pi", "deterministic_fallback"],
+                        help="Override the research mode (pi agent or deterministic fallback).")
     parser.add_argument("--redflags", action="store_true", help="Run the Stage 5 red-flag pass after writing.")
     parser.add_argument("--inject-redflags", action="store_true", help="With --redflags, re-run the writer to address each flag.")
     args = parser.parse_args()
@@ -397,8 +393,7 @@ def main():
                     market_data_path=args.market_data, workers=args.workers,
                     inject_redflags=args.inject_redflags,
                     skip_search=args.no_search,
-                    research_tool_mode=args.research_tool_mode,
-                    refresh_research_cache=args.refresh_research_cache)
+                    research_tool_mode=args.research_tool_mode)
         db.conn.close()
         return
 
@@ -414,12 +409,7 @@ def main():
     if args.extract_only:
         stages = {"preprocess", "extract"}
     elif args.research_only:
-        if args.refresh_research_cache:
-            # Refreshing external research must not force unrelated upstream
-            # stages to rerun; they only provide inputs to research.
-            stages = {"research"}
-        else:
-            stages = {"preprocess", "extract", "merge", "context", "research"}
+        stages = {"preprocess", "extract", "merge", "context", "research"}
     elif args.write_only:
         stages = {"context", "research", "write"}
     elif args.skip_research:
@@ -436,8 +426,7 @@ def main():
                     market_data_path=args.market_data, workers=args.workers,
                     inject_redflags=args.redflags and args.inject_redflags,
                     skip_search=args.no_search,
-                    research_tool_mode=args.research_tool_mode,
-                    refresh_research_cache=args.refresh_research_cache)
+                    research_tool_mode=args.research_tool_mode)
     finally:
         db.conn.close()
 
