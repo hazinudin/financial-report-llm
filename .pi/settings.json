@@ -1,0 +1,11 @@
+{
+  "packages": [
+    "npm:pi-exa-search@0.1.3",
+    "npm:pi-web-access@0.41.0",
+    {
+      "source": "npm:pi-web-search",
+      "autoload": false,
+      "extensions": ["!*"]
+    }
+  ]
+}
