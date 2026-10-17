@@ -38,6 +38,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 import yaml
@@ -51,6 +52,40 @@ RUNS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "runs"
 import opencode_client  # noqa: E402
 import xlsx_seed  # noqa: E402
 
+
+@contextmanager
+def _db_lock_released(db: AnalysisDB, db_path: str | Path | None = None):
+    """Release the pipeline's DuckDB write lock for the duration of a stage.
+
+    Stages that spawn a headless pi agent can call ``duckdb_query``, whose tool
+    opens ``pipeline.duckdb`` read-only in a separate process. DuckDB refuses
+    that while this process holds the read-write connection ("Conflicting lock
+    is held"), so the connection is closed before the stage runs and reopened
+    afterwards. The stage's own DB writes still go through ``db`` — they just
+    happen after the lock is retaken. State written before the release is
+    checkpointed by ``close()`` and remains visible on reopen.
+    """
+    previous = db.conn
+    target = Path(db_path) if db_path is not None else _connection_path(previous)
+    try:
+        previous.close()
+    except Exception:  # noqa: BLE001 — an already-closed connection is fine
+        pass
+    try:
+        yield
+    finally:
+        db.conn = get_db(target)
+
+
+def _connection_path(conn) -> Path:
+    """The on-disk file backing ``conn`` (falls back to the default DB path)."""
+    try:
+        for _seq, _name, file in conn.execute("PRAGMA database_list").fetchall():
+            if file:
+                return Path(file)
+    except Exception:  # noqa: BLE001 — never block a stage on this lookup
+        pass
+    return DB_PATH
 
 def _load_market_data(path: str | None) -> str | None:
     return path
@@ -218,10 +253,11 @@ def run_job(
             summary["stages"]["research"] = "skipped"
         else:
             try:
-                res = research.run(ticker, year, quarter, force=force, dry_run=dry_run,
-                                    skip_search=skip_search,
-                                    tool_mode=research_tool_mode,
-                                    refresh_cache=refresh_research_cache)
+                with _db_lock_released(db):
+                    res = research.run(ticker, year, quarter, force=force, dry_run=dry_run,
+                                        skip_search=skip_search,
+                                        tool_mode=research_tool_mode,
+                                        refresh_cache=refresh_research_cache)
                 if not dry_run:
                     tok = res.get("token_usage", {})
                     if tok:
@@ -246,8 +282,9 @@ def run_job(
             summary["stages"]["write"] = "skipped"
         else:
             try:
-                res = write.run(ticker, year, quarter, market_data_path=market_data_path,
-                                force=force or inject_redflags, dry_run=dry_run)
+                with _db_lock_released(db):
+                    res = write.run(ticker, year, quarter, market_data_path=market_data_path,
+                                    force=force or inject_redflags, dry_run=dry_run)
                 tok = res.get("usage", {})
                 if tok and not dry_run:
                     db.add_tokens(job_id, tok.get("prompt_tokens", 0), tok.get("completion_tokens", 0))
@@ -274,8 +311,9 @@ def run_job(
             bullets = rres.get("bullets", "")
             if inject_redflags and bullets and not dry_run:
                 print(f"\n[{job_id}] re-running write with injected red flags...")
-                wres = write.run(ticker, year, quarter, market_data_path=market_data_path,
-                                 force=True, inject_redflags=bullets)
+                with _db_lock_released(db):
+                    wres = write.run(ticker, year, quarter, market_data_path=market_data_path,
+                                     force=True, inject_redflags=bullets)
                 wt = wres.get("usage", {})
                 if wt:
                     db.add_tokens(job_id, wt.get("prompt_tokens", 0), wt.get("completion_tokens", 0))
@@ -344,7 +382,7 @@ def main():
         try:
             db.print_status()
         finally:
-            conn.close()
+            db.conn.close()
         return
 
     # ── retry-failed ──────────────────────────────────────────────────
@@ -361,7 +399,7 @@ def main():
                     skip_search=args.no_search,
                     research_tool_mode=args.research_tool_mode,
                     refresh_research_cache=args.refresh_research_cache)
-        conn.close()
+        db.conn.close()
         return
 
     # ── normal run ───────────────────────────────────────────────────
@@ -401,7 +439,7 @@ def main():
                     research_tool_mode=args.research_tool_mode,
                     refresh_research_cache=args.refresh_research_cache)
     finally:
-        conn.close()
+        db.conn.close()
 
 
 if __name__ == "__main__":
