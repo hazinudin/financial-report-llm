@@ -83,7 +83,7 @@ def _empty_result(cfg: dict[str, Any]) -> dict[str, Any]:
         "content": "",
         "tool_rounds": 0,
         "tool_trace": [],
-        "usage": {"prompt_tokens": 0, "completion_tokens": 0, "cost_usd": 0.0},
+        "usage": {"prompt_tokens": 0, "completion_tokens": 0, "reasoning_tokens": 0, "cost_usd": 0.0},
         "finish_reason": None,
         "mode": "pi_agent",
         "error": None,
@@ -260,6 +260,7 @@ def _build_result(
 
     prompt_tokens = 0
     completion_tokens = 0
+    reasoning_tokens = 0
     cost_usd = 0.0
     last_text = ""
     last_finish: str | None = None
@@ -275,6 +276,7 @@ def _build_result(
         usage = message.get("usage") or {}
         prompt_tokens += _as_int(usage.get("input"))
         completion_tokens += _as_int(usage.get("output"))
+        reasoning_tokens += _as_int(usage.get("reasoning"))
         cost_usd += _as_float((usage.get("cost") or {}).get("total"))
         if message.get("provider"):
             last_provider = str(message["provider"])
@@ -307,6 +309,7 @@ def _build_result(
     result["usage"] = {
         "prompt_tokens": prompt_tokens,
         "completion_tokens": completion_tokens,
+        "reasoning_tokens": reasoning_tokens,
         "cost_usd": cost_usd,
     }
     # Fixture streams carry explicit toolCall content blocks; fall back to
