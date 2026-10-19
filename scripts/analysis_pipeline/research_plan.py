@@ -12,6 +12,7 @@ matching the analyst workflow demonstrated for SRSN Q2 2026.
 
 from __future__ import annotations
 
+import json
 import re
 import yaml
 from dataclasses import dataclass, field
@@ -19,12 +20,23 @@ from pathlib import Path
 from typing import Any
 
 import opencode_client
+import pi_agent
 import research_questions
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 ANALYSIS_DIR = _PROJECT_ROOT / "analysis"
 FACTS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "facts"
 RESEARCH_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "research"
+
+_DEFAULT_PLANNER_TOOLS = ["read", "duckdb_query", "notes_search", "notes_fetch"]
+
+_PLANNER_SYSTEM_PROMPT = (
+    "You are a senior equity-research analyst. Given financial events and "
+    "context, you formulate a THEMED, PRIORITIZED research plan with "
+    "specific, falsifiable questions and testable hypotheses. You do NOT "
+    "search the web. Do not expose reasoning or schema examples. "
+    "Immediately output ONLY valid YAML in the requested structure."
+)
 
 
 @dataclass(frozen=True)
@@ -49,6 +61,10 @@ class ResearchPlan:
     priority_themes: list[str] = field(default_factory=list)
     fallback: bool = False
     error: str | None = None
+    # Planner run provenance (not serialized into the plan YAML/markdown).
+    pi_meta: dict[str, Any] = field(default_factory=dict)
+    usage: dict[str, Any] = field(default_factory=dict)
+    plan_trace_path: str | None = None
 
 
 # ── Context loaders ─────────────────────────────────────────────────────
@@ -433,6 +449,183 @@ def plan_questions_for_prompt(plan: ResearchPlan) -> str:
     return "\n".join(parts)
 
 
+# ── Planner pi-agent config and grounding ──────────────────────────────
+
+
+def _planner_config() -> dict:
+    """The ``analysis.plan`` config block."""
+    cfg = opencode_client.load_analysis_config()
+    return cfg.get("plan", {}) or {}
+
+
+def _resolve_planner_pi_cfg() -> dict:
+    """Resolve the pi runner config for the planner (mirrors ``write._resolve_pi_cfg``).
+
+    ``model`` falls back to ``models.research_plan``; ``tools`` falls back to the
+    read-only set, but an explicit ``[]`` survives (harness-only / ``--no-tools``).
+    """
+    pi_cfg = dict(_planner_config().get("pi", {}) or {})
+    if not pi_cfg.get("provider"):
+        pi_cfg["provider"] = "opencode-go"
+    if not pi_cfg.get("model"):
+        models_cfg = opencode_client.load_analysis_config().get("models", {}) or {}
+        if models_cfg.get("research_plan"):
+            pi_cfg["model"] = models_cfg["research_plan"]
+    if pi_cfg.get("tools") is None:
+        pi_cfg["tools"] = list(_DEFAULT_PLANNER_TOOLS)
+    if pi_cfg.get("timeout_sec") is None:
+        pi_cfg["timeout_sec"] = 600
+    return pi_cfg
+
+
+def _planner_tools_section(pi_cfg: dict) -> str:
+    """Read-only tool description + facts-authority rule + budgets.
+
+    Returns ``""`` when no tools are enabled (``tools: []`` ⇒ harness-only).
+    """
+    tools = pi_cfg.get("tools")
+    if tools is None:
+        tools = _DEFAULT_PLANNER_TOOLS
+    enabled = [str(t) for t in tools]
+    if not enabled:
+        return ""
+
+    max_db = int(pi_cfg.get("max_db_queries", 4))
+    max_notes_search = int(pi_cfg.get("max_notes_search", 3))
+    max_notes_fetch = int(pi_cfg.get("max_notes_fetch", 3))
+
+    bullets: list[str] = []
+    if "read" in enabled:
+        bullets.append(
+            "- read: read any file listed in the ARTIFACTS ON DISK block (the "
+            "canonical fact sheet, computed ratios, company profile, and prior "
+            "analyses) when the inline excerpt is not enough."
+        )
+    if "duckdb_query" in enabled:
+        bullets.append(
+            "- duckdb_query: read-only SQL over idx_data/pipeline.duckdb. Use it "
+            "ONLY for this company's OWN prior periods (and, if useful, same-sector "
+            "peer context). NEVER source the current period's company figures from "
+            "it - the fact sheet wins, always."
+        )
+    if "notes_search" in enabled or "notes_fetch" in enabled:
+        bullets.append(
+            "- notes_search / notes_fetch: vault lookup for prior analyses and "
+            "commodity notes that anchor a flagged movement."
+        )
+
+    budgets: list[str] = []
+    if "duckdb_query" in enabled:
+        budgets.append(f"{max_db} duckdb_query")
+    if "notes_search" in enabled:
+        budgets.append(f"{max_notes_search} notes_search")
+    if "notes_fetch" in enabled:
+        budgets.append(f"{max_notes_fetch} notes_fetch")
+
+    directive = (
+        "Before framing questions, ground the plan: verify any implied period "
+        "arithmetic (e.g. Q2 = H1 - Q1) and pull the prior-period baseline so each "
+        "question is anchored to a real comparison. Do not search the web - a later "
+        "stage owns external evidence. If a tool returns nothing useful, continue "
+        "planning; do not stall."
+    )
+    budget_line = (
+        "Budget: at most " + ", ".join(budgets) + " calls - then output ONLY the "
+        "YAML plan. The canonical fact sheet and computed ratios win for the "
+        "company's current-period figures; any figure pulled via duckdb_query or "
+        "the vault is comparative context and must be treated as such."
+    )
+    return "\n".join(
+        ["## Tools (read-only - for context, never for company figures)"]
+        + bullets + [directive, budget_line]
+    )
+
+
+def _planner_artifacts_block(ticker: str, year: int, quarter: str) -> str:
+    """Absolute on-disk paths so the ``read`` tool has something to read."""
+    stem = f"{ticker}_{quarter}_{year}"
+    lines = [
+        "# ARTIFACTS ON DISK (re-read with the read tool to re-check any input)",
+        f"- Canonical fact sheet: {FACTS_DIR / (stem + '.yaml')}",
+        f"- Computed ratios:      {FACTS_DIR / (stem + '.ratios.yaml')}",
+        f"- Company profile:      {ANALYSIS_DIR / 'companies' / (ticker + '.md')}",
+    ]
+    for path in _find_prior_analyses(ticker, year, quarter)[:3]:
+        lines.append(f"- Prior analysis:       {path}")
+    return "\n".join(lines)
+
+
+def _planner_budget_warnings(pi_meta: dict, pi_cfg: dict) -> list[str]:
+    """Post-hoc tool-call counts vs the prompt budgets (shape mirrors write)."""
+    tool_calls = dict((pi_meta or {}).get("tool_calls", {}) or {})
+    max_db = int(pi_cfg.get("max_db_queries", 4))
+    max_notes_search = int(pi_cfg.get("max_notes_search", 3))
+    max_notes_fetch = int(pi_cfg.get("max_notes_fetch", 3))
+
+    warnings: list[str] = []
+    db_calls = int(tool_calls.get("duckdb_query", 0))
+    if db_calls > max_db:
+        warnings.append(f"duckdb_query calls {db_calls} exceeded budget {max_db}")
+    notes_search = int(tool_calls.get("notes_search", 0))
+    if notes_search > max_notes_search:
+        warnings.append(
+            f"notes_search calls {notes_search} exceeded budget {max_notes_search}"
+        )
+    notes_fetch = int(tool_calls.get("notes_fetch", 0))
+    if notes_fetch > max_notes_fetch:
+        warnings.append(
+            f"notes_fetch calls {notes_fetch} exceeded budget {max_notes_fetch}"
+        )
+    return warnings
+
+
+def _write_planner_trace(
+    ticker: str, year: int, quarter: str, result: dict, pi_cfg: dict,
+    budget_warnings: list[str],
+) -> Path:
+    """Persist the planner run trace (pi meta + usage + budget audit)."""
+    RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
+    pi_meta = dict(result.get("pi_meta", {}) or {})
+    path = RESEARCH_DIR / f"{ticker}_{quarter}_{year}.plan_trace.json"
+    path.write_text(
+        json.dumps({
+            "ticker": ticker,
+            "quarter": quarter,
+            "year": year,
+            "pi": pi_meta,
+            "usage": result.get("usage", {}) or {},
+            "finish_reason": result.get("finish_reason"),
+            "tool_calls": dict(pi_meta.get("tool_calls", {}) or {}),
+            "budget_warnings": budget_warnings,
+            "error": result.get("error"),
+            "model": pi_meta.get("model") or pi_cfg.get("model"),
+        }, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    return path
+
+
+def _write_raw_plan(
+    ticker: str, year: int, quarter: str, raw: str, result: dict,
+) -> Path:
+    """Persist the raw planner response — written even when the run failed."""
+    RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
+    usage = result.get("usage", {}) or {}
+    path = RESEARCH_DIR / f"{ticker}_{quarter}_{year}.research_plan_raw.md"
+    path.write_text(
+        f"# Raw planner response — {ticker} {quarter} {year}\n"
+        f"# finish_reason: {result.get('finish_reason') or 'unknown'}\n"
+        f"# prompt_tokens: {usage.get('prompt_tokens', 0)}\n"
+        f"# completion_tokens: {usage.get('completion_tokens', 0)}\n"
+        f"# reasoning_tokens: {usage.get('reasoning_tokens', 0)}\n"
+        f"# cost_usd: {usage.get('cost_usd', 0.0)}\n"
+        f"# error: {result.get('error') or '(none)'}\n\n"
+        f"```\n{raw}\n```\n",
+        encoding="utf-8",
+    )
+    return path
+
+
 # ── Public entry point ──────────────────────────────────────────────────
 
 
@@ -443,17 +636,16 @@ def formulate_plan(
     deterministic_fallback: list[research_questions.ResearchQuestion] | None = None,
     max_analysis_chars: int | None = None,
 ) -> ResearchPlan:
-    """Plan via the writer model. Falls back to deterministic questions
-    on missing model, parse failure, or empty plan.
+    """Plan via a headless pi agent (read-only tools, no web).
 
-    The deterministic_fallback list (from research_questions.build_questions)
-    is shaped into a minimal plan so the search loop prompt rule still works:
-    every question must have an LLM-issued question_id/theme (no free-text)."""
+    Falls back to the deterministic question list on missing model, an agent
+    failure, or an unparseable/empty plan. Every run writes a plan trace and a
+    raw-response artifact — including failures."""
     if identity is None:
         identity = research_questions.resolve_identity(ticker)
 
-    model_cfg = opencode_client.parse_model_settings("research_plan")
-    model = model_cfg.get("model")
+    pi_cfg = _resolve_planner_pi_cfg()
+    model = pi_cfg.get("model")
     if not model:
         return _fallback_plan(
             ticker, year, quarter, identity, deterministic_fallback,
@@ -464,65 +656,57 @@ def formulate_plan(
         ticker, year, quarter, events, identity,
         max_analysis_chars=max_analysis_chars or 12000,
     )
-    system = (
-        "You are a senior equity-research analyst. Given financial events and "
-        "context, you formulate a THEMED, PRIORITIZED research plan with "
-        "specific, falsifiable questions and testable hypotheses. You do NOT "
-        "search the web. Do not expose reasoning or schema examples. "
-        "Immediately output ONLY valid YAML in the requested structure."
-    )
+    user += "\n\n" + _planner_artifacts_block(ticker, year, quarter)
+    system = _PLANNER_SYSTEM_PROMPT
+    tools_section = _planner_tools_section(pi_cfg)
+    if tools_section:
+        system += "\n\n" + tools_section
+
+    n_tools = len([t for t in (pi_cfg.get("tools") or [])])
     print(
-        f"  [RESEARCH PLAN] calling {model} for {ticker} {quarter} {year} "
-        f"(prompt ~{len(user) // 4} tok, max_tokens={model_cfg.get('max_tokens', 4096)})",
+        f"  [RESEARCH PLAN] pi_agent model={model} tools={n_tools} "
+        f"(prompt ~{len(user) // 4} tok, timeout={pi_cfg.get('timeout_sec', 600)}s)",
         flush=True,
     )
-    try:
-        resp = opencode_client.chat(
-            model=model,
-            system=system,
-            user=user,
-            temperature=model_cfg.get("temperature", 0.0),
-            max_tokens=model_cfg.get("max_tokens", 4096),
-            reasoning_effort=model_cfg.get("reasoning_effort"),
-            timeout_sec=model_cfg.get("timeout_sec"),
-        )
-        raw = resp.get("content", "") or ""
-        print(
-            f"  [RESEARCH PLAN] response chars={len(raw)}",
-            flush=True,
-        )
-    except Exception as e:
-        print(f"  [RESEARCH PLAN] failed: {e}", flush=True)
-        return _fallback_plan(
-            ticker, year, quarter, identity, deterministic_fallback,
-            reason=f"planner call failed: {e}",
-        )
 
-    # Persist the raw planner output so parse failures are debuggable.
-    try:
-        RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
-        raw_path = RESEARCH_DIR / f"{ticker}_{quarter}_{year}.research_plan_raw.md"
-        usage = resp.get("usage", {}) or {}
-        finish_reason = resp.get("finish_reason") or "unknown"
-        raw_path.write_text(
-            f"# Raw planner response — {ticker} {quarter} {year}\n"
-            f"# finish_reason: {finish_reason}\n"
-            f"# prompt_tokens: {usage.get('prompt_tokens', 0)}\n"
-            f"# completion_tokens: {usage.get('completion_tokens', 0)}\n\n"
-            f"```\n{raw}\n```\n",
-            encoding="utf-8",
-        )
-    except OSError:
-        pass
+    run_dir = RESEARCH_DIR / f"{ticker}_{quarter}_{year}.plan_pi"
+    result = pi_agent.run_agent(system, user, cfg=pi_cfg, run_dir=run_dir)
+
+    raw = result.get("content", "") or ""
+    pi_meta = dict(result.get("pi_meta", {}) or {})
+    budget_warnings = _planner_budget_warnings(pi_meta, pi_cfg)
+    trace_path = _write_planner_trace(
+        ticker, year, quarter, result, pi_cfg, budget_warnings,
+    )
+    _write_raw_plan(ticker, year, quarter, raw, result)
+
+    usage = result.get("usage", {}) or {}
+    print(
+        f"  [RESEARCH PLAN] done: finish={result.get('finish_reason')} "
+        f"tool_calls={pi_meta.get('tool_calls', {}) or {}} "
+        f"out={len(raw)} chars reasoning={usage.get('reasoning_tokens', 0)} "
+        f"cost=${usage.get('cost_usd', 0.0):.4f}",
+        flush=True,
+    )
 
     plan = parse_plan(raw, ticker, year, quarter, identity)
     if plan.error or not plan.questions:
         reason = plan.error or "planner produced no questions"
-        if resp.get("finish_reason") in {"length", "max_tokens"}:
-            reason = f"planner response truncated at max_tokens; {reason}"
-        return _fallback_plan(
+        if result.get("finish_reason") in {"length", "max_tokens"}:
+            reason = (
+                f"planner response truncated at max_tokens after "
+                f"{usage.get('reasoning_tokens', 0)} reasoning tokens; {reason}"
+            )
+        if result.get("error"):
+            reason = f"planner agent failed: {result['error']}"
+        print(f"  [PLAN] FALLBACK: {reason}", flush=True)
+        plan = _fallback_plan(
             ticker, year, quarter, identity, deterministic_fallback, reason=reason,
         )
+
+    plan.pi_meta = pi_meta
+    plan.usage = usage
+    plan.plan_trace_path = str(trace_path)
     return plan
 
 
