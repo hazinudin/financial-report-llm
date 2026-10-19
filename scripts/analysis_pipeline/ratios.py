@@ -145,7 +145,11 @@ class R:
         self._pct("operating_margin", op, rev, "operating_margin")
         self._pct("pretax_margin", pbt, rev, "pretax_margin")
         self._pct("net_margin", np, rev, "net_margin")
-        self._ratio("effective_tax_rate", tax, pbt, "eff_tax")
+        # The xlsx stores tax expense as a negative charge (186/190 filings
+        # observed). Express the rate as expense/pretax so a normal tax take
+        # reads positive, and a genuine benefit reads negative.
+        eff_tax = -tax if tax is not None else None
+        self._ratio("effective_tax_rate", eff_tax, pbt, "eff_tax")
 
         # ── Growth (YoY vs prior_lines) ──
         self._growth("revenue_growth", rev, rev_p, "revenue")
