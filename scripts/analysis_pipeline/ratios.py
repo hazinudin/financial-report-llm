@@ -75,6 +75,47 @@ class R:
             return self.add(name, None, f"{label}: prior=0 (undefined)", {label+"_cur": cur, label+"_prior": pri})
         return self.add(name, self._safe((cur - pri) / pri), f"({cur}-{pri})/{pri}", {label+"_cur": cur, label+"_prior": pri})
 
+    def _consistent_eps(self, eps, eps_p, npo, npo_p) -> tuple[float | None, float | None, str | None]:
+        """Detect a corrupt prior-period EPS in the source filing.
+
+        IDX XBRL xlsx files occasionally store EPS at the wrong decimal scale
+        (ITMG 2026-II carries prior basic EPS as 8e-05 instead of 0.08, which
+        the PDF reports as 0.08). Both periods should imply a comparable share
+        count. When they do not, try rescaling the prior EPS by powers of ten
+        and adopt the first scale that restores a plausible share count; that
+        recovers the reported figure exactly instead of estimating it.
+        """
+        if eps in (None, 0) or eps_p in (None, 0) or npo is None or npo_p is None:
+            return eps, eps_p, None
+        shares_cur = npo / eps
+        if shares_cur <= 0:
+            return eps, eps_p, None
+
+        def plausible(prior_eps: float) -> bool:
+            shares_pri = npo_p / prior_eps
+            # Treasury-share buybacks move the count by a few percent, never 10x.
+            return shares_pri > 0 and 0.5 <= shares_pri / shares_cur <= 2.0
+
+        if plausible(eps_p):
+            return eps, eps_p, None
+
+        for exponent in (1, 2, 3, -1, -2, -3):
+            candidate = eps_p * (10 ** exponent)
+            if plausible(candidate):
+                note = (
+                    f"prior eps_basic {eps_p!r} implies an implausible share count; "
+                    f"rescaled by 1e{exponent:+d} to {candidate:.4f} "
+                    f"(implied shares {npo_p / candidate:,.0f} vs current {shares_cur:,.0f})"
+                )
+                return eps, candidate, note
+
+        note = (
+            f"prior eps_basic {eps_p!r} inconsistent with implied share count "
+            f"({npo_p / eps_p:,.0f} vs {shares_cur:,.0f}) and no decimal rescale "
+            f"reconciles it; eps_growth left unavailable"
+        )
+        return eps, None, note
+
     def _pct(self, name, num, den, label):
         if num is None or den is None or den == 0:
             return self.add(name, None, f"{label}: {num}/{den}", {label+"_num": num, label+"_den": den})
@@ -103,6 +144,8 @@ class R:
         nci = self.cur(is_, "np_nci")
         eps = self.cur(is_, "eps_basic")
         eps_p = self.pri(is_, "eps_basic")
+        eps_p_raw = eps_p
+        eps, eps_p, eps_note = self._consistent_eps(eps, eps_p, npo, self.pri(is_, "np_owners"))
         iinc = self.cur(is_, "interest_income")
         iexp = self.cur(is_, "interest_expense")
 
@@ -147,6 +190,9 @@ class R:
         self._growth("operating_profit_growth", op, op_p, "operating_profit")
         self._growth("net_profit_growth", np, np_p, "net_profit")
         self._growth("eps_growth", eps, eps_p, "eps")
+        if eps_note:
+            self.out["eps_growth"].inputs["source_correction"] = eps_note
+            self.out["eps_growth"].inputs["eps_prior_as_reported"] = eps_p_raw
         self._growth("total_assets_growth", ta, ta_p, "total_assets")
         self._growth("equity_growth", eq, eq_p, "total_equity")
         self._growth("ocf_growth", ocf, ocf_p, "ocf")
