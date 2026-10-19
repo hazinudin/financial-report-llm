@@ -24,7 +24,7 @@ Downloads financial reports from the Indonesia Stock Exchange (IDX), identifies 
 │   │   ├── ratios.py            # Stage 2b deterministic ratios
 │   │   ├── context.py           # Stage 3 profile/vault/market
 │   │   ├── research.py          # Stage 3b external research (pi agent)
-│   │   ├── research_plan.py     # Stage 3b research planning (LLM)
+│   │   ├── research_plan.py     # Stage 3b research planning (pi agent, read-only tools)
 │   │   ├── research_questions.py # Stage 3b deterministic questions
 │   │   ├── pi_agent.py          # shared headless pi runner
 │   │   ├── write.py             # Stage 4 writer agent
@@ -190,8 +190,12 @@ preprocessing → bounded chunk extraction (cheap model) → merge + determinist
 ratios → context assembly → external research (pi agent) → writer pi agent
 (strong model) → red-flag pass.
 
-Stage 3b (external research) runs a **headless pi agent** (`pi -p --mode json`)
-to explain the external events behind the reported numbers: `exa_search` (from
+Stage 3b (external research) runs two **headless pi agents**. The planner
+formulates the themed question set first, with read-only tools (`read`,
+`duckdb_query`, `notes_search`, `notes_fetch`) and no web access; every planner
+run writes a `plan_trace.json`, and a planner failure falls back to
+deterministic questions with the reason recorded. The search agent then explains
+the external events behind the reported numbers: `exa_search` (from
 the `pi-exa-search` extension, using `EXA_API_KEY`) for discovery and
 `fetch_content` (from `pi-web-access`) for full-page retrieval. A
 source-provenance audit checks every cited URL against the agent's tool trace.

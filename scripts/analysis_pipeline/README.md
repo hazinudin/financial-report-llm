@@ -34,6 +34,7 @@ uv run scripts/analysis_pipeline/pipeline.py --status
 | 2a | `merge.py` | Seed is priority 0; LLM sheets gap-fill null keys + details. Conflicts logged (LLM-vs-seed = hallucination signal) | None |
 | 2b | `ratios.py` | Compute all ratios deterministically (no LLM arithmetic) | None |
 | 3 | `context.py` | Assemble static profile, outline skeleton, vault hits, market stub | None |
+| 3b | `research_plan.py` | Planner: headless pi agent with read-only tools (`read`, `duckdb_query`, `notes_search`, `notes_fetch`), no web → themed question set | Strong (glm-5.3) |
 | 3b | `research.py` | External events: headless pi agent (`pi -p --mode json`) with `exa_search` + `fetch_content`, then source-provenance audit | `deepseek-v4.1-flash` |
 | 4 | `write.py` | Headless pi agent (`pi -p --mode json`) with read-only tools (`read`, `duckdb_query`, `notes_search`, `notes_fetch`) → analysis markdown | Strong (glm-5.3) |
 | 5 | `redflags.py` | Contradiction pass → bullet list for operator review | Cheap (glm-5.3-flash) |
@@ -58,9 +59,23 @@ extraction unchanged.
 
 ### External research (Stage 3b)
 
-Runs when deterministic triggers fire on the fact sheet. The stage builds a
-research plan (`research_plan.py`), then runs a **headless pi agent**
-(`pi -p --mode json`) whose tools are allowlisted to:
+Runs when deterministic triggers fire on the fact sheet. The stage has two pi
+agent runs.
+
+**Planner** (`research_plan.py`, `analysis.plan.pi`) — formulates the themed,
+prioritized question set before any searching. It uses the **read-only**
+idx-tools (`read`, `duckdb_query`, `notes_search`, `notes_fetch`) so it can
+verify implied period arithmetic and pull prior-period baselines, and
+deliberately has **no web tools**: external evidence belongs to the search
+agent. Every run writes `research/{T}_{Q}_{Y}.plan_pi/` (system/user prompts +
+`events.jsonl`) and `research/{T}_{Q}_{Y}.plan_trace.json` (pi meta, usage
+including reasoning tokens, retries, tool calls, budget warnings) — including
+failed runs. A planner failure is **best-effort**: it prints
+`[PLAN] FALLBACK: <reason>`, falls back to the deterministic question list, and
+the fallback is recorded in the plan artifacts and in `--status` (`Plan` column).
+
+**Search agent** — a second **headless pi agent** (`pi -p --mode json`) whose
+tools are allowlisted to:
 
 - `exa_search` — from the `pi-exa-search` extension, authenticated with
   `EXA_API_KEY` from `.env` (batched queries, recency/domain filters, highlights)
@@ -68,7 +83,7 @@ research plan (`research_plan.py`), then runs a **headless pi agent**
 
 The agent emits a YAML brief; a source-provenance audit then checks every cited
 URL against the tool trace and drops/downgrades anything unverified. `--no-search`
-still forces the deterministic fallback, which skips the agent entirely.
+still forces the deterministic fallback, which skips both agents entirely.
 
 Requirements: `pi` CLI ≥ 1.1 on `PATH`, Node ≥ 22.19, and `EXA_API_KEY` in
 `.env` (gitignored). Project pi packages are declared (pinned) in
@@ -119,6 +134,9 @@ uv run scripts/analysis_pipeline/pipeline.py --tickers DKFT --years 2026 --quart
 # Force a specific research mode (pi agent | deterministic_fallback)
 uv run scripts/analysis_pipeline/pipeline.py --tickers DKFT --years 2026 --quarters Q1 --research-tool-mode deterministic_fallback
 
+# Refresh just the research plan (planner agent only; skips the search agent)
+uv run scripts/analysis_pipeline/research.py --ticker DKFT --year 2026 --quarter Q1 --plan-only --force
+
 # Red-flag pass (+ optionally re-write to address each flag)
 uv run scripts/analysis_pipeline/pipeline.py --tickers DKFT --years 2026 --quarters Q1 --redflags --inject-redflags
 
@@ -157,7 +175,23 @@ analysis:
   models:
     extract: glm-5.3-flash
     write: glm-5.3
+    research_plan: glm-5.3
     redflags: glm-5.3-flash
+  # Stage 3b planner: headless pi agent, read-only tools, no web tools.
+  plan:
+    pi:
+      provider: opencode-go
+      # model omitted → falls back to models.research_plan (glm-5.3)
+      thinking: "off"
+      timeout_sec: 600
+      approve: true
+      load_skills: false
+      load_context_files: false
+      save_session: true
+      tools: [read, duckdb_query, notes_search, notes_fetch]  # [] → --no-tools
+      max_db_queries: 4
+      max_notes_search: 3
+      max_notes_fetch: 3
   # Stage 4 writer: headless pi agent with read-only tools (see below).
   write:
     pi:
@@ -201,6 +235,8 @@ idx_data/analysis/
 ├── runs/{TICKER}_{YEAR}_{Q}.context.json      # Stage 3 package
 ├── runs/{TICKER}_{YEAR}_{Q}.redflags.md       # Stage 5 output
 ├── research/{TICKER}_{Q}_{YEAR}.research.yaml        # Stage 3b brief (+ plan yaml/md, raw md)
+├── research/{TICKER}_{Q}_{YEAR}.plan_pi/              # planner pi run dir: events.jsonl, system.md, user.md
+├── research/{TICKER}_{Q}_{YEAR}.plan_trace.json       # planner pi meta + usage (incl. reasoning) + tool calls + budget warnings
 ├── research/{TICKER}_{Q}_{YEAR}.research_pi/         # pi run dir: events.jsonl (raw stream), system.md, user.md
 ├── research/{TICKER}_{Q}_{YEAR}.research_trace.json  # tool trace + source-provenance audit + pi meta
 ├── write/{TICKER}_{Q}_{YEAR}.write_pi/               # Stage 4 pi run dir: events.jsonl (raw stream), system.md, user.md

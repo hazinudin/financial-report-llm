@@ -26,9 +26,11 @@ multi-stage LLM analysis pipeline that writes equity-research notes into the
   (`npm:pi-exa-search@0.1.3`, `npm:pi-web-access@0.41.0`) plus a delta entry
   that disables the global `npm:pi-web-search` extensions in this project.
   Project packages load after project trust (`--approve` for pipeline runs).
-- Stage 3b (research) runs on pi with `exa_search` / `fetch_content`; Stage 4
-  (writer) also runs on pi but with the read-only idx-tools `duckdb_query`,
-  `notes_search`, `notes_fetch` plus `read`.
+- Stage 3b (research) runs on pi in two steps: the planner
+  (`research_plan.py`) with the read-only idx-tools and **no** web tools, then
+  the search agent with `exa_search` / `fetch_content`. Stage 4 (writer) also
+  runs on pi with the read-only idx-tools `duckdb_query`, `notes_search`,
+  `notes_fetch` plus `read`.
 - `.pi/xdg/pi/web-search.json` configures `pi-web-access` for the Stage 3b
   research runner (fed via `XDG_CONFIG_HOME`); `.agents/skills/` holds dev-time
   Agent Skills (e.g. `build-with-exa`), not loaded by research runs.
