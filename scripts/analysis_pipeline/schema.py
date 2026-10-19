@@ -327,3 +327,51 @@ def canonical_line_keys() -> dict[str, tuple[str, ...]]:
         "balance_sheet": BALANCE_LINES,
         "cash_flow": CASHFLOW_LINES,
     }
+
+
+def consistent_prior_eps(
+    eps: Optional[float],
+    eps_prior: Optional[float],
+    np_owners: Optional[float],
+    np_owners_prior: Optional[float],
+) -> tuple[Optional[float], Optional[float], Optional[str]]:
+    """Detect a prior-period EPS stored at the wrong decimal scale.
+
+    IDX XBRL xlsx files occasionally carry EPS at the wrong scale (ITMG 2026-II
+    stores prior basic EPS as 8e-05 while the PDF reports 0.08). Both periods
+    should imply a comparable share count; when they do not, try rescaling the
+    prior EPS by powers of ten and adopt the first scale that reconciles.
+
+    Returns ``(eps, eps_prior, correction_note)``; ``eps_prior`` is ``None`` when
+    no rescale reconciles the figure (callers then omit the growth rate).
+    """
+    if eps in (None, 0) or eps_prior in (None, 0) or np_owners is None or np_owners_prior is None:
+        return eps, eps_prior, None
+    shares_cur = np_owners / eps
+    if shares_cur <= 0:
+        return eps, eps_prior, None
+
+    def plausible(prior_eps: float) -> bool:
+        shares_prior = np_owners_prior / prior_eps
+        # Treasury-share buybacks move the count by a few percent, never 10x.
+        return shares_prior > 0 and 0.5 <= shares_prior / shares_cur <= 2.0
+
+    if plausible(eps_prior):
+        return eps, eps_prior, None
+
+    for exponent in (1, 2, 3, -1, -2, -3):
+        candidate = eps_prior * (10 ** exponent)
+        if plausible(candidate):
+            note = (
+                f"prior eps_basic {eps_prior!r} implies an implausible share count; "
+                f"rescaled by 1e{exponent:+d} to {candidate:.4f} "
+                f"(implied shares {np_owners_prior / candidate:,.0f} vs current {shares_cur:,.0f})"
+            )
+            return eps, candidate, note
+
+    note = (
+        f"prior eps_basic {eps_prior!r} inconsistent with implied share count "
+        f"({np_owners_prior / eps_prior:,.0f} vs {shares_cur:,.0f}) and no decimal "
+        f"rescale reconciles it"
+    )
+    return eps, None, note

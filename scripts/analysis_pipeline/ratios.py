@@ -20,7 +20,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel
 
-from schema import FactSheet
+from schema import FactSheet, consistent_prior_eps
 
 
 class Ratio(BaseModel):
@@ -76,45 +76,8 @@ class R:
         return self.add(name, self._safe((cur - pri) / pri), f"({cur}-{pri})/{pri}", {label+"_cur": cur, label+"_prior": pri})
 
     def _consistent_eps(self, eps, eps_p, npo, npo_p) -> tuple[float | None, float | None, str | None]:
-        """Detect a corrupt prior-period EPS in the source filing.
-
-        IDX XBRL xlsx files occasionally store EPS at the wrong decimal scale
-        (ITMG 2026-II carries prior basic EPS as 8e-05 instead of 0.08, which
-        the PDF reports as 0.08). Both periods should imply a comparable share
-        count. When they do not, try rescaling the prior EPS by powers of ten
-        and adopt the first scale that restores a plausible share count; that
-        recovers the reported figure exactly instead of estimating it.
-        """
-        if eps in (None, 0) or eps_p in (None, 0) or npo is None or npo_p is None:
-            return eps, eps_p, None
-        shares_cur = npo / eps
-        if shares_cur <= 0:
-            return eps, eps_p, None
-
-        def plausible(prior_eps: float) -> bool:
-            shares_pri = npo_p / prior_eps
-            # Treasury-share buybacks move the count by a few percent, never 10x.
-            return shares_pri > 0 and 0.5 <= shares_pri / shares_cur <= 2.0
-
-        if plausible(eps_p):
-            return eps, eps_p, None
-
-        for exponent in (1, 2, 3, -1, -2, -3):
-            candidate = eps_p * (10 ** exponent)
-            if plausible(candidate):
-                note = (
-                    f"prior eps_basic {eps_p!r} implies an implausible share count; "
-                    f"rescaled by 1e{exponent:+d} to {candidate:.4f} "
-                    f"(implied shares {npo_p / candidate:,.0f} vs current {shares_cur:,.0f})"
-                )
-                return eps, candidate, note
-
-        note = (
-            f"prior eps_basic {eps_p!r} inconsistent with implied share count "
-            f"({npo_p / eps_p:,.0f} vs {shares_cur:,.0f}) and no decimal rescale "
-            f"reconciles it; eps_growth left unavailable"
-        )
-        return eps, None, note
+        """Source-scale guard; see ``schema.consistent_prior_eps``."""
+        return consistent_prior_eps(eps, eps_p, npo, npo_p)
 
     def _pct(self, name, num, den, label):
         if num is None or den is None or den == 0:

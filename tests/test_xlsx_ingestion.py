@@ -10,6 +10,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "scripts" / "analysis_pipeline"))
 
 import xlsx_seed  # noqa: E402
+import schema  # noqa: E402
 from scripts.report_pipeline.xlsx_parser import parse_xlsx  # noqa: E402
 
 
@@ -95,6 +96,45 @@ class XlsxIngestionTests(unittest.TestCase):
                 self.assertTrue(xlsx_seed.has_coverage("TEST", 2026, "Q1", root / "pipeline.duckdb"))
             finally:
                 xlsx_seed.REPORTS_DIR = old_reports_dir
+
+
+class ConsistentPriorEpsTests(unittest.TestCase):
+    """The shared scale guard used by both the xlsx seed and the ratio layer."""
+
+    def test_consistent_pair_is_untouched(self):
+        eps, prior, note = schema.consistent_prior_eps(0.10, 0.08, 106_000, 91_000)
+        self.assertEqual((eps, prior, note), (0.10, 0.08, None))
+
+    def test_mis_scaled_prior_is_rescaled(self):
+        # ITMG 2026-II: prior EPS stored as 8e-05 while the PDF reports 0.08.
+        eps, prior, note = schema.consistent_prior_eps(
+            0.10, 8e-05, 105_998, 90_978,
+        )
+        self.assertEqual(eps, 0.10)
+        self.assertAlmostEqual(prior, 0.08)
+        self.assertIn("rescaled by 1e+3", note)
+
+    def test_rescale_also_works_downwards(self):
+        # Prior EPS stored 1,000x too large (0.9 instead of 0.0009).
+        eps, prior, note = schema.consistent_prior_eps(
+            0.001, 0.9, 10_000, 9_000,
+        )
+        self.assertAlmostEqual(prior, 0.0009)
+        self.assertIn("rescaled by 1e-3", note)
+
+    def test_unreconcilable_prior_becomes_none(self):
+        # No power-of-ten rescale produces a plausible share count.
+        eps, prior, note = schema.consistent_prior_eps(0.10, 3.0, 1_000, 1_000_000)
+        self.assertIsNone(prior)
+        self.assertIn("no decimal rescale", note)
+
+    def test_missing_inputs_are_a_no_op(self):
+        self.assertEqual(
+            schema.consistent_prior_eps(None, 0.08, 1, 1), (None, 0.08, None),
+        )
+        self.assertEqual(
+            schema.consistent_prior_eps(0.1, 0.08, None, 1), (0.1, 0.08, None),
+        )
 
 
 if __name__ == "__main__":

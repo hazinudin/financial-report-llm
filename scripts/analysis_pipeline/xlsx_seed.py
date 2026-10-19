@@ -40,7 +40,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Optional
 
-from schema import FactSheet, Meta, Statement
+from schema import FactSheet, Meta, Statement, consistent_prior_eps
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_DB_PATH = _PROJECT_ROOT / "idx_data" / "pipeline.duckdb"
@@ -343,6 +343,20 @@ def seed_from_xlsx(
     income = _build_statement(_label_index(is_rows), IS_MAP, ["current", "prior_yoy"])
     balance = _build_statement(_label_index(bs_rows), BS_MAP, ["current", "prior_fy_end"])
     cash = _build_statement(_label_index(cf_rows), CF_MAP, ["current", "prior_yoy"])
+
+    # Some IDX XBRL files store the prior-period EPS at the wrong decimal scale.
+    # Correct it here so the canonical fact sheet (not just the ratio layer)
+    # carries the figure the PDF actually reports.
+    eps, eps_prior, eps_note = consistent_prior_eps(
+        income.lines.get("eps_basic"),
+        income.prior_lines.get("eps_basic"),
+        income.lines.get("np_owners"),
+        income.prior_lines.get("np_owners"),
+    )
+    if eps_note:
+        income.prior_lines["eps_basic"] = eps_prior
+        print(f"  [SEED] {ticker} {quarter} {year}: {eps_note}", file=sys.stderr)
+
     seed = FactSheet(meta=meta, income_statement=income, balance_sheet=balance, cash_flow=cash)
     return seed if _is_complete_seed(seed) else None
 
