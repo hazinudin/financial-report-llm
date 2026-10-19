@@ -319,11 +319,12 @@ def _preferred_domains(cfg: dict) -> list[str]:
     return domains
 
 
-def _run_pi_agent(
-    ticker: str, year: int, quarter: str, tool_mode: str,
-) -> dict[str, Any]:
-    cfg = _research_config()
+def _prepare_plan(ticker: str, year: int, quarter: str, tool_mode: str):
+    """Build the plan (pi planner, or the deterministic fallback) and its inputs.
 
+    Shared by the full research run and the planner-only mode so both stage the
+    identical context."""
+    cfg = _research_config()
     facts_summary = _build_facts_summary(ticker, year, quarter)
     events = _detect_events(ticker, year, quarter)
     identity, deterministic_qs = research_questions.build_questions(
@@ -342,6 +343,37 @@ def _run_pi_agent(
             identity=identity, deterministic_fallback=deterministic_qs,
             max_analysis_chars=int(cfg.get("max_planner_analysis_chars", 12000)),
         )
+    return plan, facts_summary, events, identity, deterministic_qs
+
+
+def _save_plan_artifacts(ticker: str, year: int, quarter: str, plan) -> None:
+    if plan is None:
+        return
+    RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
+    research_plan.save_plan_artifacts(
+        plan,
+        yaml_path=RESEARCH_DIR / f"{ticker}_{quarter}_{year}.research_plan.yaml",
+        md_path=RESEARCH_DIR / f"{ticker}_{quarter}_{year}.research_plan.md",
+    )
+
+
+def _plan_meta(plan) -> dict[str, Any]:
+    """Planner run provenance for the caller/DB (empty for the deterministic path)."""
+    return {
+        "plan_usage": dict(getattr(plan, "usage", {}) or {}),
+        "plan_pi_meta": dict(getattr(plan, "pi_meta", {}) or {}),
+        "plan_fallback": bool(getattr(plan, "fallback", False)),
+    }
+
+
+def _run_pi_agent(
+    ticker: str, year: int, quarter: str, tool_mode: str,
+) -> dict[str, Any]:
+    cfg = _research_config()
+
+    plan, facts_summary, events, identity, deterministic_qs = _prepare_plan(
+        ticker, year, quarter, tool_mode,
+    )
 
     plan_prompt = research_plan.plan_questions_for_prompt(plan)
 
@@ -364,6 +396,7 @@ def _run_pi_agent(
             "questions": research_questions.questions_as_dicts(deterministic_qs),
             "plan": research_plan.plan_as_dicts(plan),
             "plan_obj": plan,
+            **_plan_meta(plan),
         }
 
     pi_cfg = dict(cfg.get("pi", {}) or {})
@@ -472,6 +505,7 @@ def _run_pi_agent(
         "finish_reason": result.get("finish_reason"),
         "error": result.get("error"),
         "raw_content": raw_content,
+        **_plan_meta(plan),
     }
 
 
@@ -484,12 +518,14 @@ def run(
     dry_run: bool = False,
     skip_search: bool = False,
     tool_mode: str | None = None,
+    plan_only: bool = False,
 ) -> dict[str, Any]:
     RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
 
-    existing = _load_research_brief(ticker, year, quarter)
-    if existing and not force:
-        return {"status": "skipped", "brief": existing}
+    if not plan_only:
+        existing = _load_research_brief(ticker, year, quarter)
+        if existing and not force:
+            return {"status": "skipped", "brief": existing}
 
     cfg = _research_config()
     effective_mode = tool_mode or cfg.get("agent", "pi")
@@ -500,18 +536,32 @@ def run(
     if dry_run:
         return {"status": "dry", "ticker": ticker, "year": year, "quarter": quarter}
 
+    # ── Planner-only refresh: build + persist the plan, skip the search agent ──
+    if plan_only:
+        plan, _facts, _events, _identity, _dq = _prepare_plan(
+            ticker, year, quarter, effective_mode,
+        )
+        _save_plan_artifacts(ticker, year, quarter, plan)
+        meta = _plan_meta(plan)
+        print(
+            f"  [PLAN] mode={effective_mode} fallback={plan.fallback} "
+            f"themes={len(plan.themes)} questions={len(plan.questions)} "
+            f"cost=${meta['plan_usage'].get('cost_usd', 0.0):.4f}"
+        )
+        return {
+            "status": "success",
+            "plan": research_plan.plan_as_dicts(plan),
+            "plan_obj": plan,
+            **meta,
+        }
+
     result = _run_pi_agent(ticker, year, quarter, effective_mode)
     brief = result["brief"]
 
     _save_research_brief(ticker, year, quarter, brief)
 
     plan_obj = result.get("plan_obj")
-    if plan_obj is not None:
-        plan_yaml_path = RESEARCH_DIR / f"{ticker}_{quarter}_{year}.research_plan.yaml"
-        plan_md_path = RESEARCH_DIR / f"{ticker}_{quarter}_{year}.research_plan.md"
-        research_plan.save_plan_artifacts(
-            plan_obj, yaml_path=plan_yaml_path, md_path=plan_md_path,
-        )
+    _save_plan_artifacts(ticker, year, quarter, plan_obj)
 
     raw_path = RESEARCH_DIR / f"{ticker}_{quarter}_{year}.research_raw.md"
     raw_content = result.get("raw_content", "")
@@ -528,6 +578,11 @@ def run(
             "year": year,
             "mode": result.get("mode"),
             "pi": result.get("pi_meta", {}),
+            "planner": {
+                "pi": result.get("plan_pi_meta", {}),
+                "usage": result.get("plan_usage", {}),
+                "fallback": result.get("plan_fallback", False),
+            },
             "questions": result.get("questions", []),
             "plan": result.get("plan", {}),
             "tool_trace": result.get("tool_trace", []),
@@ -566,6 +621,8 @@ if __name__ == "__main__":
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--no-search", action="store_true")
     p.add_argument("--research-tool-mode", choices=["pi", "deterministic_fallback"], default=None)
+    p.add_argument("--plan-only", action="store_true",
+                   help="Build and save the research plan, then stop before the search agent.")
     p.add_argument("--force", action="store_true")
     args = p.parse_args()
     print(run(
@@ -574,4 +631,5 @@ if __name__ == "__main__":
         skip_search=args.no_search,
         tool_mode=args.research_tool_mode,
         force=args.force,
+        plan_only=args.plan_only,
     ))

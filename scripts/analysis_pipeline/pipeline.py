@@ -262,6 +262,22 @@ def run_job(
                     tok = res.get("token_usage", {})
                     if tok:
                         db.add_tokens(job_id, tok.get("prompt_tokens", 0), tok.get("completion_tokens", 0))
+                    plan_tok = res.get("plan_usage", {}) or {}
+                    if plan_tok:
+                        db.add_tokens(
+                            job_id,
+                            plan_tok.get("prompt_tokens", 0),
+                            plan_tok.get("completion_tokens", 0),
+                        )
+                    plan_meta = res.get("plan_pi_meta", {}) or {}
+                    db.add_cost(
+                        job_id,
+                        float(plan_tok.get("cost_usd", 0.0) or 0.0)
+                        + float(tok.get("cost_usd", 0.0) or 0.0),
+                    )
+                    if plan_meta.get("model"):
+                        db.set_models(job_id, plan=plan_meta["model"])
+                    db.set_plan_fallback(job_id, res.get("plan_fallback", False))
                 status = res.get("status", "success")
                 mark( "research", "completed" if status != "failed" else "failed",
                      error=res.get("error"))
@@ -286,6 +302,7 @@ def run_job(
                 tok = res.get("usage", {})
                 if tok and not dry_run:
                     db.add_tokens(job_id, tok.get("prompt_tokens", 0), tok.get("completion_tokens", 0))
+                    db.add_cost(job_id, float(tok.get("cost_usd", 0.0) or 0.0))
                 if not dry_run:
                     db.set_models(job_id, write=res.get("model"))
                     db.set_output(job_id, str(_PROJECT_ROOT / "analysis" / f"{ticker} {quarter} {year} Analysis.md"))

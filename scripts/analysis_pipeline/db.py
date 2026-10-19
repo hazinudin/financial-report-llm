@@ -66,8 +66,18 @@ class AnalysisDB:
             )
             """
         )
+        # Additive migrations for databases created before these columns existed.
         self.conn.execute(
             "ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS stage_research VARCHAR DEFAULT 'pending'"
+        )
+        self.conn.execute(
+            "ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS model_plan VARCHAR"
+        )
+        self.conn.execute(
+            "ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS cost_usd DOUBLE DEFAULT 0"
+        )
+        self.conn.execute(
+            "ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS plan_fallback BOOLEAN DEFAULT FALSE"
         )
         return self
 
@@ -105,7 +115,8 @@ class AnalysisDB:
         ).fetchone()
         return row[0] if row else None
 
-    def set_models(self, job_id: str, extract: str | None = None, write: str | None = None):
+    def set_models(self, job_id: str, extract: str | None = None, write: str | None = None,
+                   plan: str | None = None):
         if extract:
             self.conn.execute(
                 "UPDATE analysis_jobs SET model_extract=?, updated_at=now() WHERE job_id=?",
@@ -115,6 +126,11 @@ class AnalysisDB:
             self.conn.execute(
                 "UPDATE analysis_jobs SET model_write=?, updated_at=now() WHERE job_id=?",
                 (write, job_id),
+            )
+        if plan:
+            self.conn.execute(
+                "UPDATE analysis_jobs SET model_plan=?, updated_at=now() WHERE job_id=?",
+                (plan, job_id),
             )
 
     def add_tokens(self, job_id: str, prompt: int = 0, completion: int = 0):
@@ -127,6 +143,23 @@ class AnalysisDB:
              WHERE job_id = ?
             """,
             (prompt, completion, job_id),
+        )
+
+    def add_cost(self, job_id: str, cost_usd: float = 0.0):
+        self.conn.execute(
+            """
+            UPDATE analysis_jobs
+               SET cost_usd = COALESCE(cost_usd, 0) + ?,
+                   updated_at = now()
+             WHERE job_id = ?
+            """,
+            (float(cost_usd or 0.0), job_id),
+        )
+
+    def set_plan_fallback(self, job_id: str, fallback: bool):
+        self.conn.execute(
+            "UPDATE analysis_jobs SET plan_fallback=?, updated_at=now() WHERE job_id=?",
+            (bool(fallback), job_id),
         )
 
     def set_output(self, job_id: str, path: str):
@@ -176,14 +209,17 @@ class AnalysisDB:
         print(
             f"\n{'Ticker':<8} {'Year':<6} {'Qtr':<5} "
             f"{'Pre':<11} {'Extract':<11} {'Merge':<11} {'Context':<11} {'Research':<11} {'Write':<11} {'Redflags':<11} "
-            f"{'Tok(p/c)':<14} {'Output/Error'}"
+            f"{'Tok(p/c)':<14} {'$':<8} {'Plan':<6} {'Output/Error'}"
         )
-        print("-" * 136)
+        print("-" * 156)
         for r in rows:
             d = dict(zip(cols, r))
             tp = d.get("tokens_prompt") or 0
             tc = d.get("tokens_completion") or 0
             tok = f"{tp}/{tc}" if (tp or tc) else "-"
+            cost = d.get("cost_usd") or 0
+            cost_str = f"{cost:.4f}" if cost else "-"
+            plan_cell = "FB" if d.get("plan_fallback") else "ok"
             out = d.get("output_path") or d.get("error") or ""
             print(
                 f"{d.get('ticker',''):<8} {d.get('year',''):<6} {d.get('quarter',''):<5} "
@@ -191,7 +227,7 @@ class AnalysisDB:
                 f"{d.get('stage_merge','?'):<11} {d.get('stage_context','?'):<11} "
                 f"{d.get('stage_research','?'):<11} "
                 f"{d.get('stage_write','?'):<11} {d.get('stage_redflags','?'):<11} "
-                f"{tok:<14} {str(out)[:34]}"
+                f"{tok:<14} {cost_str:<8} {plan_cell:<6} {str(out)[:34]}"
             )
         total = len(rows)
         done = sum(
