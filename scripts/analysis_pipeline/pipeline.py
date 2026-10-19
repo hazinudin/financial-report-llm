@@ -277,7 +277,8 @@ def run_job(
                     )
                     if plan_meta.get("model"):
                         db.set_models(job_id, plan=plan_meta["model"])
-                    db.set_plan_fallback(job_id, res.get("plan_fallback", False))
+                    if "plan_fallback" in res:
+                        db.set_plan_fallback(job_id, res.get("plan_fallback", False))
                 status = res.get("status", "success")
                 mark( "research", "completed" if status != "failed" else "failed",
                      error=res.get("error"))
