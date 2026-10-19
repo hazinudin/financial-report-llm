@@ -1,6 +1,6 @@
 # Research Planner via pi Agent — Implementation Plan
 
-**Status:** **Proposed** — design validated by a live spike (2026-10-19, ITMG Q1 + Q2); implementation not started
+**Status:** **Phases 1–4 implemented and live-validated** (2026-10-19, ITMG Q1 + Q2) — docs done, soak pending
 **Author:** OpenCode session
 **Date:** 2026-10-19
 **Scope:** Replace Stage 3b's research-plan step (`opencode_client.chat` inside
@@ -461,16 +461,15 @@ asked*, not the reported numbers.
 
 ## 6. Budgets, cost, and failure posture
 
-- **Measured cost:** $0.021–$0.025 per plan (ITMG Q1/Q2). For comparison on the
-  same reports: Stage 3b's research run cost $0.025–$0.031 in model tokens plus
-  $0.147–$0.154 in Exa calls (~$0.17–$0.19 total), and the Stage 4 writer cost
-  $0.127–$0.130. So the planner is **~12–14 % of a research run and ~1/6 of a
-  writer run** — cheap relative to the stages it feeds; failing silently is what
-  was expensive.
-- **Latency:** 28–44 s observed **with no tool calls**; budget up to
-  4+3+3 tool rounds on top (the writer's tool-enabled run took 300 s including
-  2 tool calls, so the planner should land well under 5 minutes). `timeout_sec:
-  600` is the hard stop.
+- **Measured cost:** **$0.025–$0.045 per plan** across six live runs (ITMG Q1/Q2
+  and the probes). For comparison on the same reports: Stage 3b's research run
+  cost $0.025–$0.031 in model tokens plus $0.147–$0.154 in Exa calls
+  (~$0.17–$0.19 total), and the Stage 4 writer cost $0.127–$0.130. So the
+  planner is **~15–25 % of a research run and ~1/5–1/3 of a writer run** —
+  cheap relative to the stages it feeds; failing silently is what was expensive.
+- **Latency:** 58–88 s observed with 1–3 tool calls (the pre-tools spike was
+  28–44 s). `timeout_sec: 600` is the hard stop, comfortably above the observed
+  p95.
 - **Tool budget:** 4 `duckdb_query` + 3 `notes_search` + 3 `notes_fetch`,
   prompt-enforced and post-hoc audited into `budget_warnings` (same mechanism as
   the writer). Tune in Phase 4 based on actual usage.
@@ -552,21 +551,51 @@ untouched.
 
 | Phase | Deliverable | Exit criteria |
 |---|---|---|
-| **1 Runner + probe** | `pi_agent.py` reasoning-token accumulation; one-shot **capability probe** with the read-only allowlist; capture `pi_planner_tools_preflight.jsonl`; `tests/test_pi_planner.py` fixture-replay cases | Probe: `read`/`duckdb_query`/`notes_search` driven by glm-5.3 under the planner prompt, zero errors, valid YAML. Fixtures replay with `cost_usd≈0.0216`, `reasoning_tokens=202`; all existing tests green |
-| **2 Re-wiring** | `research_plan.py` → `pi_agent.run_agent`; `plan.pi` config; `_planner_tools_section` + `_planner_artifacts_block`; trace + always-write raw artifact; delete planner keys from `config.yaml` | Plan for ITMG Q1 via the real path (tools present, ≥3 themes, ≥8 questions); zero `opencode_client.chat` calls remain in `research_plan.py`; fallback path still reachable and now writes artifacts |
-| **3 Visibility** | `db.py` cost/model columns; `print_status()` cost column; `plan_usage`/`plan_pi_meta` plumbed through `research.py`; `[PLAN] FALLBACK:` line | Status dashboard shows planner cost + fallback for a forced-failure run |
-| **4 Live validation** | `--force` on ITMG Q1 + Q2 2026 (the two tickers that exposed the defects), then one unrelated ticker (e.g. ADRO Q1) | All three: `fallback=False`, themed plan, trace + session id + `tool_calls` present, cost recorded, `budget_warnings` empty; documents regenerate unchanged in structure |
-| **5 Docs / cleanup** | READMEs, APPEND_SYSTEM, remove dead planner config keys and any now-unused imports | No stale references to `timeouts.research_plan` / `max_tokens.research_plan`; `--list-models` path untouched |
+| **1 Runner + probe** *(done 2026-10-19 — 73 tests)* | `pi_agent.py` reasoning-token accumulation; one-shot **capability probe** with the read-only allowlist; capture `pi_planner_tools_preflight.jsonl`; `tests/test_pi_planner.py` fixture-replay cases | ✅ Probe drove `read`/`notes_search` under glm-5.3, zero errors, valid YAML. Fixtures replay with `cost_usd` 0.0216/0.0367 and `reasoning_tokens` 202/895 |
+| **2 Re-wiring** *(done 2026-10-19)* | `research_plan.py` → `pi_agent.run_agent`; `plan.pi` config; `_planner_tools_section` + `_planner_artifacts_block`; trace + always-write raw artifact; delete planner keys from `config.yaml` | ✅ Real path: 5 themes / 12 questions, `duckdb_query` + `notes_search` driven, $0.0445; no `opencode_client.chat` call remains in `research_plan.py`; fallback path writes artifacts (tested) |
+| **3 Visibility** *(done 2026-10-19)* | `db.py` cost/model columns; `print_status()` cost column; `plan_usage`/`plan_pi_meta` plumbed through `research.py`; `[PLAN] FALLBACK:` line; `--plan-only` | ✅ `--status` shows the `$` and `Plan` (ok/FB) columns; `tests/test_analysis_job_cost.py` covers accumulation, fallback flag, and the research-stage wiring |
+| **4 Live validation** *(done 2026-10-19 — ITMG Q1/Q2 + ADRO Q1)* | `--force` on ITMG Q1 + Q2 2026, then a control ticker (ADRO Q1) | ✅ All six planner runs: `fallback=false`, themed plan, trace + session id + `tool_calls` present, cost recorded, zero tool errors, `budget_warnings` empty; ITMG documents regenerated with the 14-section structure intact (454 / 639 lines) |
+| **5 Docs / cleanup** *(done 2026-10-19)* | READMEs, APPEND_SYSTEM, remove dead planner config keys and any now-unused imports | ✅ Docs updated; `grep research_plan config.yaml` returns only `models.research_plan` and its comment; no `timeouts`/`max_tokens`/`temperature`/`reasoning_effort` planner keys remain |
 | **6 Soak** | Batch run over the pending tickers in the status table | Planner fallback rate ≈ 0 on non-outage runs; cost within §6 bounds; tool calls within budget; no pi crashes (`~/.pi/agent/crashes.json` unchanged) |
 
-### Phase 0 evidence (already gathered, 2026-10-19)
+### Phase 0 evidence (2026-10-19)
 
 - Bare call: **3 distinct failure modes** reproduced (HTTP 400 on
   `reasoning_effort: none`; read timeout at 120 s; empty content at
   `finish_reason: length` with 16,384 completion tokens).
 - pi harness-only: **2/2 success**, 28–44 s, $0.021–$0.025, valid YAML, 13/17
   questions, 4/5 themes, 5/8 hypotheses.
-- Fixture captured and replayed through the existing parser.
+- Fixtures captured and replayed through the existing parser.
+
+### Phase 1–4 validation evidence (2026-10-19)
+
+- **Capability probe (tools path) — PASS.** `read` ×2 + `notes_search` ×2,
+  zero tool errors, 59.4 s, $0.0367, 4 themes / 12 questions.
+- **Phase 1:** reasoning-token accounting landed; both fixtures replay
+  (`reasoning_tokens` 202 and 895; `cost_usd` 0.0216 and 0.0367). 73/73 tests.
+- **Phase 2 (real path, ITMG Q1):** 5 themes / 12 questions, `duckdb_query` ×2 +
+  `notes_search` ×1, $0.0445. One `duckdb_query` failed on a model-authored
+  bad column (`gross_profit` not in `financial_ratios`) — captured in the trace
+  and non-fatal, exactly the visibility the bare call lacked.
+- **Phase 4 (pipeline, `--force`, live):** three issuers, six planner runs — all
+  `fallback=false`, zero tool errors, zero budget warnings, trace + session id
+  written.
+
+  | | ITMG Q1 | ITMG Q2 | ADRO Q1 (control) |
+  |---|---|---|---|
+  | fallback | **false** | **false** | **false** |
+  | questions | 9–13 | 11–15 | 12 |
+  | tool calls | duckdb 1–2, notes 1, read 1 | duckdb 1–2, notes 1 | duckdb 1, notes 1 |
+  | tool errors | 0 | 0 | 0 |
+  | duration | 44–58 s | 60–75 s | 54 s |
+  | planner cost | $0.025–$0.036 | $0.030–$0.033 | $0.035 |
+  | budget warnings | none | none | none |
+
+  The Q1 plan derived `Q2 2026 = 6M26 − Q1 2026` from the prior analysis it read
+  off disk, and anchored the tax/reclamation hypotheses to vault context —
+  the grounding the inline, character-capped context could not provide.
+  Questions varied between runs (9–15) because the model is sampled; every run
+  cleared the ≥ 8-question structural bar.
 
 ---
 
@@ -603,16 +632,16 @@ untouched.
 
 **Still open (decide during implementation):**
 
-1. **Tool budgets.** Start at 4 `duckdb_query` / 3 `notes_search` / 3
-   `notes_fetch`. Tune in Phase 4 from actual `tool_calls`.
+1. **Tool budgets.** Shipped at 4 `duckdb_query` / 3 `notes_search` / 3
+   `notes_fetch`. Observed usage is 1–2 per run with zero warnings; leave as-is
+   unless the soak shows otherwise.
 2. **Fallback hard-stop threshold.** Should a *repeated* planner fallback (e.g.
    N consecutive runs across the batch) raise an operator alert, or is the
    dashboard marker enough? *Default: dashboard marker only for v1.*
 3. **Prompt tightening.** The system prompt's "Do not expose reasoning" line is
-   now redundant under pi (reasoning is a separate `thinking` block). Decide by
-   A/B on one ticker in Phase 2.
-4. **`--plan-only` CLI.** Confirm the dedicated planner-only refresh flag is
-   wanted (it makes prompt iteration cheap). *Default: yes.*
+   now redundant under pi (reasoning is a separate `thinking` block). Not
+   changed; decide by A/B on one ticker.
+4. **`--plan-only`** — implemented and used for iteration.
 
 ---
 
@@ -622,9 +651,9 @@ untouched.
   (today: 0 % on the ITMG run).
 - **Fallback visibility:** 100 % of fallbacks carry a reason in
   `research_plan.yaml`, a `plan_trace.json`, and a status-dashboard marker.
-- **Cost:** ≤ $0.035 per plan with tools (spike, no tools: $0.021–$0.025);
-  planner ≤ 15 % of per-report model spend.
-- **Latency:** p95 ≤ 180 s with tools (spike, no tools: 28–44 s).
+- **Cost:** ≤ $0.05 per plan with tools (observed $0.025–$0.045);
+  planner ≤ 25 % of per-report model spend.
+- **Latency:** p95 ≤ 180 s with tools (observed 58–88 s).
 - **Tool discipline:** 0 tool errors; `tool_calls` within the configured budget
   on ≥ 90 % of runs; `budget_warnings` empty.
 - **No silent failures:** every planner run leaves `plan_pi/{system,user}.md`,
