@@ -1,0 +1,1 @@
+Which of AALI, BWPT, CSRA, DSNG, JARR, LSIP, OILS, PGUN, SGRO, SIMP, SSMS, TAPG have net debt (loans minus cash) above 50% of equity in Q1 2026?

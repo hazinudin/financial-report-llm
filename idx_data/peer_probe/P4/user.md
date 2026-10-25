@@ -1,0 +1,1 @@
+Which of AALI, BWPT, CSRA, DSNG, JARR, LSIP, OILS, PGUN, SGRO, SIMP, SSMS, TAPG had negative operating cash flow in Q1 2026?

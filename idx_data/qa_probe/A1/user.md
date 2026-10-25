@@ -1,0 +1,1 @@
+What were PTBA's related-party coal sales in H1 2026 as a share of consolidated revenue?

@@ -1,0 +1,1 @@
+Which companies in the database have total liabilities exceeding total equity?

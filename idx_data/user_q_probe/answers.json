@@ -1,0 +1,224 @@
+[
+  {
+    "id": "U1",
+    "q": "How much coal was produced by PTBA in Q2 2026?",
+    "answer": "**Not available in the pipeline data.**\n\nWhat I checked:\n- `xlsx_statements` (ticker PTBA, year 2026, period `tw2`) contains only financial-statement line items — four statement sheets (1210000, 1220000, 1311/1312000, 1321/1322000, 1410000, 1510000, 1520000). The only rows matching \"production\" are template rows (e.g. \"Livestock production\", sheet 1210000) with `value_current = NULL`. Physical coal tonnage is **not** a field in this table.\n- `financial_ratios` carries only monetary/ratio fields (revenue, profit, ROE, etc.), no volume.\n- `notes_search` for ticker PTBA returns **no results** — there is no PTBA analysis note in the vault (no `PTBA Q2 2026 Analysis.md`).\n\nWhere it would live: the converted Q2 2026 report at `results/PTBA_Q2_2026.md` (from `raw/PTBA_Q2_2026.pdf`, `converted_documents` convert_id 256, status success). Operational production/volume figures are disclosed in the narrative/MD&A section of that PDF, not in the XBRL financial tables the parser ingests. Answering this would require reading that markdown directly, which isn't exposed through the tools here.",
+    "tools": {
+      "duckdb_query": 6,
+      "notes_search": 3
+    },
+    "cost": 0.0017825639999999997,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, label_en, value_current FROM xlsx_statements WHERE ticker='PTBA' AND year=2026 AND (label_en ILIKE '%production%' OR label_en ILIKE '%coal%' OR label_id ILIKE '%produksi%') LIMIT 50;"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "PTBA coal production volume Q2 2026",
+          "ticker": "PTBA"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT * FROM converted_documents WHERE code='PTBA' OR ticker='PTBA' LIMIT 20;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, count(*) n FROM xlsx_statements WHERE ticker='PTBA' AND year=2026 GROUP BY ALL ORDER BY period, sheet_code;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "DESCRIBE converted_documents;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT * FROM converted_documents WHERE source_pdf ILIKE '%PTBA%' ORDER BY converted_at DESC LIMIT 10;"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "PTBA coal production volume tonnes Q2 2026",
+          "limit": 6
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT * FROM pipeline_jobs WHERE ticker='PTBA' OR job_id ILIKE '%PTBA%' ORDER BY period DESC LIMIT 10;"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "PT Bukit Asam PTBA",
+          "ticker": "PTBA",
+          "limit": 5
+        }
+      }
+    ]
+  },
+  {
+    "id": "U2",
+    "q": "What might cause the significant COGS increase in PTPS Q1 2026?",
+    "answer": "## First, correcting the premise\n\nPTPS's Q1 2026 COGS did **not** rise — it *fell*:\n\n| Item | Q1 2026 | Q1 2025 | YoY |\n|---|---|---|---|\n| Revenue | 10,133,512,105 | 19,615,375,460 | −48.3% |\n| COGS | 7,552,236,971 | 8,454,898,968 | −10.7% |\n| Gross profit | 2,581,275,134 | 11,160,476,492 | −76.9% |\n\nSource: `xlsx_statements`, ticker PTPS, year 2026, period `tw1`, sheet_code `1311000`, rows 6 (sales) and 7 (cost of sales); mirrored in `analysis/PTPS Q1 2026 Analysis.md` §3.1.\n\n**What is actually \"significant\": COGS as a share of revenue**, 43.1% → 74.5%.\n\n**Facts (filings/arithmetic):** COGS fell only 10.7% while revenue halved → operating deleverage. FFB production 3,040 MT for Q1 2026, no prior-year comparable disclosed (`PTPS Q1 2026 §2.2`). Cash-flow \"payments for salaries and allowances\" rose 10.8% to 2,916,515,246 (`1510000`, row 17) — a cost line that did not flex with revenue.\n\n**Hypotheses (not in filings):** fixed plantation/harvesting cost base spread over lower volume; possible mix of lower FFB offtake vs. weaker CPO prices; estate-input cost inflation. The filings disclose no COGS breakdown or segment data, so this cannot be decomposed — it would live in the notes to the financial statements (cost-of-sales note), which the XLSX parser does not capture.",
+    "tools": {
+      "duckdb_query": 2,
+      "notes_search": 2,
+      "notes_fetch": 1
+    },
+    "cost": 0.002471532,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, name, sector, period, sales, ebt, profit, npm, roa, roe FROM financial_ratios WHERE code='PTPS' ORDER BY period DESC LIMIT 8;"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "PTPS COGS increase margin",
+          "limit": 8
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='PTPS' AND year=2026 AND period='tw1' AND (upper(label_en) LIKE '%COST%' OR upper(label_en) LIKE '%REVENUE%' OR upper(label_en) LIKE '%SALES%' OR upper(label_en) LIKE '%PURCHASE%' OR upper(label_en) LIKE '%INVENTOR%' OR upper(label_en) LIKE '%SALAR%' OR upper(label_en) LIKE '%DEPRECI%') ORDER BY sheet_code, row_number;"
+        }
+      },
+      {
+        "tool": "notes_fetch",
+        "args": {
+          "id": "039dc3ee57c0b4dc"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "limit": 6,
+          "query": "PTPS Q1 2026 revenue decline segment drivers plantation cost structure",
+          "ticker": "PTPS"
+        }
+      }
+    ]
+  },
+  {
+    "id": "U3",
+    "q": "What might cause the decrease in net profit for PTPS Q1 2026?",
+    "answer": "**PTPS (PT Pulau Subur Tbk, plantations) — Q1 2026 filings, `xlsx_statements`, sheet 1311000 (income statement), year 2026 period `tw1`, value_current vs value_prior (=Q1 2025 comparative), raw IDR**\n\n**What the filing SHOWS (facts/arithmetic)**\n- Revenue 10.13bn vs 19.62bn (−48%); COGS only fell 0.90bn to 7.55bn → **gross profit 2.58bn vs 11.16bn (−8.58bn)**; margin 25.5% vs 56.9% (rows 6, 7, 8).\n- **Other gains (losses) −1.114bn vs +1.693bn** = −2.81bn swing (row 25) — the single largest non-operating driver.\n- G&A 1.50bn vs 1.75bn (+0.25bn help); associate result −74m vs +1.2m (row 17); net finance slightly better (rows 11, 15).\n- Tax 500m charged despite PBT of only 68m (rows 26–27) → net **−431.5m vs +9,552m** (row 30), EPS −0.2 vs 4.41.\n- Balance sheet: inventories 2.28bn→0.37bn, biological assets 6.46bn→5.34bn (sheet 1210000, rows 42–43).\n\n**Possible EXPLANATIONS (hypotheses, not in filing)**\n- Lower FFB/CPO volume or price and/or seasonal harvest timing; a 2025 one-off gain not repeating; tax from non-deductible costs/deferred tax.\n\nCaveat: `financial_ratios` has no PTPS rows; notes index is locked. Full causes would live in the MD&A of the converted report.",
+    "tools": {
+      "duckdb_query": 13,
+      "notes_search": 1
+    },
+    "cost": 0.004174722,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, name, period, sales, ebt, profit, eps, roa, roe, npm FROM financial_ratios WHERE code='PTPS' ORDER BY period DESC LIMIT 8"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "PTPS net profit decline Q1 2026"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, name, period, sales, ebt, profit, roe, npm FROM financial_ratios WHERE code ILIKE '%PTPS%' OR name ILIKE '%petro%' ORDER BY period DESC LIMIT 10"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT DISTINCT ticker FROM xlsx_statements WHERE ticker ILIKE '%PTPS%' LIMIT 5"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT year, period, sheet_code, count(*) n FROM xlsx_statements WHERE ticker='PTPS' GROUP BY ALL ORDER BY year DESC, period"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT sheet_code, row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='PTPS' AND year=2026 AND period='tw1' AND sheet_code='1520000' ORDER BY row_number",
+          "mode": "csv"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "csv",
+          "sql": "SELECT sheet_code, row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='PTPS' AND year=2026 AND period='tw1' AND sheet_code IN ('1311','1311000','1312','1312000','1321','1321000','1322','1322000') AND value_current IS NOT NULL ORDER BY sheet_code, row_number"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "csv",
+          "sql": "SELECT year, period, sheet_code, count(*) FILTER (WHERE value_current IS NOT NULL) n_notnull, count(*) n FROM xlsx_statements WHERE ticker='PTPS' AND sheet_code IN ('1510000','1520000','1210000','1220000') GROUP BY ALL ORDER BY sheet_code, year, period"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "csv",
+          "sql": "SELECT row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='PTPS' AND year=2026 AND period='tw1' AND sheet_code='1210000' AND value_current IS NOT NULL ORDER BY row_number"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "csv",
+          "sql": "SELECT year, period, row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='PTPS' AND sheet_code='1311000' AND row_number IN (6,8,25,26,27,30) ORDER BY year, period, row_number"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT * FROM company_profiles WHERE ticker='PTPS' OR code='PTPS' LIMIT 3"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "csv",
+          "sql": "SELECT filename, period, year, sheet_count FROM xlsx_meta WHERE ticker='PTPS' ORDER BY year, period"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, name, sector, industry, sub_industry FROM company_profiles WHERE code='PTPS'"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "csv",
+          "sql": "SELECT * FROM xlsx_meta WHERE ticker='PTPS' ORDER BY year"
+        }
+      }
+    ]
+  }
+]

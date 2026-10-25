@@ -1,0 +1,1 @@
+Compare ANJT and AALI. What was each company's revenue in its latest reported period, expressed in IDR billions?

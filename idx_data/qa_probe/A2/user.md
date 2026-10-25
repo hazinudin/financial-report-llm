@@ -1,0 +1,1 @@
+For ITMG in Q2 2026, what is the 1-30 day overdue trade receivables bucket, in USD?

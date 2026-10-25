@@ -1,0 +1,531 @@
+[
+  {
+    "id": "A1",
+    "q": "What were PTBA's related-party coal sales in H1 2026 as a share of consolidated revenue?",
+    "answer": "**No such figure exists in the available data.**\n\n- `xlsx_statements` for PTBA covers only 2026 `tw1` and `tw2` (1,172 rows each). The income-statement sheet (`1311000`) has **no related-party revenue line** — the only related-party items parsed are balance-sheet/summary balances (e.g. trade receivables from related parties, `1210000` row 20; trade payables related parties, row 136).\n- A scan of all sheets for related-party \"sales/revenue\" labels returned zero rows; the notes disclosures (where related-party coal sales are usually itemized) are not in the parsed statements.\n- `financial_ratios` has **0 rows for PTBA** (no periods at all), and `notes_search` has **no PTBA note** in the `analysis/` vault.\n\nFor reference only, consolidated revenue for `tw2` 2026 = **22,027,901** (sheet `1311000`, row 6, `value_current`; prior-year comparative 20,452,391). I cannot compute a related-party share from this — the numerator is not in the database.",
+    "tool_calls": {
+      "duckdb_query": 12,
+      "notes_search": 2
+    },
+    "duration_s": 30.487,
+    "cost_usd": 0.003143262,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, label_id, value_current, value_prior FROM xlsx_statements WHERE ticker='PTBA' AND (label_en ILIKE '%related%' OR label_id ILIKE '%pihak berelasi%' OR label_en ILIKE '%coal%' OR label_en ILIKE '%revenue%') ORDER BY year DESC, period LIMIT 60"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, label_id, value_current, value_prior FROM xlsx_statements WHERE ticker='PTBA' AND year=2026 ORDER BY period, sheet_code, row_number LIMIT 50"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, count(*) n, count(value_current) nn FROM xlsx_statements WHERE ticker='PTBA' GROUP BY 1,2,3 ORDER BY 2,3"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "PTBA related party coal sales revenue H1 2026",
+          "ticker": "PTBA"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT sheet_code,row_number,label_en,value_current,value_prior FROM xlsx_statements WHERE ticker='PTBA' AND year=2026 AND period='tw2' AND (label_en ILIKE '%related part%' AND (label_en ILIKE '%sale%' OR label_en ILIKE '%revenue%'))"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT sheet_code, count(*) n, min(label_en) sample FROM xlsx_statements WHERE ticker='PTBA' AND year=2026 AND period='tw2' GROUP BY 1 ORDER BY 1"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT sheet_code,row_number,label_en,value_current,value_prior FROM xlsx_statements WHERE ticker='PTBA' AND year=2026 AND period='tw2' AND (label_en ILIKE '%related%' AND sheet_code NOT IN ('1210000','1220000','1520000','1510000'))"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT sheet_code, count(*) AS n FROM xlsx_statements WHERE ticker='PTBA' AND year=2026 AND period='tw2' GROUP BY 1 ORDER BY 1"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code,period,sales,profit,npm,roe FROM financial_ratios WHERE code='PTBA' AND period>='2025-06-30' ORDER BY period DESC"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT row_number,label_en,value_current,value_prior FROM xlsx_statements WHERE ticker='PTBA' AND year=2026 AND period='tw2' AND sheet_code='1311000' ORDER BY row_number"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT max(period) mx, count(*) FROM financial_ratios WHERE code='PTBA'"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT DISTINCT label_en, label_id FROM xlsx_statements WHERE ticker='PTBA' AND (label_en ILIKE '%sales to%' OR label_en ILIKE '%sale to%' OR label_id ILIKE '%penjualan kepada%')"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT DISTINCT label_en FROM xlsx_statements WHERE label_en ILIKE '%related part%' AND (sheet_code LIKE '131%' OR sheet_code LIKE '132%' OR sheet_code LIKE '141%')"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "PTBA Bukit Asam related party sales revenue",
+          "limit": 5
+        }
+      }
+    ]
+  },
+  {
+    "id": "A2",
+    "q": "For ITMG in Q2 2026, what is the 1-30 day overdue trade receivables bucket, in USD?",
+    "answer": "**1–30 day overdue trade receivables: US$19,382 thousand** (≈US$19.4m) as at 30 Jun 2026, up from US$284k at 31 Dec 2025.\n\nSource: `analysis/ITMG Q2 2026 Analysis.md`, §4.2 Working Capital Components (derived from the report's receivables aging note; the aging schedule itself is not in `xlsx_statements` — my queries for a 1–30 day/overdue row in ITMG 2026 tw2 returned no rows, so the figure comes from the vault note, not the parsed XLSX tables).\n\nContext from the same note: third-party trade receivables US$130,843k, related-party US$14,853k, impaired US$3,756k, DSO 15.3 days.",
+    "tool_calls": {
+      "duckdb_query": 3,
+      "notes_search": 1,
+      "notes_fetch": 1
+    },
+    "duration_s": 14.025,
+    "cost_usd": 0.002355192,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_id, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='ITMG' AND year=2026 AND period='tw2' AND (lower(label_id) LIKE '%1-30%' OR lower(label_en) LIKE '%1-30%' OR lower(coalesce(label_id,'')) LIKE '%jatuh tempo%' OR lower(coalesce(label_en,'')) LIKE '%overdue%' OR lower(coalesce(label_en,'')) LIKE '%receivable%' OR lower(coalesce(label_id,'')) LIKE '%piutang%') ORDER BY sheet_code, row_number;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT DISTINCT ticker, year, period, sheet_code, count(*) n FROM xlsx_statements WHERE ticker='ITMG' GROUP BY 1,2,3,4 ORDER BY year DESC, period;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT label_id, label_en, value_current FROM xlsx_statements WHERE ticker='ITMG' AND year=2026 AND period='tw2' AND (label_id ILIKE '%30%' OR label_en ILIKE '%30%' OR label_id ILIKE '%hari%' OR label_en ILIKE '%day%') ORDER BY sheet_code, row_number;"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "ITMG trade receivables aging 1-30 days overdue",
+          "ticker": "ITMG"
+        }
+      },
+      {
+        "tool": "notes_fetch",
+        "args": {
+          "id": "0109d4c525d228a9"
+        }
+      }
+    ]
+  },
+  {
+    "id": "A3",
+    "q": "Which two customers accounted for the largest share of ESSA's sales in H1 2026, and what was each share?",
+    "answer": "Source: note `analysis/ESSA Q2 2026 Analysis.md` (§2.3 Revenue Composition, §7.2, §1). The vault states **two customers = 100% of H1 2026 sales (as of 30 Jun 2026)**; the XBRL tables in DuckDB contain no customer-level note breakdown, so percentages are derived from the note's figures:\n\n| Customer | H1 2026 sales (USD) | Share |\n|---|---|---|\n| Genesis Corporation (related party, sole ammonia offtaker) | 166,256,202 | **89.2%** |\n| Second customer — Pertamina entities | residual ≈ 20,219,396 | **≈10.8%** |\n\nArithmetic: 166,256,202 ÷ 186,475,598 (H1 2026 revenue, §1) = 89.2%; residual = 186,475,598 − 166,256,202 = 20,219,396 (10.8%).\n\nNote: the note names PT Pertamina Patra Niaga and PT Pertamina EP jointly as the remaining counterparties but does not split their individual shares.",
+    "tool_calls": {
+      "duckdb_query": 5,
+      "notes_search": 3,
+      "notes_fetch": 1
+    },
+    "duration_s": 34.225,
+    "cost_usd": 0.0031009259999999995,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current FROM xlsx_statements WHERE ticker='ESSA' AND (LOWER(label_en) LIKE '%customer%' OR LOWER(label_id) LIKE '%pelanggan%') ORDER BY year DESC, period DESC LIMIT 50;"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "ESSA customer concentration largest customers share of sales",
+          "ticker": "ESSA"
+        }
+      },
+      {
+        "tool": "notes_fetch",
+        "args": {
+          "id": "e28fb52e0c78af88"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "ticker": "ESSA",
+          "query": "Genesis Corporation percentage of sales H1 2026 Pertamina Patra Niaga share revenue",
+          "limit": 10
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current FROM xlsx_statements WHERE ticker='ESSA' AND year=2026 AND period='tw2' AND (LOWER(label_en) LIKE '%sale%' OR LOWER(label_en) LIKE '%revenue%') ORDER BY sheet_code, row_number LIMIT 40;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current FROM xlsx_statements WHERE ticker='ESSA' AND (LOWER(label_en) LIKE '%genesis%' OR LOWER(label_en) LIKE '%pertamina%') ORDER BY year DESC, period DESC LIMIT 40;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT year, period, COUNT(*) n FROM xlsx_statements WHERE ticker='ESSA' GROUP BY 1,2 ORDER BY 1 DESC,2;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current FROM xlsx_statements WHERE ticker='ESSA' AND year=2026 AND period='tw1' AND (LOWER(label_en) LIKE '%sale%' OR LOWER(label_en) LIKE '%revenue%') ORDER BY sheet_code, row_number LIMIT 40;"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "ESSA ammonia sales Genesis Corporation 166,256,202 LPG domestic sales Pertamina share of total",
+          "ticker": "ESSA",
+          "limit": 10
+        }
+      }
+    ]
+  },
+  {
+    "id": "B1",
+    "q": "Compare PTBA's operating cash flow and net profit for Q1 2026. Did cash conversion improve or deteriorate, and by how much?",
+    "answer": "**PTBA — Q1 2026 (tw1) cash conversion**\n\nSource: `xlsx_statements`, PTBA, period `tw1`, year 2026 — P&L sheet `1311000`, cash-flow sheet `1510000` (value_current = Q1 2026; value_prior = Q1 2025). Raw IDR.\n\n| IDR mn | Q1 2026 | Q1 2025 |\n|---|---|---|\n| Net cash from operating activities | 2,060,004 | 1,212,816 |\n| Total profit (net profit) | 806,110 | 396,770 |\n| OCF / net profit | **2.56x** | **3.06x** |\n\nArithmetic: 2,060,004 ÷ 806,110 = 2.56x; 1,212,816 ÷ 396,770 = 3.06x. Change = −0.50x (−16.4%).\n\n**Cash conversion deteriorated** even though OCF rose IDR 847,188 mn (+69.9%) — net profit rose faster, +IDR 409,340 mn (+103.2%), on gross margin recovery (gross profit 1,543,782 vs 1,047,189) and a tax refund inflow (+359,336 vs −71,848) plus lower supplier payments (6,395,437 vs 8,526,224). Note \"Cash generated from operations\" was only 1,671,080 (vs 1,236,834).",
+    "tool_calls": {
+      "duckdb_query": 2
+    },
+    "duration_s": 13.751,
+    "cost_usd": 0.009087887999999999,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT DISTINCT ticker, year, period, sheet_code FROM xlsx_statements WHERE ticker='PTBA' ORDER BY year DESC, period LIMIT 60",
+          "mode": "markdown"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT year, period, sheet_code, label_en, label_id, value_current, value_prior FROM xlsx_statements WHERE ticker='PTBA' AND year=2026 AND period='tw1' ORDER BY sheet_code, row_number",
+          "mode": "markdown"
+        }
+      }
+    ]
+  },
+  {
+    "id": "B2",
+    "q": "For ITMG H1 2026, is the reported effective tax rate positive or negative, and what is the arithmetic behind it?",
+    "answer": "**ITMG H1 2026 (period `tw2`) — effective tax rate is POSITIVE (a tax expense, ~31.0%).**\n\nSource: `xlsx_statements`, ticker ITMG, year 2026, period `tw2`, sheet 1311000 (income statement):\n\n| Line (1311000) | row | H1 2026 | H1 2025 |\n|---|---|---|---|\n| Total profit (loss) before tax | 26 | 158,711 | 137,383 |\n| Tax benefit (expenses) | 27 | −49,197 | −43,390 |\n\nArithmetic: ETR = 49,197 ÷ 158,711 = **31.0%** (H1 2025: 43,390 ÷ 137,383 = 31.6%).\n\nNo negative/odd ETR here — EBT is positive and the tax line is a normal expense. Cross-check on `tw1` 2026 (sheet 1311000): 26,151 ÷ 81,860 = 31.9%.\n\nNote: `financial_ratios` has **no ITMG rows**, so no stored ETR/ROE; figures above are raw from `xlsx_statements` (values as reported in that table's units).",
+    "tool_calls": {
+      "duckdb_query": 2
+    },
+    "duration_s": 8.355,
+    "cost_usd": 0.002244222,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, period, sales, ebt, profit, roe, npm FROM financial_ratios WHERE code='ITMG' ORDER BY period DESC LIMIT 8;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='ITMG' AND year=2026 AND (lower(label_en) LIKE '%tax%' OR lower(label_en) LIKE '%profit before%' OR lower(label_en) LIKE '%net profit%' OR lower(label_en) LIKE '%net income%') ORDER BY period, sheet_code, row_number;"
+        }
+      }
+    ]
+  },
+  {
+    "id": "C1",
+    "q": "Across every company in the database, which had gross margin expand by more than 300bps year-over-year in Q2 2026?",
+    "answer": "**Six companies** cleared +300bps YoY in Q2 2026 (`xlsx_statements`, `period='tw2'`, `year=2026`; gross margin = row 8 ÷ row 6):\n\n| Ticker | GM Q2 2026 | GM prior-yr | Δ (bps) |\n|---|---:|---:|---:|\n| ADRO | 42.30% | 33.14% | **+916** |\n| BEST | 64.51% | 56.02% | **+849** |\n| PTBA | 19.28% | 10.99% | **+829** |\n| ADMR | 47.58% | 40.59% | **+700** |\n| ARCI | 45.30% | 40.40% | **+491** |\n| DKFT | 55.85% | 51.00% | **+485** |\n\nExample: ADRO gross profit 422,684 / sales 999,242 = 42.30%; prior 284,270 / 857,690 = 33.14%; difference 9.16pp = 916bps.\n\nNot qualifying: MEDC (+218), ITMG (+119), MAPA (+18), MSTI (−19), PTPS (−814), MHKI (−1,265). BBCA (bank) and ISAT (no gross-profit/COGS line) have no comparable gross margin in this table.",
+    "tool_calls": {
+      "duckdb_query": 13
+    },
+    "duration_s": 31.959,
+    "cost_usd": 0.005064768,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT DISTINCT sheet_code, count(*) n FROM xlsx_statements GROUP BY 1 ORDER BY 2 DESC;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT period, year, count(DISTINCT ticker) FROM xlsx_statements GROUP BY 1,2 ORDER BY 2,1;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, count(*) n, min(row_number), max(row_number) FROM xlsx_statements WHERE year=2026 AND period='tw2' GROUP BY ticker ORDER BY ticker;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, label_id, label_en, value_current, value_prior FROM xlsx_statements WHERE year=2026 AND period='tw2' AND sheet_code='1210000' AND (lower(label_en) LIKE '%gross%' OR lower(label_en) LIKE '%sales%' OR lower(label_en) LIKE '%revenue%' OR lower(label_id) LIKE '%laba kotor%' OR lower(label_id) LIKE '%penjualan%' OR lower(label_id) LIKE '%pendapatan%') ORDER BY ticker, row_number LIMIT 80;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT row_number, label_id, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='BBCA' AND year=2026 AND period='tw2' AND sheet_code='1210000' ORDER BY row_number LIMIT 60;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, sheet_code, count(*) n FROM xlsx_statements WHERE year=2026 AND period='tw2' GROUP BY 1,2 ORDER BY 1,2;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT row_number, label_id, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='ADRO' AND year=2026 AND period='tw2' AND sheet_code='1210000' AND (value_current IS NOT NULL OR value_prior IS NOT NULL) ORDER BY row_number;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT row_number, label_id, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='ADRO' AND year=2026 AND period='tw2' AND sheet_code='1220000' AND (value_current IS NOT NULL OR value_prior IS NOT NULL) ORDER BY row_number LIMIT 80;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, sheet_code, count(*) FILTER (WHERE value_current IS NOT NULL OR value_prior IS NOT NULL) vals FROM xlsx_statements WHERE year=2026 AND period='tw2' GROUP BY 1,2 ORDER BY ticker, sheet_code;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT row_number, label_id, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='ADRO' AND year=2026 AND period='tw2' AND sheet_code='1311000' AND (value_current IS NOT NULL OR value_prior IS NOT NULL) ORDER BY row_number;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT sheet_code, row_number, label_id, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='ADRO' AND year=2026 AND period='tw2' AND (value_current IS NOT NULL OR value_prior IS NOT NULL) ORDER BY sheet_code, row_number;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, sheet_code, row_number, label_id, label_en, value_current, value_prior FROM xlsx_statements WHERE year=2026 AND period='tw2' AND (value_current IS NOT NULL OR value_prior IS NOT NULL) AND (lower(label_en) LIKE '%gross profit%' OR lower(label_en) LIKE '%cost of sales%' OR lower(label_en) LIKE '%sales and revenue%' OR lower(label_en) LIKE '%revenue%' OR lower(label_id) LIKE '%laba bruto%' OR lower(label_id) LIKE '%beban pokok%' OR lower(label_id) LIKE '%penjualan dan pendapatan%') ORDER BY ticker, sheet_code, row_number;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "WITH gp AS (\nSELECT ticker, sheet_code,\n max(CASE WHEN row_number=6 THEN value_current END) rev_c,\n max(CASE WHEN row_number=6 THEN value_prior END) rev_p,\n max(CASE WHEN row_number=8 THEN value_current END) gp_c,\n max(CASE WHEN row_number=8 THEN value_prior END) gp_p\nFROM xlsx_statements WHERE year=2026 AND period='tw2' GROUP BY ticker, sheet_code\n)\nSELECT ticker, round(100.0*gp_c/rev_c,2) gm_c, round(100.0*gp_p/rev_p,2) gm_p,\n round(10000.0*(gp_c/rev_c - gp_p/rev_p),0) delta_bps\nFROM gp WHERE gp_c IS NOT NULL AND rev_c IS NOT NULL AND gp_p IS NOT NULL AND rev_p IS NOT NULL\nORDER BY delta_bps DESC;"
+        }
+      }
+    ]
+  },
+  {
+    "id": "C2",
+    "q": "Which companies in the database have total liabilities exceeding total equity?",
+    "answer": "**Yes — 12 of 27 companies** in `financial_ratios` (latest available period per company) have total liabilities > total equity (values in billions IDR):\n\n| Code | Name | Period | Liabilities | Equity | L/E |\n|---|---|---|---|---|---|\n| AIMS | Artha Mahiya Investama | 2025-10-22 | 4.21 | 0.17 | 24.76 |\n| ARII | Atlas Resources | 2025-07-31 | 8,501.99 | 1,204.80 | 7.06 |\n| CBRE | Cakra Buana Resources Energi | 2025-11-04 | 262.22 | 82.88 | 3.16 |\n| APEX | Apexindo Pratama Duta | 2025-10-31 | 2,943.46 | 1,110.57 | 2.65 |\n| CUAN | Petrindo Jaya Kreasi | 2024-03-31 | 12,948.84 | 5,196.22 | 2.49 |\n| BIPI | Astrindo Nusantara Infrastruktur | 2025-10-31 | 17,526.55 | 9,816.71 | 1.79 |\n| ABMM | ABM Investama | 2025-07-31 | 20,260.60 | 14,442.43 | 1.40 |\n| AKRA | AKR Corporindo | 2025-10-23 | 19,161.37 | 14,562.90 | 1.32 |\n| CANI | Capitol Nusantara Indonesia | 2025-03-31 | 704.38 | −543.20 | deficit |\n| CNKO | Exploitasi Energi Indonesia | 2025-10-29 | 2,145.42 | −1,111.45 | deficit |\n| ARTI | Ratu Prabu Energi | 2025-10-31 | 747.78 | −213.13 | deficit |\n| BOSS | Borneo Olah Sarana Sukses | 2023-11-06 | 797.31 | −166.74 | deficit |\n\nSource: `financial_ratios` (liabilities, equity; billions IDR), filtered `liabilities > equity`. L/E computed as liabilities ÷ equity. Last four have negative equity.",
+    "tool_calls": {
+      "duckdb_query": 2
+    },
+    "duration_s": 8.644,
+    "cost_usd": 0.0006092879999999999,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT COUNT(DISTINCT code) AS companies, MIN(period) AS min_p, MAX(period) AS max_p, COUNT(*) AS rows FROM financial_ratios;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, name, period, liabilities, equity, ROUND(liabilities/equity,2) AS liab_to_equity FROM financial_ratios fr WHERE period = (SELECT MAX(period) FROM financial_ratios f2 WHERE f2.code=fr.code) AND liabilities > equity ORDER BY liab_to_equity DESC;"
+        }
+      }
+    ]
+  },
+  {
+    "id": "D1",
+    "q": "What was ITMG's single-quarter revenue for Q2 2026 alone, in USD?",
+    "answer": "**ITMG Q2 2026 single-quarter revenue: ≈ USD 502.9 million** (derived, not directly reported).\n\n| Item | Value (USD '000) | Source |\n|---|---|---|\n| H1 2026 revenue (\"Sales and revenue\", row 6) | 1,000,491 | `xlsx_statements`, ticker ITMG, sheet 1311000, period `tw2`, year 2026, `value_current` |\n| Q1 2026 same line | 497,577 | same table, period `tw1`, 2026 |\n| **Q2 2026 alone** | **502,914** | 1,000,491 − 497,577 |\n\nUnits: `xlsx_meta` for ITMG 2026 tw2 shows currency \"Dollar Amerika / USD\" and rounding \"Ribuan / In Thousand\", so 502,914 thousand = ~USD 502.9m.\n\nCaveat: IDX filings are cumulative year-to-date, so Q2 has no standalone reported figure — the number above is my subtraction of the two cumulative periods. Note `financial_ratios` contains no ITMG rows, so this comes solely from `xlsx_statements`.",
+    "tool_calls": {
+      "duckdb_query": 11
+    },
+    "duration_s": 21.423,
+    "cost_usd": 0.001654968,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, name, period, sales, ebt, profit FROM financial_ratios WHERE code='ITMG' ORDER BY period DESC LIMIT 12"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, label_id, label_en, value_current FROM xlsx_statements WHERE ticker='ITMG' AND sheet_code ILIKE '%income%' AND (label_en ILIKE '%revenue%' OR label_en ILIKE '%sales%') ORDER BY year DESC, period LIMIT 40"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT DISTINCT code FROM financial_ratios LIMIT 50"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT DISTINCT ticker FROM xlsx_statements LIMIT 50"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT year, period, sheet_code, count(*) n FROM xlsx_statements WHERE ticker='ITMG' GROUP BY 1,2,3 ORDER BY 1 DESC,2,3"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT DISTINCT label_en, label_id FROM xlsx_statements WHERE ticker='ITMG' AND label_id ILIKE '%pendapatan%' LIMIT 20"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT year, period, row_number, label_id, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='ITMG' AND sheet_code='1210000' AND year=2026 AND (label_en ILIKE '%revenue%' OR label_en ILIKE '%sales%') ORDER BY period, row_number"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT * FROM xlsx_meta WHERE ticker='ITMG' LIMIT 10"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT sheet_code, row_number, label_id, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='ITMG' AND year=2026 AND period='tw2' AND label_en ILIKE '%revenue%' AND value_current IS NOT NULL ORDER BY sheet_code, row_number"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT DISTINCT sheet_code, label_id, label_en FROM xlsx_statements WHERE ticker='ITMG' AND year=2026 AND period='tw2' AND label_id ILIKE 'Pendapatan%' AND value_current IS NOT NULL LIMIT 30"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT year, period, row_number, label_en, value_current FROM xlsx_statements WHERE ticker='ITMG' AND sheet_code='1311000' AND row_number=6 AND year IN (2025,2026) ORDER BY year, period"
+        }
+      }
+    ]
+  },
+  {
+    "id": "E1",
+    "q": "What did DKFT report as revenue in Q1 2026?",
+    "answer": "**DKFT — Q1 2026 revenue: Rp 506,014,505,076 (≈ Rp 506.0 bn)**\n\nSource: `xlsx_statements`, ticker DKFT, year 2026, period `tw1`, sheet_code `1311000` (income statement), row 6 \"Sales and revenue\", value_current.\n\n- Prior-year comparative (value_prior, i.e. Q1 2025): Rp 420,967,646,133 → YoY growth = (506.01 − 420.97) / 420.97 = **+20.2%**\n- Cost of sales and revenue (same sheet, row 7): Rp 174,670,963,271 → gross margin = (506.01 − 174.67)/506.01 = 65.5% (computed)\n\nNote: `financial_ratios` has **no rows for DKFT**, so the figure above is from the XLSX statement table only (raw IDR, not the billions-of-IDR ratio table).",
+    "tool_calls": {
+      "duckdb_query": 4
+    },
+    "duration_s": 10.989,
+    "cost_usd": 0.001004442,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, name, period, sales, profit, equity FROM financial_ratios WHERE code='DKFT' ORDER BY period DESC LIMIT 12;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, label_en, value_current FROM xlsx_statements WHERE ticker='DKFT' AND year=2026 ORDER BY sheet_code, row_number LIMIT 60;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='DKFT' AND year=2026 AND period='tw1' AND sheet_code <> '1210000' AND (label_en ILIKE '%revenue%' OR label_en ILIKE '%sales%') ORDER BY sheet_code, row_number;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT DISTINCT sheet_code, count(*) n FROM xlsx_statements WHERE ticker='DKFT' AND year=2026 GROUP BY 1 ORDER BY 1;"
+        }
+      }
+    ]
+  },
+  {
+    "id": "F1",
+    "q": "What was BBCA's net interest income in Q2 2026?",
+    "answer": "BBCA does not appear in `financial_ratios` (no rows returned), so the figures below come from `xlsx_statements` (sheet 4322000, BBCA, year 2026). Values are as stored in the table (millions of IDR).\n\n| Period | Interest income | Interest expenses | Net interest income |\n|---|---|---|---|\n| tw1 2026 | 24,592,248 | 3,483,815 | 21,108,433 |\n| tw2 2026 (YTD) | 49,765,390 | 7,252,822 | **42,512,568** |\n\nArithmetic:\n- tw1 NII = 24,592,248 − 3,483,815 = 21,108,433\n- tw2 YTD NII = 49,765,390 − 7,252,822 = 42,512,568\n- Q2 standalone = 42,512,568 − 21,108,433 = 21,404,135\n\nSheets 4312000 (consolidated?) show the same rows as NULL. So: NII was ~Rp42.51tn for H1 2026 (YTD), of which ~Rp21.40tn in Q2 alone. Note BBCA's tw2 filing has not been verified for consolidation scope beyond the sheet above.",
+    "tool_calls": {
+      "duckdb_query": 2
+    },
+    "duration_s": 9.178,
+    "cost_usd": 0.0005150879999999999,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, name, period, sales, ebt, profit FROM financial_ratios WHERE code='BBCA' ORDER BY period DESC LIMIT 6"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current FROM xlsx_statements WHERE ticker='BBCA' AND year=2026 AND (lower(label_en) LIKE '%interest income%' OR lower(label_en) LIKE '%interest expense%' OR lower(label_en) LIKE '%net interest%') ORDER BY sheet_code, row_number LIMIT 40"
+        }
+      }
+    ]
+  }
+]

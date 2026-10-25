@@ -1,0 +1,1 @@
+For AALI, BWPT, CSRA, DSNG, JARR, LSIP, OILS, PGUN, SGRO, SIMP, SSMS, TAPG: which had the highest year-over-year revenue growth in Q1 2026 vs Q1 2025? Give growth % and raw revenue.

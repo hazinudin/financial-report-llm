@@ -1,0 +1,379 @@
+[
+  {
+    "id": "P1",
+    "q": "Rank these palm-oil companies by Q1 2026 gross margin, highest to lowest: AALI, BWPT, CSRA, DSNG, JARR, LSIP, OILS, PGUN, SGRO, SIMP, SSMS, TAPG. State each company's reporting unit and prove the margins are comparable.",
+    "answer": "**Gross margin Q1 2026 (period 2026-01-01→2026-03-31), all 12 companies have data — none excluded.**\n\n| # | Ticker | Reported unit (`xlsx_meta.rounding`) | Sales (IDR bn) | Gross profit (IDR bn) | GM % |\n|---|--------|--------------------------------------|---------------:|----------------------:|-----:|\n| 1 | PGUN | Full amount | 166.5 | 79.0 | **47.44** |\n| 2 | SSMS | Thousands | 3,518.8 | 1,268.4 | **36.04** |\n| 3 | TAPG | Millions | 2,492.2 | 856.2 | **34.35** |\n| 4 | LSIP | Millions | 1,326.9 | 424.7 | **32.00** |\n| 5 | DSNG | Millions | 2,886.4 | 809.5 | **28.05** |\n| 6 | BWPT | Millions | 1,377.6 | 376.2 | **27.31** |\n| 7 | SIMP | Millions | 4,869.4 | 1,093.3 | **22.45** |\n| 8 | CSRA | Full amount | 541.3 | 113.3 | **20.94** |\n| 9 | JARR | Full amount | 776.5 | 142.8 | **18.39** |\n| 10 | SGRO | Millions | 1,256.5 | 214.2 | **17.05** |\n| 11 | AALI | Millions | 7,501.8 | 1,162.5 | **15.50** |\n| 12 | OILS | Full amount | 299.9 | 14.5 | **4.85** |\n\n**Normalisation & comparability proof**\n- Source: `xlsx_statements` rows 6 (Sales and revenue) and 8 (Total gross profit, reported — not derived), sheet 1311000 or 1321000 (whichever populated), `year=2026, period='tw1'`.\n- Units restated to IDR bn: Millions ÷1,000; Thousands ÷1,000,000; Full ÷1,000,000,000. Currency is IDR for all 12.\n- Scale check: Q1 2026 sales ≈19–29% of FY2025 audit sales for every name (e.g. AALI 7,502/28,655; SSMS 3,519/14,813), confirming unit parsing.\n- Margin is a ratio within each statement, so it is invariant to the unit transformation; all are unaudited Q1 2026 filings (`xlsx_meta.audit_status`).",
+    "tools": {
+      "duckdb_query": 10
+    },
+    "cost": 0.005706438,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, name, sector, period, sales, ebt, profit FROM financial_ratios WHERE code IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') AND period >= '2026-01-01' ORDER BY code, period"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, count(*) n FROM xlsx_statements WHERE ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') GROUP BY 1,2,3 ORDER BY ticker, year DESC, period"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT sheet_code, row_number, label_en, label_id FROM xlsx_statements WHERE ticker='AALI' AND year=2026 AND period='tw1' AND (lower(coalesce(label_en,'')) LIKE '%gross%' OR lower(coalesce(label_en,'')) LIKE '%revenue%' OR lower(coalesce(label_en,'')) LIKE '%sales%' OR lower(coalesce(label_id,'')) LIKE '%laba bruto%' OR lower(coalesce(label_id,'')) LIKE '%pendapatan%') ORDER BY sheet_code, row_number"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, sheet_code, row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE year=2026 AND period='tw1' AND ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') AND sheet_code IN ('1311000','1321000') AND row_number IN (6,7,8) ORDER BY ticker, sheet_code, row_number"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT * FROM xlsx_meta WHERE ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') LIMIT 30"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, currency, rounding, period_start, period_end, prior_period_start, prior_period_end, audit_status, consolidation_type FROM xlsx_meta WHERE year=2026 AND period='tw1' AND ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') ORDER BY ticker"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, rounding, currency FROM xlsx_meta WHERE ticker IN ('OILS','PGUN','SGRO','SIMP','SSMS','TAPG') ORDER BY ticker, year DESC, period"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, period, sales, ebt, profit, roe FROM financial_ratios WHERE code IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') AND period IN ('2025-03-31','2025-12-31') ORDER BY code, period"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT count(*) n, min(period) mn, max(period) mx FROM financial_ratios"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, value_current FROM xlsx_statements WHERE year=2025 AND period='audit' AND sheet_code IN ('1311000','1321000') AND row_number=6 AND ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') AND value_current IS NOT NULL ORDER BY ticker"
+        }
+      }
+    ]
+  },
+  {
+    "id": "P2",
+    "q": "For AALI, BWPT, CSRA, DSNG, JARR, LSIP, OILS, PGUN, SGRO, SIMP, SSMS, TAPG: which had the highest year-over-year revenue growth in Q1 2026 vs Q1 2025? Give growth % and raw revenue.",
+    "answer": "**Highest Q1 2026 YoY revenue growth: CSRA (+96.6%).**\n\nSource: `xlsx_statements`, label_en = 'Sales and revenue' (income-statement sheet 1311000, or sharia 1321000 where used), `period='tw1'`. Q1 2026 = `value_current` (year 2026); Q1 2025 = `value_prior` of the 2026 report (restated basis).\n\n**Unit normalisation:** statement scale differs by filer — AALI/BWPT/DSNG/LSIP/SGRO/SIMP/TAPG report in **millions IDR**, CSRA/JARR/OILS/PGUN/SSMS in **raw IDR**. All converted to **IDR billions** (÷1e6 or ÷1e9). Verified against `Total assets` (row 128, sheet 1210000): AALI 27,893,355 (mn) vs CSRA 2,643,369,306,917 (raw).\n\n| # | Ticker | Sheet | Q1 2026 (Rp bn) | Q1 2025 (Rp bn) | YoY |\n|---|--------|-------|-----:|-----:|-----:|\n| 1 | CSRA | 1311000 | 541.32 | 275.39 | **+96.6%** |\n| 2 | OILS | 1311000 | 299.92 | 201.79 | +48.6% |\n| 3 | DSNG | 1311000 | 2,886.35 | 2,678.81 | +7.7% |\n| 4 | BWPT | 1311000 | 1,377.61 | 1,279.61 | +7.7% |\n| 5 | AALI | 1321000 | 7,503.81 | 7,023.96 | +6.8% |\n| 6 | LSIP | 1311000 | 1,326.93 | 1,289.64 | +2.9% |\n| 7 | SIMP | 1311000 | 4,869.36 | 4,817.34 | +1.1% |\n| 8 | SSMS | 1311000 | 3,518.84 | 3,593.83 | −2.1% |\n| 9 | TAPG | 1321000 | 2,492.20 | 2,620.06 | −4.9% |\n| 10 | PGUN | 1311000 | 166.54 | 175.69 | −5.2% |\n| 11 | JARR | 1311000 | 776.51 | 849.09 | −8.6% |\n| 12 | SGRO | 1311000 | 1,256.53 | 1,633.34 | −23.1% |\n\nNote: SGRO's 2026 filing restates Q1 2025 as 1,633.34 (vs 1,677.32 in the 2025 filing); on un-restated basis growth is −25.1%. All 12 tickers had data; none excluded.",
+    "tools": {
+      "duckdb_query": 11
+    },
+    "cost": 0.0035442480000000007,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, period, sales, profit, roe, name FROM financial_ratios WHERE code IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') AND period >= '2024-09-01' ORDER BY code, period DESC;",
+          "mode": "markdown"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, period, count(*) n, min(year) miny, max(year) maxy FROM xlsx_statements WHERE ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') GROUP BY 1,2 ORDER BY 1,3 DESC;",
+          "mode": "markdown"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "markdown",
+          "sql": "SELECT max(period), min(period), count(*) FROM financial_ratios;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "markdown",
+          "sql": "SELECT DISTINCT sheet_code, row_number, label_en, label_id FROM xlsx_statements WHERE ticker='AALI' AND period='tw1' AND year=2026 AND (lower(label_en) LIKE '%revenue%' OR lower(label_en) LIKE '%sales%' OR lower(label_id) LIKE '%pendapatan%') ORDER BY sheet_code, row_number LIMIT 40;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "table",
+          "sql": "SELECT ticker, year, sheet_code, row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='AALI' AND period='tw1' AND sheet_code IN ('1311000','1312000') AND row_number<=8 ORDER BY sheet_code, year, row_number;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "table",
+          "sql": "SELECT sheet_code, count(DISTINCT ticker) t, count(*) n FROM xlsx_statements WHERE period='tw1' AND row_number=6 GROUP BY 1;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "table",
+          "sql": "SELECT ticker, year, sheet_code, row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE period='tw1' AND sheet_code='1322000' AND row_number BETWEEN 1 AND 8 AND ticker IN ('AALI','TAPG') ORDER BY ticker, year, row_number;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "table",
+          "sql": "SELECT year, sheet_code, count(*) n, count(value_current) cur, count(value_prior) pri FROM xlsx_statements WHERE period='tw1' AND ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') GROUP BY 1,2 ORDER BY 1,2;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "table",
+          "sql": "SELECT ticker, year, sheet_code, row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE period='tw1' AND year IN (2025,2026) AND (lower(label_en)='sales and revenue') AND value_current IS NOT NULL AND ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') ORDER BY ticker, year;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "table",
+          "sql": "SELECT ticker, sheet_code, row_number, label_en, value_current FROM xlsx_statements WHERE period='tw1' AND year=2026 AND sheet_code='1210000' AND row_number IN (1,2,3,4,5) AND ticker IN ('AALI','CSRA','SSMS','JARR') ORDER BY ticker, row_number;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "mode": "table",
+          "sql": "SELECT ticker, row_number, label_en, value_current FROM xlsx_statements WHERE period='tw1' AND year=2026 AND sheet_code='1210000' AND ticker IN ('AALI','CSRA') AND (lower(label_en) LIKE '%total assets%') ORDER BY ticker, row_number;"
+        }
+      }
+    ]
+  },
+  {
+    "id": "P3",
+    "q": "Compare ANJT and AALI. What was each company's revenue in its latest reported period, expressed in IDR billions?",
+    "answer": "**Revenue, latest reported period**\n\n| Ticker | Period end | Revenue (reported) | Revenue (IDR bn) | Source |\n|---|---|---:|---:|---|\n| AALI | 2026‑03‑31 (tw1) | 7,501,811 IDR mn | **7,501.8** | `xlsx_statements` AALI/2026/tw1 · sheet 1321000 · row 6 · `value_current` |\n| ANJT | 2025‑09‑30 (tw3) | US$187,789,976 | **n/a — not converted** | `xlsx_statements` ANJT/2025/tw3 · sheet 1311000 · row 6 · `value_current` |\n\n**Normalisation:** AALI files in IDR millions (`xlsx_meta.rounding = \"Jutaan / In Million\"`, period_end 2026‑03‑31), so 7,501,811 mn ÷ 1,000 = **Rp 7,501.8 bn** (9M‑25 AALI: 22,118,716 mn → Rp 22,118.7 bn; FY25 audit: 28,654,648 mn → Rp 28,654.6 bn).\n\n**ANJT caveat:** ANJT reports in **USD, full amount** (`xlsx_meta`: currency \"Dollar Amerika / USD\", rounding \"Satuan Penuh / Full Amount\", period_end 2025‑09‑30). Its 9M‑25 revenue is **US$187.79 m** (9M‑24: US$168.42 m, +11.5%). No USD/IDR rate is stored in `pipeline.duckdb`, and no ANJT note in the vault supplies one, so I have **not** converted it to IDR — doing so would require an FX assumption not traceable to a table. At an illustrative Rp16,500/US$ it would be ≈Rp3,098 bn, but that rate is not sourced here.\n\n**Additional notes:** `financial_ratios` contains **no rows** for ANJT or AALI, so all figures come from `xlsx_statements` (raw reported units). ANJT's latest available period is tw3‑2025 (no FY25 audit or 2026 filings); AALI's is tw1‑2026. The periods are therefore not like‑for‑like.",
+    "tools": {
+      "duckdb_query": 13,
+      "notes_search": 3
+    },
+    "cost": 0.004261992,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, name, sector, period, sales, profit, roe, npm, assets, equity FROM financial_ratios WHERE code IN ('ANJT','AALI') ORDER BY code, period DESC"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, max(row_number) FROM xlsx_statements WHERE ticker IN ('ANJT','AALI') GROUP BY 1,2,3 ORDER BY ticker, year DESC"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current FROM xlsx_statements WHERE ticker IN ('ANJT','AALI') AND (lower(label_en) LIKE '%revenue%' OR lower(label_en) LIKE '%sales%') AND year=(SELECT max(year) FROM xlsx_statements s2 WHERE s2.ticker=xlsx_statements.ticker AND s2.period=xlsx_statements.period) ORDER BY ticker, year DESC, period, sheet_code, row_number LIMIT 50"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current FROM xlsx_statements WHERE ticker='ANJT' AND (lower(label_en) LIKE '%revenue%' OR lower(label_en) LIKE '%sales%' OR lower(label_en) LIKE '%pendapatan%') AND value_current IS NOT NULL ORDER BY year DESC, period, sheet_code, row_number LIMIT 30"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker IN ('ANJT','AALI') AND sheet_code='1321000' AND row_number IN (6,7) ORDER BY ticker, year DESC, period"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, label_en, value_current FROM xlsx_statements WHERE ticker='ANJT' AND lower(label_en) LIKE '%total assets%' ORDER BY year DESC, period"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current FROM xlsx_statements WHERE ticker='ANJT' AND period='tw3' AND sheet_code IN ('1210000','1311000') AND row_number<=15 ORDER BY sheet_code, row_number"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT * FROM company_profiles WHERE code IN ('ANJT','AALI') OR ticker IN ('ANJT','AALI')",
+          "mode": "markdown"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current FROM xlsx_statements WHERE ticker='ANJT' AND period='tw3' AND sheet_code='1210000' AND lower(label_en) LIKE '%total equity%' OR (ticker='ANJT' AND period='tw3' AND lower(label_en) LIKE '%total liabilities%') LIMIT 10"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "PRAGMA table_info('xlsx_meta')"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, name, sector FROM company_profiles WHERE code IN ('ANJT','AALI')"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, entity_name, currency, rounding, period_end FROM xlsx_meta WHERE ticker IN ('ANJT','AALI') ORDER BY ticker, year DESC, period"
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "USD/IDR exchange rate assumption rupiah per dollar 2025",
+          "limit": 6
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "ANJT Austindo Nusantara Jaya revenue USD IDR exchange rate",
+          "limit": 6
+        }
+      },
+      {
+        "tool": "notes_search",
+        "args": {
+          "query": "ANJT Austindo Nusantara Jaya",
+          "limit": 8
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, row_number, label_en, value_current, value_prior FROM xlsx_statements WHERE ticker='ANJT' AND sheet_code='1311000' AND row_number IN (6,8) AND period='tw3'"
+        }
+      }
+    ]
+  },
+  {
+    "id": "P4",
+    "q": "Which of AALI, BWPT, CSRA, DSNG, JARR, LSIP, OILS, PGUN, SGRO, SIMP, SSMS, TAPG had negative operating cash flow in Q1 2026?",
+    "answer": "## Q1 2026 Operating Cash Flow — 12 IDX Planters\n\nSource: `xlsx_statements`, `year=2026`, `period='tw1'`, `sheet_code='1510000'`, row label *\"Total net cash flows received from (used in) operating activities\"*. All 12 tickers have a Q1 2026 filing; none excluded.\n\n| Ticker | OCF Q1-26 (as reported) | Units |\n|---|---:|---|\n| **OILS** | **−8,640,934,941** | IDR (raw) → **−8.64 bn** |\n| SGRO | 174,574 | millions IDR → 0.17 tn |\n| BWPT | 208,079 | millions IDR → 0.21 tn |\n| LSIP | 291,263 | millions IDR → 0.29 tn |\n| DSNG | 513,805 | millions IDR → 0.51 tn |\n| TAPG | 654,283 | millions IDR → 0.65 tn |\n| SIMP | 1,445,777 | millions IDR → 1.45 tn |\n| AALI | 2,084,066 | millions IDR → 2.08 tn |\n| SSMS | 124,669,299 | IDR (raw) → 0.12 tn |\n| PGUN | 53,559,067,157 | IDR (raw) → 53.6 bn |\n| CSRA | 96,073,652,690 | IDR (raw) → 96.1 bn |\n| JARR | 118,928,695,654 | IDR (raw) → 118.9 bn |\n\n**Answer: only OILS.** Everything else was positive on a net basis.\n\n**Normalisation note:** filing scales are inconsistent in the DB. Seven tickers (AALI, BWPT, DSNG, LSIP, SGRO, SIMP, TAPG) report in **millions of IDR**; five (OILS, CSRA, PGUN, SSMS, JARR) in **raw IDR**. I converted the former to trillions and the latter to billions to compare sign and scale only — I did not re-scale source values.\n\n**Caveat:** JARR's gross *\"Cash generated from operations\"* was **−44.8 bn** IDR, yet net OCF was +118.9 bn — sign reversal driven by working-capital/other lines. OILS shows the opposite pattern (gross +4.99 bn → net −8.64 bn).",
+    "tools": {
+      "duckdb_query": 4
+    },
+    "cost": 0.002527524,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT DISTINCT ticker, year, period FROM xlsx_statements WHERE ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') AND year=2026 ORDER BY ticker, period"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, sheet_code, label_en, value_current FROM xlsx_statements WHERE ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') AND year=2026 AND period='tw1' AND (LOWER(label_en) LIKE '%operating%cash%' OR LOWER(label_id) LIKE '%operasi%') ORDER BY ticker, label_en LIMIT 200"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, value_current AS ocf_idr FROM xlsx_statements WHERE ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') AND year=2026 AND period='tw1' AND label_en='Total net cash flows received from (used in) operating activities' ORDER BY ocf_idr"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, label_en, value_current FROM xlsx_statements WHERE ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') AND year=2026 AND period='tw1' AND sheet_code='1510000' AND value_current IS NOT NULL AND (LOWER(label_en) LIKE '%net cash%operating%' OR LOWER(label_en) LIKE '%cash generated%') ORDER BY ticker, label_en"
+        }
+      }
+    ]
+  },
+  {
+    "id": "P5",
+    "q": "Which of AALI, BWPT, CSRA, DSNG, JARR, LSIP, OILS, PGUN, SGRO, SIMP, SSMS, TAPG have net debt (loans minus cash) above 50% of equity in Q1 2026?",
+    "answer": "**Q1 2026 (period 2026-01-01 to 2026-03-31, unaudited, `xlsx_statements` sheet 1210000).** Four of the twelve exceed 50%.\n\nMethod: gross loans = sum of short-term bank loans (row 132), current maturities (rows 174–180, 192) and long-term borrowings (rows 206–212, 224); cash = row 8; equity = row 272 (Total equity). Net debt = loans − cash. Each ticker's own `xlsx_meta.rounding` (Million/Thousand/Unit IDR) was applied, then divided by 1e9 → **IDR billions**. Ratios are scale-invariant; absolute figures are normalised.\n\n| Ticker | Loans (bn) | Cash (bn) | Net debt (bn) | Equity (bn) | Net debt/Equity | >50%? |\n|---|---|---|---|---|---|---|\n| SSMS | 8,097.5 | 909.5 | 7,188.0 | 3,313.0 | 217.0% | **Yes** |\n| OILS | 128.3 | 4.1 | 124.2 | 101.5 | 122.4% | **Yes** |\n| BWPT | 3,638.9 | 297.2 | 3,341.8 | 2,912.1 | 114.8% | **Yes** |\n| JARR | 1,756.4 | 463.0 | 1,293.4 | 1,958.3 | 66.0% | **Yes** |\n| CSRA | 697.0 | 154.9 | 542.1 | 1,550.5 | 35.0% | No |\n| DSNG | 3,850.7 | 635.8 | 3,215.0 | 12,064.2 | 26.6% | No |\n| PGUN | 325.8 | 17.7 | 308.1 | 1,950.9 | 15.8% | No |\n| SIMP | 8,944.5 | 9,281.0 | −336.5 | 27,178.7 | −1.2% | No |\n| TAPG | 1,088.8 | 2,797.6 | −1,708.8 | 12,454.5 | −13.7% | No |\n| SGRO | 751.7 | 1,641.7 | −890.0 | 5,146.4 | −17.3% | No |\n| AALI | 0.0 | 4,703.9 | −4,703.9 | 24,533.5 | −19.2% | No |\n| LSIP | 0.0 | 7,830.5 | −7,830.5 | 14,389.2 | −54.4% | No |\n\n**Answer: SSMS, OILS, BWPT, JARR.** CSRA (35.0%) is the closest non-qualifier. All twelve had Q1 2026 data; none excluded. Note AALI and LSIP report no borrowings at all, so their negative net debt reflects cash only.",
+    "tools": {
+      "duckdb_query": 9
+    },
+    "cost": 0.007419336,
+    "error": null,
+    "trace": [
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT code, period, assets, liabilities, equity, der, roe FROM financial_ratios WHERE code IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') AND period='2026-03-31' ORDER BY code;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT column_name, table_name, data_type FROM information_schema.columns WHERE table_name IN ('financial_ratios','xlsx_statements') ORDER BY table_name, ordinal_position;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT period, COUNT(*) n FROM financial_ratios WHERE code IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') GROUP BY period ORDER BY period DESC LIMIT 10;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, year, period, COUNT(*) n FROM xlsx_statements WHERE ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG') GROUP BY ticker, year, period ORDER BY year DESC, period LIMIT 60;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT sheet_code, row_number, label_en, label_id FROM xlsx_statements WHERE ticker='AALI' AND year=2026 AND period='tw1' AND (lower(label_en) LIKE '%loan%' OR lower(label_en) LIKE '%borrow%' OR lower(label_en) LIKE '%cash%' OR lower(label_en) LIKE '%bank%' OR lower(label_id) LIKE '%pinjaman%' OR lower(label_id) LIKE '%kas%' OR lower(label_en) LIKE '%equity%') ORDER BY sheet_code, row_number;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT ticker, sheet_code, row_number, label_en, value_current\nFROM xlsx_statements\nWHERE year=2026 AND period='tw1' AND sheet_code='1210000'\nAND row_number IN (8,132,174,175,176,177,178,179,180,192,206,207,208,209,210,211,212,224,272)\nORDER BY ticker, row_number;",
+          "mode": "csv"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "WITH d AS (\nSELECT ticker,\n SUM(CASE WHEN row_number IN (132,174,175,176,177,178,179,180,192,206,207,208,209,210,211,212,224) THEN COALESCE(value_current,0) ELSE 0 END) AS loans,\n MAX(CASE WHEN row_number=8 THEN value_current END) AS cash,\n MAX(CASE WHEN row_number=272 THEN value_current END) AS equity\nFROM xlsx_statements\nWHERE year=2026 AND period='tw1' AND sheet_code='1210000'\nAND ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG')\nGROUP BY ticker)\nSELECT ticker, loans/1e6 AS loans_bn, cash/1e6 AS cash_bn, equity/1e6 AS equity_bn,\n ROUND((loans-cash)/equity*100,1) AS net_debt_pct_equity\nFROM d ORDER BY net_debt_pct_equity DESC;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "SELECT * FROM xlsx_meta WHERE ticker IN ('AALI','SSMS','CSRA') LIMIT 5;"
+        }
+      },
+      {
+        "tool": "duckdb_query",
+        "args": {
+          "sql": "WITH s AS (\n SELECT m.ticker, m.rounding,\n  CASE WHEN lower(m.rounding) LIKE '%million%' THEN 1e6\n       WHEN lower(m.rounding) LIKE '%thousand%' THEN 1e3\n       ELSE 1 END AS mult\n FROM xlsx_meta m WHERE m.year=2026 AND m.period='tw1'\n AND m.ticker IN ('AALI','BWPT','CSRA','DSNG','JARR','LSIP','OILS','PGUN','SGRO','SIMP','SSMS','TAPG')),\nd AS (\nSELECT x.ticker, s.mult,\n SUM(CASE WHEN x.row_number IN (132,174,175,176,177,178,179,180,192,206,207,208,209,210,211,212,224) THEN COALESCE(x.value_current,0) ELSE 0 END) AS loans,\n MAX(CASE WHEN x.row_number=8 THEN x.value_current END) AS cash,\n MAX(CASE WHEN x.row_number=272 THEN x.value_current END) AS equity\nFROM xlsx_statements x JOIN s ON s.ticker=x.ticker\nWHERE x.year=2026 AND x.period='tw1' AND x.sheet_code='1210000'\nGROUP BY x.ticker, s.mult)\nSELECT ticker, ROUND(loans*mult/1e9,1) loans_bn, ROUND(cash*mult/1e9,1) cash_bn,\n ROUND((loans-cash)*mult/1e9,1) net_debt_bn, ROUND(equity*mult/1e9,1) equity_bn,\n ROUND((loans-cash)/equity*100,1) pct\nFROM d ORDER BY pct DESC;"
+        }
+      }
+    ]
+  }
+]

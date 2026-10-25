@@ -1,0 +1,1 @@
+Rank these palm-oil companies by Q1 2026 gross margin, highest to lowest: AALI, BWPT, CSRA, DSNG, JARR, LSIP, OILS, PGUN, SGRO, SIMP, SSMS, TAPG. State each company's reporting unit and prove the margins are comparable.

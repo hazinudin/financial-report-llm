@@ -1,0 +1,1 @@
+Across every company in the database, which had gross margin expand by more than 300bps year-over-year in Q2 2026?

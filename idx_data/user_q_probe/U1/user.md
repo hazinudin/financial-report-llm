@@ -1,0 +1,1 @@
+How much coal was produced by PTBA in Q2 2026?

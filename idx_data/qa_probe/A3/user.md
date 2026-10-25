@@ -1,0 +1,1 @@
+Which two customers accounted for the largest share of ESSA's sales in H1 2026, and what was each share?

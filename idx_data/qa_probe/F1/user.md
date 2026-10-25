@@ -1,0 +1,1 @@
+What was BBCA's net interest income in Q2 2026?

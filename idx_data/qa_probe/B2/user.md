@@ -1,0 +1,1 @@
+For ITMG H1 2026, is the reported effective tax rate positive or negative, and what is the arithmetic behind it?

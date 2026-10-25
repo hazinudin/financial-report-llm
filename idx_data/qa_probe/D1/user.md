@@ -1,0 +1,1 @@
+What was ITMG's single-quarter revenue for Q2 2026 alone, in USD?

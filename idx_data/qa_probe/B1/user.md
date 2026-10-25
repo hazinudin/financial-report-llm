@@ -1,0 +1,1 @@
+Compare PTBA's operating cash flow and net profit for Q1 2026. Did cash conversion improve or deteriorate, and by how much?
