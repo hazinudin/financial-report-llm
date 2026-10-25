@@ -50,15 +50,33 @@ FACTS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "facts"
 QUARTER_TO_PERIOD = {"Q1": "tw1", "Q2": "tw2", "Q3": "tw3", "Q4": "audit"}
 
 # Preferred sheet per statement (first sheet with rows wins).
-BS_SHEETS = ("1210000", "1220000", "2210000", "2220000", "3210000", "3220000")
-IS_SHEETS = ("1311000", "1312000", "2311000", "2312000", "2321000", "2322000",
-             "3311000", "3312000", "3321000", "3322000")
-CF_SHEETS = ("1510000", "1520000", "2510000", "2520000", "3510000", "3520000")
+BS_SHEETS = ("1210000", "1220000", "2210000", "2220000", "3210000", "3220000",
+             "4220000")
+IS_SHEETS = ("1311000", "1312000", "1321000", "1322000",
+             "2311000", "2312000", "2321000", "2322000",
+             "3311000", "3312000", "3321000", "3322000",
+             "4322000", "4312000")
+CF_SHEETS = ("1510000", "1520000", "2510000", "2520000", "3510000", "3520000",
+             "4510000", "4520000")
+
+# Banking/financial-services taxonomy sheets (banks, e.g. BBCA). Filers often
+# leave 4312000 (P&L "presented using...") blank and put the numbers in
+# 4322000 (P&L + OCI), so both are candidates and the null-filter below picks
+# whichever actually carries values.
+BANK_IS_SHEETS = ("4312000", "4322000")
 
 REQUIRED_SEED_KEYS = {
     "income_statement": ("revenue", "gross_profit", "pbt", "net_profit"),
     "balance_sheet": ("total_assets", "total_liabilities", "total_equity"),
     "cash_flow": ("ocf", "net_change", "cash_end"),
+}
+
+# Banks have no cost of sales / gross profit line, so a bank seed is complete
+# once revenue, PBT and net profit are present in both columns.
+BANK_REQUIRED_SEED_KEYS = {
+    "income_statement": ("revenue", "pbt", "net_profit"),
+    "balance_sheet": REQUIRED_SEED_KEYS["balance_sheet"],
+    "cash_flow": REQUIRED_SEED_KEYS["cash_flow"],
 }
 
 # canonical key -> {"labels": [...], "mode": "first"|"sum", "minus": [...]}
@@ -74,6 +92,30 @@ IS_MAP: dict[str, dict[str, Any]] = {
     "interest_income":  {"labels": ["finance income", "interest income"]},
     "interest_expense": {"labels": ["interest and finance costs", "finance costs"]},
     "other_income_net": {"labels": ["other income"], "minus": ["other expenses"]},
+    "pbt":              {"labels": ["total profit (loss) before tax"]},
+    "tax":              {"labels": ["tax benefit (expenses)", "income tax expense"]},
+    "net_profit":       {"labels": ["total profit (loss)"]},
+    "np_owners":        {"labels": ["profit (loss) attributable to parent entity"]},
+    "np_nci":           {"labels": ["profit (loss) attributable to non-controlling interests"]},
+    "eps_basic":        {"labels": ["basic earnings (loss) per share",
+                                    "basic earnings (loss) per share from continuing operations"]},
+}
+
+# Banking P&L map. Banks report "Interest income" rather than "Sales and revenue"
+# and have no cost of sales / gross profit line, so the industry IS_MAP above
+# matches nothing and the seed would be rejected. Convention used here:
+# `revenue` = total operating income = interest income + other operating income
+# (the standard IDX bank top line), `operating_profit` = "Total profit from
+# operation" (the PPOP-equivalent line).
+BANK_IS_MAP: dict[str, dict[str, Any]] = {
+    "revenue":          {"labels": ["interest income", "other operating income"], "mode": "sum"},
+    "interest_income":  {"labels": ["interest income"]},
+    "interest_expense": {"labels": ["interest expenses"]},
+    "selling_expense":  {"labels": ["selling expenses"]},
+    "gna_expense":      {"labels": ["general and administrative expenses"]},
+    "operating_profit": {"labels": ["total profit from operation",
+                                    "total operating profit", "operating profit"]},
+    "other_income_net": {"labels": ["other operating income"]},
     "pbt":              {"labels": ["total profit (loss) before tax"]},
     "tax":              {"labels": ["tax benefit (expenses)", "income tax expense"]},
     "net_profit":       {"labels": ["total profit (loss)"]},
@@ -261,6 +303,13 @@ def _build_statement(idx: dict[str, tuple], mapping: dict[str, dict], periods: l
 
 
 def _fetch_sheet_rows(conn, ticker: str, year: int, period: str, sheet_codes: tuple[str, ...]) -> list[tuple]:
+    return _fetch_sheet_rows_with_code(conn, ticker, year, period, sheet_codes)[1]
+
+
+def _fetch_sheet_rows_with_code(
+    conn, ticker: str, year: int, period: str, sheet_codes: tuple[str, ...],
+) -> tuple[Optional[str], list[tuple]]:
+    """Return (sheet_code, rows) for the first sheet that carries values."""
     for code in sheet_codes:
         rows = conn.execute(
             "SELECT label_en, value_current, value_prior FROM xlsx_statements "
@@ -270,8 +319,8 @@ def _fetch_sheet_rows(conn, ticker: str, year: int, period: str, sheet_codes: tu
             (ticker, year, period, code),
         ).fetchall()
         if rows:
-            return rows
-    return []
+            return code, rows
+    return None, []
 
 
 def _connect(db_path: Path):
@@ -316,7 +365,7 @@ def seed_from_xlsx(
             (ticker, year, period),
         ).fetchone()
         bs_rows = _fetch_sheet_rows(conn, ticker, year, period, BS_SHEETS)
-        is_rows = _fetch_sheet_rows(conn, ticker, year, period, IS_SHEETS)
+        is_code, is_rows = _fetch_sheet_rows_with_code(conn, ticker, year, period, IS_SHEETS)
         cf_rows = _fetch_sheet_rows(conn, ticker, year, period, CF_SHEETS)
     except Exception:
         return None
@@ -340,7 +389,11 @@ def seed_from_xlsx(
         source_file="xlsx",
     )
 
-    income = _build_statement(_label_index(is_rows), IS_MAP, ["current", "prior_yoy"])
+    is_bank = is_code in BANK_IS_SHEETS
+
+    income = _build_statement(
+        _label_index(is_rows), BANK_IS_MAP if is_bank else IS_MAP, ["current", "prior_yoy"],
+    )
     balance = _build_statement(_label_index(bs_rows), BS_MAP, ["current", "prior_fy_end"])
     cash = _build_statement(_label_index(cf_rows), CF_MAP, ["current", "prior_yoy"])
 
@@ -358,12 +411,13 @@ def seed_from_xlsx(
         print(f"  [SEED] {ticker} {quarter} {year}: {eps_note}", file=sys.stderr)
 
     seed = FactSheet(meta=meta, income_statement=income, balance_sheet=balance, cash_flow=cash)
-    return seed if _is_complete_seed(seed) else None
+    return seed if _is_complete_seed(seed, is_bank=is_bank) else None
 
 
-def _is_complete_seed(sheet: FactSheet) -> bool:
+def _is_complete_seed(sheet: FactSheet, is_bank: bool = False) -> bool:
     """Require core current and comparative values before using XLSX-only mode."""
-    for statement_name, keys in REQUIRED_SEED_KEYS.items():
+    required = BANK_REQUIRED_SEED_KEYS if is_bank else REQUIRED_SEED_KEYS
+    for statement_name, keys in required.items():
         statement = getattr(sheet, statement_name)
         for column in ("lines", "prior_lines"):
             values = getattr(statement, column) or {}
