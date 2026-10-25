@@ -296,7 +296,13 @@ def _detect_events(ticker: str, year: int, quarter: str) -> str:  # noqa: ARG001
                 continue
             prior_val = prior.get(acct)
             if prior_val and isinstance(prior_val, (int, float)) and prior_val != 0:
-                change = (curr_val - prior_val) / abs(prior_val)
+                # Expense lines are stored negative (e.g. cogs -6360781 vs prior
+                # -3374088). A signed diff would read a cost increase as a
+                # decrease, so compare magnitudes when both periods are negative.
+                if curr_val < 0 and prior_val < 0:
+                    change = (abs(curr_val) - abs(prior_val)) / abs(prior_val)
+                else:
+                    change = (curr_val - prior_val) / abs(prior_val)
                 if abs(change) > bs_move_pct:
                     direction = "increased" if change > 0 else "decreased"
                     events.append(
