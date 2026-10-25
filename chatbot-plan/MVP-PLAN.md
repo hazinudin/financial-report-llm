@@ -96,14 +96,14 @@ and the UI shows the tool's answer.
 Browser (static page)
    │ POST /api/ask {question, ticker?, history[]}
    ▼
-FastAPI (scripts/chat/web.py)
+FastAPI (chat-app/chat_app/web.py)
    │ semaphore(2)
    ▼
-Agent runner (scripts/chat/agent.py)  ── pi -p --mode json ──►  model
+Agent runner (chat-app/chat_app/agent.py)  ── pi -p --mode json ──►  model
    │  tools allowlist: company_facts, metric_series, period_derive,
    │  documents_status, operational_lookup, read_document, notes_search, notes_fetch
    ▼
-Typed tool CLI (scripts/chat/cli.py)  ── JSON stdout ──►  thin pi extension wrappers
+Typed tool CLI (chat-app/chat_app/cli.py)  ── JSON stdout ──►  thin pi extension wrappers
    │ reads: facts/*.yaml, operational/*.json, rag DB (read-only)
    ▼
 Answer envelope (YAML) → verify.py → ledger-audited answer → trace JSON → UI
@@ -113,27 +113,41 @@ Answer envelope (YAML) → verify.py → ledger-audited answer → trace JSON �
 
 | Path | Purpose | Status |
 |---|---|---|
-| `scripts/chat/paths.py` | Artifact resolution + supported-set manifest | new |
-| `scripts/chat/facts.py` | Load/enrich fact sheets; section selection | new |
-| `scripts/chat/periods.py` | Cumulative→quarter derivation; unit/scale normalization | new |
-| `scripts/chat/operational.py` | Load operational entries + drivers | new |
-| `scripts/chat/tools.py` | Typed tool implementations (pure functions, JSON) | new |
-| `scripts/chat/cli.py` | `python -m scripts.chat.cli <tool>` for pi | new |
-| `scripts/chat/envelope.py` | Pydantic answer schema + YAML repair | new |
-| `scripts/chat/verify.py` | Citation audit, number ledger, label/missing-state checks | new |
-| `scripts/chat/agent.py` | `pi_agent.run_agent` wrapper + retry/refusal | new |
-| `scripts/chat/prompts/chat_system.md` | System prompt | new |
-| `scripts/chat/ingest.py` | Fetch CLI + manifests + IR scan | new |
-| `scripts/chat/extract_operational.py` | Hybrid extractor + reconcile gate | new |
-| `scripts/chat/metrics.yaml` | Deterministic metric grammar (coal v0) | new |
-| `scripts/chat/eval.py` | Eval harness | new |
-| `scripts/chat/web.py` + `static/` | FastAPI app + single page | new |
+| `chat-app/chat_app/paths.py` | Artifact resolution + supported-set manifest | new |
+| `chat-app/chat_app/facts.py` | Load fact sheets; section selection | new |
+| `chat-app/chat_app/enrich.py` | Additive provenance/operational/completeness pass | new |
+| `chat-app/chat_app/periods.py` | Cumulative→quarter derivation; unit/scale normalization | new |
+| `chat-app/chat_app/operational.py` | Load operational entries + drivers | new |
+| `chat-app/chat_app/tools.py` | Typed tool implementations (pure functions, JSON) | new |
+| `chat-app/chat_app/cli.py` | `python -m chat_app.cli <tool>` for pi | new |
+| `chat-app/chat_app/envelope.py` | Pydantic answer schema + YAML repair | new |
+| `chat-app/chat_app/verify.py` | Citation audit, number ledger, label/missing-state checks | new |
+| `chat-app/chat_app/agent.py` | `pi_agent.run_agent` wrapper + retry/refusal | new |
+| `chat-app/chat_app/prompts/chat_system.md` | System prompt | new |
+| `chat-app/chat_app/ingest.py` | Fetch CLI + manifests + IR scan | new |
+| `chat-app/chat_app/extract_operational.py` | Hybrid extractor + reconcile gate | new |
+| `chat-app/chat_app/metrics.yaml` | Deterministic metric grammar (coal v0) | new |
+| `chat-app/chat_app/eval.py` | Eval harness | new |
+| `chat-app/chat_app/web.py` + `static/` | FastAPI app + single page | new |
 | `.pi/extensions/idx-tools.ts` | Register typed tool wrappers | modified |
 | `scripts/analysis_pipeline/yaml_io.py` | Repair-and-fail YAML loader | new |
 | `scripts/analysis_pipeline/{pipeline,db,merge,redflags,research,xlsx_seed,schema}.py` | P0 + provenance | modified |
 | `scripts/notes_rag/rag.py` | Read-only search path | modified |
 | `config.yaml` | `chat:` section, pricing table, `read` allowlist | modified |
-| `tests/test_chat_*.py`, `tests/test_p0_*.py` | Unit + integration | new |
+| `chat-app/tests/test_chat_*.py`, `tests/test_p0_*.py` | Unit + integration | new |
+
+### 3.2.1 Repository boundary
+
+`chat-app/` is a top-level product component, not a pipeline stage. The folder is
+`chat-app`; the importable package is `chat_app` (Python identifiers cannot contain a
+hyphen). P0 pipeline fixes and their tests stay in `scripts/` and the root `tests/`.
+
+- It **reads** fact sheets, operational JSON, `pipeline.duckdb` and `notes_rag.duckdb`
+  read-only, and the `analysis/` vault.
+- It **writes** only `idx_data/chat/traces/`, `idx_data/operational/` (ingest), and
+  additive keys on fact sheets (`enrich`).
+- Pipeline imports are limited to read-only helpers (`schema`, `xlsx_seed` label maps).
+  It must never import `merge`, `write`, `research`, or `redflags`.
 
 ### 3.3 Why pi + a Python tool CLI
 
@@ -144,7 +158,7 @@ Answer envelope (YAML) → verify.py → ledger-audited answer → trace JSON �
 - No raw SQL is exposed. `duckdb_query` remains registered for the analysis agents but is
   **not** in the chat allowlist.
 
-Rejected alternatives: raw SQL (reintroduces Taps A/B/C), an MCP server (new runtime for
+Rejected alternatives: raw SQL (reintroduces Traps A/B/C), an MCP server (new runtime for
 no v0 benefit), and a hand-rolled OpenAI function-calling loop (duplicates `pi_agent`).
 
 ---
@@ -271,8 +285,8 @@ Effort estimates are focused solo hours; `d` = working day. Each task has an exi
 | # | Task | Exit test |
 |---|---|---|
 | 0.1 | Review the in-flight diff (`xlsx_seed`, downloader, parser, research prompt) and commit it | Clean tree; `BANK_IS_MAP` goldens pass |
-| 0.2 | Branch `chat-mvp`; add `fastapi`, `uvicorn`, `pytest`; create `chatbot-plan/eval/` | `uv run python -c "import fastapi"` |
-| 0.3 | Freeze the supported-set snapshot in `chatbot-plan/eval/supported-set.json` | Matches §2 |
+| 0.2 | Branch `chat-mvp`; add `fastapi`, `uvicorn`, `pytest`; create the `chat-app/` skeleton (`chat_app/`, `eval/`, `tests/`) | `uv run python -c "import fastapi"` |
+| 0.3 | Freeze the supported-set snapshot in `chat-app/eval/supported-set.json` | Matches §2 |
 
 ### WS1 — P0 correctness gate (2d, hard gate)
 
@@ -291,7 +305,7 @@ Effort estimates are focused solo hours; `d` = working day. Each task has an exi
 |---|---|---|---|
 | 2.1 | Schema additions: `provenance` on `Statement`; `operational`, `documents`, `completeness` on `FactSheet`; all default-empty | `schema.py` | All 37 existing sheets still validate |
 | 2.2 | Provenance at seed: `_fetch_sheet_rows_with_code` also returns `row_number`; `_build_statement` emits `{sheet,row,label,column,period_type}`; pass `is_bank` map through | `xlsx_seed.py` | ITMG revenue → `1311000:6`; equity → parent vs total distinguished |
-| 2.3 | `enrich.py`: resolve provenance for existing sheets via `IS_MAP`/`BANK_IS_MAP`/`BS_MAP`/`CF_MAP` + sheet precedence; merge operational JSON; build `documents`/`completeness`; idempotent | `scripts/chat/enrich.py`, `facts.py` | 37 sheets enriched; second run is a no-op; ITMG Q2 shows 5/5 reconciled |
+| 2.3 | `enrich.py`: resolve provenance for existing sheets via `IS_MAP`/`BANK_IS_MAP`/`BS_MAP`/`CF_MAP` + sheet precedence; merge operational JSON; build `documents`/`completeness`; idempotent | `chat-app/chat_app/enrich.py`, `facts.py` | 37 sheets enriched; second run is a no-op; ITMG Q2 shows 5/5 reconciled |
 | 2.4 | Canonical units: `periods.py` returns `{raw, currency, scale, value_idr_bn, period_type}`; `period_derive` computes `tw2 − tw1` with operands | `periods.py` | ITMG Q2 revenue `1,000,491 − 497,577 = 502,914` with formula |
 
 ### WS3 — Class B ingest + extraction (2.5d)
@@ -346,7 +360,7 @@ labelled; unsupported requests return `unsupported` + the supported list. Output
 
 | # | Task | Exit test |
 |---|---|---|
-| 7.1 | `chatbot-plan/eval/questions.yaml`: 10 probe + 3 user + 4 operational + 3 traps = 20, with `must_include`, `must_not_claim`, `expect_state`, `expect_label` | Schema validates |
+| 7.1 | `chat-app/eval/questions.yaml`: 10 probe + 3 user + 4 operational + 3 traps = 20, with `must_include`, `must_not_claim`, `expect_state`, `expect_label` | Schema validates |
 | 7.2 | `eval.py`: run N, deterministic assertions + pass table + JSON artifact; cost/latency summary | One command produces a report |
 | 7.3 | Acceptance run + fixes; log every number-audit escape for manual review | Thresholds in §7 met |
 
@@ -355,7 +369,7 @@ labelled; unsupported requests return `unsupported` + the supported list. Output
 | # | Task |
 |---|---|
 | 8.1 | `cron` entry: weekly IR scan for 4 tickers → ingest → extract → enrich; log to `idx_data/chat/cron.log` |
-| 8.2 | `chatbot-plan/RUNBOOK.md`: start UI, add a document, re-run enrichment, replay a trace, rollback a bad extract |
+| 8.2 | `chat-app/RUNBOOK.md`: start UI, add a document, re-run enrichment, replay a trace, rollback a bad extract |
 | 8.3 | README pointer + architecture note; cost report from traces |
 
 ---
@@ -466,18 +480,18 @@ uv run scripts/analysis_pipeline/pipeline.py --tickers PTBA --years 2026 --quart
 duckdb -readonly idx_data/notes_rag.duckdb "SELECT COUNT(*) FROM chunks WHERE tickers LIKE '%PTBA%';"  # > 0
 
 # 2. Grounding
-uv run python -m scripts.chat.enrich --all
-uv run python -m scripts.chat.cli company_facts --ticker ITMG --period Q2 --year 2026 | head
+PYTHONPATH=chat-app uv run python -m chat_app.enrich --all
+PYTHONPATH=chat-app uv run python -m chat_app.cli company_facts --ticker ITMG --period Q2 --year 2026 | head
 
 # 3. Operational
-uv run python -m scripts.chat.extract_operational --ticker ITMG --period Q2 --year 2026  # 5/5 reconciled
+PYTHONPATH=chat-app uv run python -m chat_app.extract_operational --ticker ITMG --period Q2 --year 2026  # 5/5 reconciled
 
 # 4. Chat
-uv run uvicorn scripts.chat.web:app --host 127.0.0.1 --port 8765
+PYTHONPATH=chat-app uv run uvicorn chat_app.web:app --host 127.0.0.1 --port 8765
 # ask the 10 seed questions in the browser; every answer shows citation + label
 
 # 5. Eval
-uv run python -m scripts.chat.eval --questions chatbot-plan/eval/questions.yaml
+PYTHONPATH=chat-app uv run python -m chat_app.eval --questions chat-app/eval/questions.yaml
 # A1=0 A2=0 A3>=17/20 A4=100% A5=100% A6<=0.005 A7<=60s
 ```
 
