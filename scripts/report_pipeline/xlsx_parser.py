@@ -168,6 +168,12 @@ STATEMENT_SHEET_CODES = [
     # Infrastructure taxonomy used by newer IDX workbooks.
     "3210000", "3220000", "3311000", "3312000",
     "3321000", "3322000", "3410000", "3510000", "3520000",
+    # Banking/financial-services taxonomy (banks, e.g. BBCA).
+    # Same 4-column layout; 4410000 (changes in equity) is skipped on purpose
+    # because its column-per-component layout does not survive this parser.
+    # 4312000 (P&L) is frequently left blank by banks in favour of 4322000
+    # (P&L + other comprehensive income), which carries the actual values.
+    "4220000", "4312000", "4322000", "4510000", "4520000",
 ]
 
 
