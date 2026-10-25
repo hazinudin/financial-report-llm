@@ -313,7 +313,7 @@ def convert_reports(
                     ticker, quarter, year_str = parts
                     try:
                         period = PERIOD_REVERSE.get(quarter, quarter.lower())
-                        job_id = f"{ticker}_{year_str}_{period}"
+                        job_id = db.job_id(ticker, int(year_str), period)
                         db.upsert_conversion(
                             job_id=job_id,
                             source_pdf=str(pdf_path),

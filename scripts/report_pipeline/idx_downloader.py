@@ -583,12 +583,12 @@ def run(
         # Ensure pipeline_jobs exist for all ticker/year/period combos
         jobs_created = set()
         for meta in all_metadata:
-            jid = f"{meta['ticker']}_{meta['year']}_{meta['period']}"
+            jid = pdb.job_id(meta["ticker"], meta["year"], meta["period"])
             if jid not in jobs_created:
                 jobs_created.add(jid)
                 pdb.conn.execute(
                     "INSERT OR IGNORE INTO pipeline_jobs (job_id, ticker, year, period) VALUES ($1, $2, $3, $4)",
-                    (jid, meta["ticker"], meta["year"], meta["period"]),
+                    (jid, meta["ticker"], meta["year"], meta["period"].lower()),
                 )
 
         for meta in all_metadata:

@@ -268,7 +268,7 @@ class PipelineDB:
             ticker = r.get("ticker", "")
             year_val = r.get("year", 0)
             period_val = r.get("period", "")
-            job_id = f"{ticker}_{year_val}_{period_val}"
+            job_id = self.job_id(ticker, year_val, period_val)
             rows.append((
                 job_id, ticker, r.get("company_name", ""), year_val,
                 period_val, r.get("file_name", ""), r.get("file_path", ""),
@@ -333,7 +333,14 @@ class PipelineDB:
     # ── Pipeline Jobs ──────────────────────────────────────────────────
 
     def job_id(self, ticker: str, year: int, period: str) -> str:
-        return f"{ticker}_{year}_{period}"
+        """Canonical job id. Ticker upper, period lower (`BBCA_2026_tw1`).
+
+        Callers pass whatever the CLI or the IDX listing reported ("TW1" vs
+        "tw1"); normalising here is what keeps one job per (ticker, year,
+        period). Without it the CLI path created `T_YYYY_TW1` alongside the
+        downloader's `T_YYYY_tw1`, leaving a duplicate row that never advances.
+        """
+        return f"{str(ticker).upper()}_{year}_{str(period).lower()}"
 
     def upsert_job(
         self,
