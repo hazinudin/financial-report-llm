@@ -1,0 +1,161 @@
+{
+  "ticker": "ITMG",
+  "period": "Q2",
+  "year": "2026",
+  "document": {
+    "type": "press_release",
+    "published": "2026-08-10",
+    "url": "https://itmg.co.id/files/media/News%20Release%20on%20Financial%20Results%20and%20Performance%206M26.pdf",
+    "pages": 8,
+    "bytes": 430296,
+    "language": "en+id",
+    "fetched_with": "curl_cffi impersonate=chrome131",
+    "status": "captured"
+  },
+  "operational": {
+    "production": [
+      {
+        "metric": "coal_production",
+        "scope": "Q2-2026",
+        "value": 5.3,
+        "unit": "Mt",
+        "page": 1
+      },
+      {
+        "metric": "coal_production",
+        "scope": "6M-2026",
+        "value": 9.9,
+        "unit": "Mt",
+        "prior": 10.4,
+        "page": 1
+      }
+    ],
+    "sales": [
+      {
+        "metric": "coal_sales_volume",
+        "scope": "6M-2026",
+        "value": 12.3,
+        "unit": "Mt",
+        "prior": 11.7,
+        "page": 1
+      }
+    ],
+    "price": [
+      {
+        "metric": "asp",
+        "scope": "6M-2026",
+        "value": 81.0,
+        "unit": "USD/t",
+        "prior": 78.0,
+        "page": 1
+      }
+    ],
+    "balance_sheet": [
+      {
+        "metric": "total_assets",
+        "value": 2417.0,
+        "unit": "USD m",
+        "page": 2
+      },
+      {
+        "metric": "cash_and_equivalents",
+        "value": 738.0,
+        "unit": "USD m",
+        "page": 2
+      },
+      {
+        "metric": "short_term_deposits",
+        "value": 66.0,
+        "unit": "USD m",
+        "page": 2
+      },
+      {
+        "metric": "total_liabilities",
+        "value": 506.0,
+        "unit": "USD m",
+        "page": 2
+      },
+      {
+        "metric": "total_equity",
+        "value": 1910.0,
+        "unit": "USD m",
+        "page": 2
+      }
+    ],
+    "other": [
+      {
+        "metric": "royalties_to_government",
+        "value": 111.0,
+        "unit": "USD m",
+        "page": 2
+      },
+      {
+        "metric": "treasury_share_purchase",
+        "value": 27.0,
+        "unit": "USD m",
+        "page": 2
+      }
+    ],
+    "management_stated_drivers": [
+      {
+        "driver": "higher strip ratio",
+        "affects": "cost_of_revenue",
+        "quote": "higher coal mining and transportation costs, resulted from higher strip ratio",
+        "page": 1
+      },
+      {
+        "driver": "higher fuel costs (oil price)",
+        "affects": "cost_of_revenue",
+        "quote": "higher fuel costs in line with rising global oil prices",
+        "page": 1
+      },
+      {
+        "driver": "higher sales volume",
+        "affects": "selling_expenses + royalties",
+        "quote": "Selling expenses rose from $81 million to $88 million",
+        "page": 1
+      },
+      {
+        "driver": "lower tax refunds",
+        "affects": "operating_cash_flow",
+        "quote": "lower tax refund receipts of $169 million",
+        "page": 2
+      },
+      {
+        "driver": "lower dividend payment",
+        "affects": "financing_cash_flow",
+        "quote": "lower dividend payment offset by treasury shares purchase",
+        "page": 2
+      }
+    ]
+  },
+  "reconciliation": {
+    "revenue": {
+      "release": 1000.0,
+      "xbrl": 1000.491
+    },
+    "net_profit": {
+      "release": 110.0,
+      "xbrl": 109.514
+    },
+    "operating_cf": {
+      "release": 62.0,
+      "xbrl": 62.376
+    },
+    "total_equity": {
+      "release": 1910.0,
+      "xbrl": 1910.488
+    },
+    "total_assets": {
+      "release": 2417.0,
+      "xbrl": 2416.716
+    }
+  },
+  "derived": {
+    "inventory_drawdown_mt": 2.4,
+    "implied_revenue_usd_m": 996.3,
+    "production_yoy_pct": -4.8,
+    "sales_yoy_pct": 5.1,
+    "asp_yoy_pct": 3.8
+  }
+}
