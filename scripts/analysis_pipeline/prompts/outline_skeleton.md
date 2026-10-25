@@ -1,5 +1,5 @@
 ---
-tags: ["#TICKER", "#earnings", "#Q1YYYY"]
+tags: ["#TICKER", "#earnings", "#Q<quarter-number><year>"]
 ---
 [[related_note_wikilinks_here]]
 

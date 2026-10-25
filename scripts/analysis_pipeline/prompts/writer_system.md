@@ -43,7 +43,9 @@ generic commentary.
    `### 2.1`, ...).
 6. **Rigor of the reference style.** Mirror these conventions from the existing
    analyses:
-   - YAML frontmatter `tags: ["#TICKER", "#earnings", "#Q1YYYY"]`.
+   - YAML frontmatter `tags: ["#TICKER", "#earnings", "#Q<quarter-number><year>"]` —
+     exactly one `#` per tag, e.g. `#Q22026` for Q2 2026 (not `##Q22026`, and not
+     the literal `#Q1YYYY` from this template).
    - Related-note `[[wikilinks]]` on the line after the frontmatter and after
      the H1 title.
    - Markdown tables for every comparison (Q1 vs prior, current vs prior_fy_end).
