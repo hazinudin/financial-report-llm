@@ -1,10 +1,12 @@
 """
-Thin client for the OpenCode Go subscription API (OpenAI-compatible surface).
+Thin client for the OpenAI-compatible stages (extract, red-flags).
 
-- Base URL + key read from config.yaml (analysis.opencode.base_url) and the
-  OPENCODE_API_KEY env var (loaded from .env). Never logs headers/keys.
-- One code path: POST /chat/completions (OpenAI-compatible). Models that are
-  only Anthropic-native are avoided per the implementation plan (§4).
+- Base URL, key env var name and timeout read from config.yaml
+  (``analysis.llm``; the legacy ``analysis.opencode`` block still works).
+  The key itself is loaded from ``.env``. Never logs headers/keys.
+- One code path: POST /chat/completions (OpenAI-compatible), so the endpoint
+  must serve that wire. Under Command Code that means non-Claude models:
+  Claude IDs answer on /messages only and would 404 here.
 - GET /models lists available IDs (used by --list-models).
 - Exponential backoff on 429/5xx.
 
@@ -13,6 +15,7 @@ No SDK dependency; httpx only.
 
 from __future__ import annotations
 
+import json
 import os
 import time
 import uuid
@@ -27,6 +30,13 @@ _ENV_PATH = _PROJECT_ROOT / ".env"
 _CONFIG_PATH = _PROJECT_ROOT / "config.yaml"
 _SESSION_ID = os.environ.get("OPENCODE_SESSION_ID", str(uuid.uuid4()))
 _USER_AGENT = "financial-report-llm-analysis-pipeline/1.0"
+
+# Local-dev convenience only: reuse an existing `pi` / Command Code login so the
+# key does not have to be duplicated into .env. Servers should set the env var.
+_AUTH_FILES = (
+    Path.home() / ".pi" / "agent" / "auth.json",
+    Path.home() / ".commandcode" / "auth.json",
+)
 
 
 def _load_env_file(path: Path = _ENV_PATH) -> None:
@@ -50,14 +60,64 @@ def load_analysis_config() -> dict:
     return {}
 
 
+def _llm_cfg() -> dict:
+    """The provider block for the HTTP stages (``analysis.llm``).
+
+    ``analysis.opencode`` is the pre-Command-Code name and is still read so old
+    checkouts/branches keep working; ``analysis.llm`` wins when both exist.
+    """
+    cfg = load_analysis_config()
+    merged = dict(cfg.get("opencode", {}) or {})
+    merged.update(cfg.get("llm", {}) or {})
+    return merged
+
+
+def _auth_names() -> tuple[str, ...]:
+    """Credential keys to look for in the auth files, derived from the base URL."""
+    base_url = str(_llm_cfg().get("base_url") or "")
+    if "commandcode.ai" in base_url:
+        return ("commandcode", "command-code")
+    if "opencode.ai" in base_url:
+        return ("opencode-go", "opencode")
+    if "openrouter.ai" in base_url:
+        return ("openrouter",)
+    return ()
+
+
+def _key_from_auth_files(names: tuple[str, ...]) -> str:
+    for path in _AUTH_FILES:
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        for name in names:
+            entry = data.get(name)
+            if isinstance(entry, str) and entry.strip():
+                return entry.strip()
+            if isinstance(entry, dict):
+                for field in ("key", "apiKey", "access", "refresh"):
+                    value = entry.get(field)
+                    if isinstance(value, str) and value.strip():
+                        return value.strip()
+    return ""
+
+
 def get_api_key() -> str:
     _load_env_file()
-    key = os.environ.get("OPENCODE_API_KEY", "").strip()
-    if not key:
-        raise RuntimeError(
-            "OPENCODE_API_KEY not set. Add it to .env (the file is gitignored)."
-        )
-    return key
+    env_name = str(_llm_cfg().get("api_key_env") or "OPENCODE_API_KEY")
+    key = os.environ.get(env_name, "").strip()
+    if key:
+        return key
+    key = _key_from_auth_files(_auth_names())
+    if key:
+        return key
+    raise RuntimeError(
+        f"{env_name} not set and no matching local login found. Add it to .env "
+        "(the file is gitignored), or point analysis.llm.api_key_env at the env "
+        "var holding the key."
+    )
 
 
 def get_session_id() -> str:
@@ -66,22 +126,23 @@ def get_session_id() -> str:
 
 
 def _request_headers() -> dict[str, str]:
-    return {
+    headers = {
         "Authorization": f"Bearer {get_api_key()}",
         "Content-Type": "application/json",
         "User-Agent": _USER_AGENT,
-        "x-opencode-session": get_session_id(),
     }
+    # Session hint only meaningful to the OpenCode gateway; harmless elsewhere.
+    if "opencode.ai" in _base_url():
+        headers["x-opencode-session"] = get_session_id()
+    return headers
 
 
 def _base_url() -> str:
-    cfg = load_analysis_config()
-    return (cfg.get("opencode", {}) or {}).get("base_url", "https://openrouter.ai/api/v1/")
+    return str(_llm_cfg().get("base_url") or "https://api.commandcode.ai/provider/v1").rstrip("/")
 
 
 def _timeout() -> float:
-    cfg = load_analysis_config()
-    return float((cfg.get("opencode", {}) or {}).get("timeout_sec", 300))
+    return float(_llm_cfg().get("timeout_sec", 300))
 
 
 class APIError(RuntimeError):

@@ -109,8 +109,10 @@ class ArgvConstructionTests(_PiResearchTestBase):
             self.assertIn("--no-mcp", argv)
             self.assertIn("--no-prompt-templates", argv)
             self.assertIn("--approve", argv)
-            self.assertEqual(argv[argv.index("--provider") + 1], "opencode-go")
-            self.assertEqual(argv[argv.index("--model") + 1], "deepseek-v4.1-flash")
+            self.assertEqual(argv[argv.index("--provider") + 1], "commandcode")
+            self.assertEqual(
+                argv[argv.index("--model") + 1], "deepseek/deepseek-v4.1-flash",
+            )
             self.assertEqual(argv[argv.index("--thinking") + 1], "off")
             self.assertEqual(argv[argv.index("-t") + 1], "exa_search,fetch_content")
             self.assertTrue(

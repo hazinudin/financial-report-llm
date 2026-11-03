@@ -203,7 +203,7 @@ Project pi packages are declared (pinned) in `.pi/settings.json` and loaded with
 `--approve` (project trust).
 
 Stage 4 (writer) also runs as a **headless pi agent**, using the canonical
-`glm-5.3` writer model with a read-only tool allowlist (`read`,
+`deepseek/deepseek-v4.1-flash` writer model with a read-only tool allowlist (`read`,
 `duckdb_query`, `notes_search`, `notes_fetch`); external evidence stays owned
 by Stage 3b. A pi failure fails the `write` stage.
 

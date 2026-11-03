@@ -7,32 +7,47 @@ pipeline:
     model_name: glm-ocr
 
 analysis:
-  opencode:
-    base_url: https://opencode.ai/zen/go/v1
-    # API key read from OPENCODE_API_KEY in .env (do not commit the key)
+  # ── Provider for the OpenAI-compatible stage calls (extract, redflags) ──
+  # Command Code Provider API (https://api.commandcode.ai/provider/v1). Only
+  # non-Claude models belong here: Claude models answer on /messages, every
+  # other model on /chat/completions (which this client posts to).
+  # Key comes from the env var named below, loaded from .env — on a server that
+  # is the ONLY credential needed (no ~/.pi/agent/auth.json login required, as
+  # long as the pi stages inherit the same env; pi_agent.py passes os.environ).
+  # Legacy `analysis.opencode` (base_url/timeout_sec) is still honoured if set.
+  llm:
+    base_url: https://api.commandcode.ai/provider/v1
+    api_key_env: COMMAND_CODE_API_KEY
     timeout_sec: 300
   models:
+    # Command Code IDs are VENDOR-QUALIFIED (`vendor/model`); the old
+    # opencode-go IDs had no prefix. Mixing them per provider is the #1 way to
+    # get an unknown-model error. List the live catalog with:
+    #   pi --list-models commandcode                       (pi stages)
+    #   uv run scripts/analysis_pipeline/pipeline.py --list-models   (HTTP stages)
     # Extraction is lookup-style on preprocessed chunks; temperature 0.
-    # Confirm exact IDs via: uv run scripts/analysis_pipeline/pipeline.py --list-models
-    extract: deepseek-v4.1-flash
-    redflags: deepseek-v4.1-flash
+    extract: deepseek/deepseek-v4.1-flash
+    redflags: deepseek/deepseek-v4.1-flash
     # Canonical writer model (pi --model for Stage 4); analysis.write.pi.model
     # falls back to this when unset. The only calls where reasoning quality is
     # binding.
-    write: glm-5.3
+    write: deepseek/deepseek-v4.1-flash
     # Research-plan model (pi --model for Stage 3b's planner); analysis.plan.pi.model
     # falls back to this when unset. Strong reasoning to derive period
     # arithmetic and spot drivers.
-    research_plan: glm-5.3
-    # Research synthesis: pi agent --model. Operator choice "for now";
-    # rollback → glm-5.3-flash (see PI_RESEARCH_AGENT_PLAN.md §1 decision 4).
-    research: deepseek-v4.1-flash
+    research_plan: deepseek/deepseek-v4.1-flash
+    # Research synthesis: pi agent --model (moonshotai/Kimi-K2.7-Code is the
+    # bounce-back option if this model starts wasting tool calls).
+    research: deepseek/deepseek-v4.1-flash
   # ── Writer (Stage 4) ────────────────────────────────────────────────
   # Headless pi agent; read-only tools (PI_WRITER_AGENT_PLAN.md §4.3/§4.5).
   write:
     pi:
-      provider: opencode-go
-      # model omitted → falls back to models.write (glm-5.3)
+      provider: commandcode
+      # Set explicitly: the models.write fallback is commandcode-shaped here, but
+      # pinning it keeps the writer stable if models.write is edited for
+      # extract-style stages.
+      model: deepseek/deepseek-v4.1-flash
       thinking: "off"
       timeout_sec: 1800
       approve: true
@@ -50,8 +65,8 @@ analysis:
   # evidence stays with Stage 3b's search agent). See PI_PLANNER_AGENT_PLAN.md.
   plan:
     pi:
-      provider: opencode-go
-      # model omitted → falls back to models.research_plan (glm-5.3)
+      provider: commandcode
+      model: deepseek/deepseek-v4.1-flash
       thinking: "off"
       timeout_sec: 600
       approve: true
@@ -68,7 +83,11 @@ analysis:
     # max_tokens, so keep headroom even with reasoning_effort=low (empty
     # content with finish_reason=length was observed at 8192 on big chunks).
     extract: 16384
-    redflags: 4096
+    # Red-flag pass reviews the whole fact sheet + ratios (~20K prompt tokens).
+    # Same failure mode as extract: reasoning tokens consume max_tokens first,
+    # so 4096 truncated bullets mid-line (finish_reason=length, content cut at
+    # ~580 chars) or returned empty content on MAPA Q3 2026.
+    redflags: 16384
   temperature:
     extract: 0.0
     redflags: 0.0
@@ -93,8 +112,8 @@ analysis:
     agent: pi                       # pi | deterministic_fallback
     # pi-agent research stage (PI_RESEARCH_AGENT_PLAN.md §4.7).
     pi:
-      provider: opencode-go
-      model: deepseek-v4.1-flash
+      provider: commandcode
+      model: deepseek/deepseek-v4.1-flash
       thinking: "off"
       timeout_sec: 900
       approve: true
@@ -103,7 +122,7 @@ analysis:
       # Persist the agent's session under ~/.pi/agent/sessions/ (browsable /
       # resumable via `pi --resume`). Session id is also in the run trace.
       save_session: true
-      tools: [exa_search, fetch_content]
+      tools: [read, exa_search, fetch_content]
       max_search_calls: 16
       max_fetch_calls: 8
     max_questions: 12

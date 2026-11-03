@@ -39,8 +39,8 @@ QUESTIONS = [
 ]
 
 CFG = {
-    "provider": "opencode-go",
-    "model": "deepseek-v4.1-flash",
+    "provider": "commandcode",
+    "model": "deepseek/deepseek-v4.1-flash",
     "thinking": "off",
     "timeout_sec": 240,
     "approve": True,

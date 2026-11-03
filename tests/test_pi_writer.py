@@ -71,7 +71,7 @@ class ResolvePiCfgTests(unittest.TestCase):
         self.assertEqual(
             cfg["tools"], ["read", "duckdb_query", "notes_search", "notes_fetch"],
         )
-        self.assertEqual(cfg["provider"], "opencode-go")
+        self.assertEqual(cfg["provider"], "commandcode")
         self.assertEqual(cfg["model"], "glm-5.3")
         self.assertEqual(cfg["timeout_sec"], 1800)
 
@@ -318,7 +318,7 @@ class WriteRunTests(_WriterRunTestBase):
 
         runner.assert_not_called()
         self.assertEqual(out["status"], "dry")
-        self.assertEqual(out["model"], "glm-5.3")
+        self.assertEqual(out["model"], "deepseek/deepseek-v4.1-flash")
         self.assertGreater(out["user_chars"], 0)
         self.assertFalse(self._out_path().exists())
         self.assertFalse(self.write_dir.exists())

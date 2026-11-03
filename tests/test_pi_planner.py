@@ -174,8 +174,8 @@ class PlannerPiCfgTests(unittest.TestCase):
         self.assertEqual(
             cfg["tools"], ["read", "duckdb_query", "notes_search", "notes_fetch"],
         )
-        self.assertEqual(cfg["provider"], "opencode-go")
-        self.assertEqual(cfg["model"], "glm-5.3")
+        self.assertEqual(cfg["provider"], "commandcode")
+        self.assertEqual(cfg["model"], "deepseek/deepseek-v4.1-flash")
         self.assertEqual(cfg["timeout_sec"], 600)
         self.assertEqual(cfg["max_db_queries"], 4)
 

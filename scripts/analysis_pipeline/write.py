@@ -59,7 +59,7 @@ def _resolve_pi_cfg(cfg: dict) -> dict:
     """
     pi_cfg = dict(cfg.get("pi", {}) or {})
     if not pi_cfg.get("provider"):
-        pi_cfg["provider"] = "opencode-go"
+        pi_cfg["provider"] = "commandcode"
     if not pi_cfg.get("model"):
         models_cfg = opencode_client.load_analysis_config().get("models", {}) or {}
         if models_cfg.get("write"):

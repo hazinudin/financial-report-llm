@@ -21,7 +21,7 @@ QS = [
  ("P4", f"Which of {GROUP} had negative operating cash flow in Q1 2026?"),
  ("P5", f"Which of {GROUP} have net debt (loans minus cash) above 50% of equity in Q1 2026?"),
 ]
-CFG = {"provider":"opencode-go","model":"deepseek-v4.1-flash","thinking":"off","timeout_sec":300,
+CFG = {"provider":"commandcode","model":"deepseek/deepseek-v4.1-flash","thinking":"off","timeout_sec":300,
        "approve":True,"load_skills":False,"load_context_files":False,"save_session":False,
        "tools":["duckdb_query","notes_search"]}
 

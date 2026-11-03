@@ -36,8 +36,8 @@ import opencode_client
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
-_DEFAULT_PROVIDER = "opencode-go"
-_DEFAULT_MODEL = "deepseek-v4.1-flash"
+_DEFAULT_PROVIDER = "commandcode"
+_DEFAULT_MODEL = "deepseek/deepseek-v4.1-flash"
 _DEFAULT_THINKING = "off"
 _DEFAULT_TIMEOUT_SEC = 900
 _DEFAULT_TOOLS = ["exa_search", "fetch_content"]
