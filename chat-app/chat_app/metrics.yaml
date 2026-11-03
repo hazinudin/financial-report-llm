@@ -1,0 +1,153 @@
+# Deterministic metric grammar for Class B operational extraction.
+#
+# The LLM never emits a number as data. `extract_operational.py` scans the
+# captured document text with these patterns, takes the number from the matched
+# sentence, and attaches the sentence + page as evidence. Anything that does not
+# match a pattern is simply not extracted — it is never guessed.
+#
+# Pattern contract:
+#   - Python `re` syntax, case-insensitive, matched against one sentence.
+#   - `value` is the numeric group; `unit` is optional and must be present for
+#     the metric to be accepted (the extractor also accepts a unit found in the
+#     same sentence).
+#   - `prior` captures the comparison value when the sentence says
+#     "from X to Y" / "X vs Y" / "X compared with Y".
+#   - `expect` lists harmless unit spellings; the canonical `unit` is stored.
+
+version: 1
+as_of: "2026-10-25"
+
+metrics:
+  coal_production:
+    label: Coal production
+    unit: Mt
+    unit_aliases: ["mt", "million tonnes", "million tons", "juta ton", "million metric tonnes"]
+    patterns:
+      - '(?:coal\s+)?production\s+(?:volume\s+)?(?:of|was|were|reached|totaled|totalled|rose\s+to|increased\s+to|fell\s+to|declined\s+to|decreased\s+to)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>million\s+(?:tonnes|tons)|mt|juta\s+ton)'
+      - '(?P<value>\d[\d.,]*)\s*(?P<unit>million\s+(?:tonnes|tons)|mt|juta\s+ton)\s+of\s+(?:coal\s+)?production'
+      - 'produksi\s+batubara\s*(?:sebesar|mencapai|yaitu)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>juta\s+ton|mt)'
+    prior_patterns:
+      - 'from\s+(?P<prior>\d[\d.,]*)\s*(?:million\s+(?:tonnes|tons)|mt|juta\s+ton)\s+to\s+(?P<value>\d[\d.,]*)'
+      - '(?P<prior>\d[\d.,]*)\s*(?:million\s+(?:tonnes|tons)|mt|juta\s+ton)\s+(?:in|for)\s+(?:the\s+)?(?:same|prior|previous)'
+    scope_hints:
+      - {pattern: '\b(?:in|for|during)\s+(?:the\s+)?(?:first|1st)\s+(?:half|six\s+months|6\s+months|h1)\b', scope: "6M"}
+      - {pattern: '\b(?:in|for|during)\s+(?:the\s+)?(?:second|2nd)\s+quarter\b', scope: "Q2"}
+      - {pattern: '\b(?:in|for|during)\s+(?:the\s+)?(?:first|1st)\s+quarter\b', scope: "Q1"}
+      - {pattern: '\b(?:in|for|during)\s+(?:the\s+)?(?:nine\s+months|9\s+months)\b', scope: "9M"}
+
+  coal_sales_volume:
+    label: Coal sales volume
+    unit: Mt
+    unit_aliases: ["mt", "million tonnes", "million tons", "juta ton"]
+    patterns:
+      - '(?:coal\s+)?(?:sales|sales\s+volume|volume\s+sold|sales\s+volumes?)\s+(?:of|was|were|reached|totaled|totalled|rose\s+to|increased\s+to)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>million\s+(?:tonnes|tons)|mt|juta\s+ton)'
+      - '(?P<value>\d[\d.,]*)\s*(?P<unit>million\s+(?:tonnes|tons)|mt|juta\s+ton)\s+of\s+(?:coal\s+)?sales'
+      - 'penjualan\s+batubara\s*(?:sebesar|mencapai)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>juta\s+ton|mt)'
+    prior_patterns:
+      - 'from\s+(?P<prior>\d[\d.,]*)\s*(?:million\s+(?:tonnes|tons)|mt|juta\s+ton)\s+to\s+(?P<value>\d[\d.,]*)'
+
+  asp:
+    label: Average selling price
+    unit: USD/t
+    unit_aliases: ["us$/t", "usd/t", "us$/ton", "usd/ton", "us$/tonne", "usd/tonne"]
+    patterns:
+      - '(?:average\s+selling\s+price|asp|average\s+price)\s+(?:of|was|were|reached|rose\s+to|fell\s+to)?\s*(?:us\$|usd|\$)\s*(?P<value>\d[\d.,]*)\s*(?:/|per)\s*(?:t|ton|tonne)'
+      - '(?:us\$|usd|\$)\s*(?P<value>\d[\d.,]*)\s*(?:/|per)\s*(?:t|ton|tonne)\s+(?:average\s+selling\s+price|asp)'
+      - 'harga\s+jual\s+rata-rata\s*(?:sebesar)?\s*(?:us\$|usd|\$)\s*(?P<value>\d[\d.,]*)'
+    prior_patterns:
+      - 'from\s+(?:us\$|usd|\$)\s*(?P<prior>\d[\d.,]*)\s*(?:/|per)\s*(?:t|ton|tonne)\s+to\s+(?:us\$|usd|\$)\s*(?P<value>\d[\d.,]*)'
+
+  strip_ratio:
+    label: Strip ratio
+    unit: "x"
+    unit_aliases: ["x", "times", "ratio"]
+    patterns:
+      - 'strip\s+ratio\s+(?:of|was|were|reached|rose\s+to|fell\s+to)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>x|times)'
+      - '(?P<value>\d[\d.,]*)\s*(?P<unit>x|times)\s+strip\s+ratio'
+      - 'nisbah\s+pengupasan\s*(?:sebesar|mencapai)?\s*(?P<value>\d[\d.,]*)'
+    prior_patterns:
+      - 'from\s+(?P<prior>\d[\d.,]*)\s*(?:x|times)\s+to\s+(?P<value>\d[\d.,]*)\s*(?:x|times)'
+
+  cash_cost:
+    label: Cash cost
+    unit: USD/t
+    unit_aliases: ["us$/t", "usd/t", "us$/ton", "usd/ton"]
+    patterns:
+      - '(?:cash\s+cost|cash\s+costs)\s+(?:of|was|were|reached|rose\s+to|fell\s+to)?\s*(?:us\$|usd|\$)\s*(?P<value>\d[\d.,]*)\s*(?:/|per)\s*(?:t|ton|tonne)'
+      - '(?:us\$|usd|\$)\s*(?P<value>\d[\d.,]*)\s*(?:/|per)\s*(?:t|ton|tonne)\s+(?:cash\s+cost|cash\s+costs)'
+      - 'biaya\s+tunai\s*(?:sebesar)?\s*(?:us\$|usd|\$)\s*(?P<value>\d[\d.,]*)'
+
+  revenue:
+    label: Revenue
+    unit: USD m
+    unit_aliases: ["us$ million", "usd million", "million", "us$ m", "usd m", "jutaan"]
+    xbrl_overlap: revenue
+    patterns:
+      - '(?:revenue|sales|net\s+sales|total\s+revenue)\s+(?:of|was|were|reached|totaled|totalled|rose\s+to|fell\s+to)?\s*(?:us\$|usd|\$)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>million|m)'
+      - 'pendapatan\s+(?:usaha\s+)?(?:sebesar|mencapai)?\s*(?:us\$|usd|rp)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>juta|miliar|million|m)'
+
+  net_profit:
+    label: Net profit
+    unit: USD m
+    unit_aliases: ["us$ million", "usd million", "million", "us$ m", "usd m", "jutaan"]
+    xbrl_overlap: net_profit
+    patterns:
+      - '(?:net\s+(?:profit|income)|profit\s+for\s+the\s+(?:period|year))\s+(?:of|was|were|reached|totaled|totalled|rose\s+to|fell\s+to)?\s*(?:us\$|usd|\$)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>million|m)'
+      - 'laba\s+(?:bersih|tahun\s+berjalan)\s*(?:sebesar|mencapai)?\s*(?:us\$|usd|rp)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>juta|miliar|million|m)'
+
+  operating_cash_flow:
+    label: Operating cash flow
+    unit: USD m
+    unit_aliases: ["us$ million", "usd million", "million", "us$ m", "usd m", "jutaan"]
+    xbrl_overlap: ocf
+    patterns:
+      - '(?:operating\s+cash\s+flow|cash\s+flow\s+from\s+operations|cash\s+generated\s+from\s+operations)\s+(?:of|was|were|reached|totaled|totalled)?\s*(?:us\$|usd|\$)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>million|m)'
+
+  total_assets:
+    label: Total assets
+    unit: USD m
+    unit_aliases: ["us$ million", "usd million", "million", "us$ m", "usd m", "jutaan"]
+    xbrl_overlap: total_assets
+    patterns:
+      - '(?:total\s+assets)\s+(?:of|was|were|stood\s+at|reached)?\s*(?:us\$|usd|\$)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>million|m)'
+
+  total_equity:
+    label: Total equity
+    unit: USD m
+    unit_aliases: ["us$ million", "usd million", "million", "us$ m", "usd m", "jutaan"]
+    xbrl_overlap: total_equity
+    patterns:
+      - '(?:total\s+equity|shareholders.{0,3}\s+equity|equity)\s+(?:of|was|were|stood\s+at|reached)?\s*(?:us\$|usd|\$)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>million|m)'
+
+  total_liabilities:
+    label: Total liabilities
+    unit: USD m
+    unit_aliases: ["us$ million", "usd million", "million", "us$ m", "usd m", "jutaan"]
+    xbrl_overlap: total_liabilities
+    patterns:
+      - '(?:total\s+liabilities)\s+(?:of|was|were|stood\s+at|reached)?\s*(?:us\$|usd|\$)?\s*(?P<value>\d[\d.,]*)\s*(?P<unit>million|m)'
+
+# Causal language that forces a fact / management_stated / hypothesis label.
+causal_markers:
+  en:
+    - because
+    - due to
+    - driven by
+    - reflecting
+    - as a result
+    - resulting from
+    - on the back of
+    - attributable to
+  id:
+    - karena
+    - didorong
+    - akibat
+    - sebagai akibat
+    - seiring
+
+# Sentence-level unit words accepted when the pattern omits the unit group.
+unit_words:
+  "usd m": ["us$ million", "usd million", "us$m", "usd m", "$ million", "million usd"]
+  "usd/t": ["us$/t", "usd/t", "us$/ton", "usd/ton", "us$/tonne", "usd/tonne"]
+  "mt": ["mt", "million tonnes", "million tons", "juta ton"]
+  "x": ["x", "times"]
