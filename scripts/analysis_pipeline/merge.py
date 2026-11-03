@@ -33,6 +33,7 @@ import yaml
 from pydantic import BaseModel
 
 import xlsx_seed
+import yaml_io
 from schema import FactSheet, Details, Meta, Statement
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -249,10 +250,24 @@ def load_chunk_sheets(ticker: str, quarter: str, year: int) -> list[tuple[FactSh
             covers_by_file[m["file"]] = m.get("covers", [])
     out: list[tuple[FactSheet, list[str]]] = []
     for f in sorted(FACTS_DIR.glob(f"{ticker}_{quarter}_{year}_chunk*.yaml")):
-        data = yaml.safe_load(f.read_text(encoding="utf-8")) or {}
+        data = yaml_io.load_file_with_repair(f, context=f"chunk sheet {f.name}")
         sheet = FactSheet.model_validate(data)
         out.append((sheet, covers_by_file.get(f.name, [])))
     return out
+
+
+def _has_statement_values(sheet: FactSheet) -> bool:
+    for stmt_name in ("income_statement", "balance_sheet", "cash_flow"):
+        block = getattr(sheet, stmt_name)
+        for column in ("lines", "prior_lines"):
+            values = getattr(block, column) or {}
+            if any(v is not None for v in values.values()):
+                return True
+    return False
+
+
+def _has_details(sheet: FactSheet) -> bool:
+    return any(getattr(sheet.details, field) for field in DETAIL_DEDUP_KEYS)
 
 
 def run(ticker: str, year: int, quarter: str, force: bool = False, dry_run: bool = False) -> dict:
@@ -292,6 +307,11 @@ def run(ticker: str, year: int, quarter: str, force: bool = False, dry_run: bool
         logger.info(f"xlsx seed active; keys left for LLM gap-fill: {gaps or 'none'}")
 
     canonical = merge_sheets(sheets, logger)
+    if not _has_statement_values(canonical) and not _has_details(canonical):
+        raise RuntimeError(
+            f"merge produced no statement values and no details for "
+            f"{ticker}_{quarter}_{year}"
+        )
     if seed is None:
         xlsx_cross_validate(canonical, DEFAULT_DB_PATH, 0.005, logger)
     else:

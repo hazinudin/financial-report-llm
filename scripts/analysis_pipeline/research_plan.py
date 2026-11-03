@@ -22,6 +22,7 @@ from typing import Any
 import opencode_client
 import pi_agent
 import research_questions
+import yaml_io
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 ANALYSIS_DIR = _PROJECT_ROOT / "analysis"
@@ -206,7 +207,6 @@ Structure:
 
 _QUESTION_ID_RE = re.compile(r"^([A-Z]\d+)$")
 _TOP_LEVEL_KEYS = ("analytical_framing", "themes", "hypotheses", "priority_themes")
-_TEXT_KEYS = {"analytical_framing", "rationale", "question", "search_query", "name"}
 
 
 def _extract_yaml_block(raw: str) -> str:
@@ -244,24 +244,6 @@ def _extract_yaml_block(raw: str) -> str:
     return text
 
 
-def _salvage_yaml(text: str) -> str:
-    """Repair plain-scalar colons by coercing known free-text fields to
-    block scalars. Handles the common 'key: text with: colon' failure."""
-    out: list[str] = []
-    for line in text.split("\n"):
-        m = re.match(r"^(\s*)([a-z_]+):\s*(\S[^\n]*)$", line)
-        if (
-            m and m.group(2) in _TEXT_KEYS
-            and not m.group(3).startswith(("|", ">", '"', "'", "{", "[", "-"))
-        ):
-            indent, key, rest = m.group(1), m.group(2), m.group(3)
-            out.append(f"{indent}{key}: |")
-            out.append(f"{indent}  {rest}")
-        else:
-            out.append(line)
-    return "\n".join(out)
-
-
 def parse_plan(
     raw: str, ticker: str, year: int, quarter: str,
     identity: research_questions.CompanyIdentity,
@@ -278,16 +260,11 @@ def parse_plan(
     data: Any = None
     err: str | None = None
     try:
-        data = yaml.safe_load(extracted)
-    except yaml.YAMLError as e:
-        err = f"yaml parse failed: {e}"
-        # salvage pass: coerce free-text fields to block scalars and retry
-        repaired = _salvage_yaml(extracted)
-        try:
-            data = yaml.safe_load(repaired)
-            err = None
-        except yaml.YAMLError as e2:
-            err = f"yaml parse failed: {e2}"
+        data = yaml_io.loads_with_repair(
+            extracted, context=f"research plan {ticker} {quarter} {year}",
+        )
+    except yaml_io.YamlLoadError as e:
+        err = f"yaml parse failed: {e.parser_message}"
 
     if err is not None:
         return ResearchPlan(ticker, year, quarter, identity, error=err)
@@ -466,7 +443,7 @@ def _resolve_planner_pi_cfg() -> dict:
     """
     pi_cfg = dict(_planner_config().get("pi", {}) or {})
     if not pi_cfg.get("provider"):
-        pi_cfg["provider"] = "opencode-go"
+        pi_cfg["provider"] = "commandcode"
     if not pi_cfg.get("model"):
         models_cfg = opencode_client.load_analysis_config().get("models", {}) or {}
         if models_cfg.get("research_plan"):

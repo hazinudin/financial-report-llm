@@ -243,6 +243,20 @@ def run(ticker: str, year: int, quarter: str, market_data_path: str | None = Non
         "commodity_hint": ", ".join(broaden) if broaden else None,
     }
 
+    has_content = any(
+        (
+            (package.get("profile") or "").strip(),
+            (package.get("skeleton") or "").strip(),
+            bool(package.get("vault_hits")),
+            bool(package.get("market_data")),
+        )
+    )
+    if not dry_run and not has_content:
+        raise RuntimeError(
+            f"context package is empty for {ticker} {quarter} {year} "
+            "(no profile, skeleton, vault hits, or market data)"
+        )
+
     out_path = RUNS_DIR / f"{ticker}_{year}_{quarter}.context.json"
     if not dry_run:
         out_path.write_text(json.dumps(package, indent=2, ensure_ascii=False), encoding="utf-8")

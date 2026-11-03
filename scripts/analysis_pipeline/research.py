@@ -29,6 +29,7 @@ import opencode_client
 import pi_agent
 import research_questions
 import research_plan
+import yaml_io
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _IDX_DATA = _PROJECT_ROOT / "idx_data"
@@ -45,10 +46,15 @@ def _load_research_brief(ticker: str, year: int, quarter: str) -> dict | None:
     path = RESEARCH_DIR / f"{ticker}_{quarter}_{year}.research.yaml"
     if not path.exists():
         return None
-    try:
-        return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    except (yaml.YAMLError, OSError):
-        return None
+    context = f"research brief {ticker} {quarter} {year}"
+    brief = yaml_io.load_file_with_repair(path, context=context)
+    if brief is None:
+        return {}
+    if not isinstance(brief, dict):
+        raise yaml_io.YamlLoadError(
+            context, f"expected a mapping, got {type(brief).__name__}"
+        )
+    return brief
 
 
 def _save_research_brief(ticker: str, year: int, quarter: str, brief: dict) -> Path:
@@ -89,15 +95,19 @@ def _build_research_prompt(
         "3. Cite ONLY URLs returned by exa_search or fetch_content tool results. "
         "Never construct, guess, or recall a URL. If no tool result supports a "
         "claim, use sources: [] and confidence: low.\n"
-        "4. Company identity is authoritative. Do not substitute another ticker "
+        "4. A search returning no results is evidence about the search, not "
+        "about the world. Never claim that a note, document, filing, or fact "
+        "does not exist unless a tool explicitly reports its status. Use "
+        "'not captured', 'not disclosed', or 'not published' instead.\n"
+        "5. Company identity is authoritative. Do not substitute another ticker "
         "or company name. Never use sources for a forbidden identity.\n"
-        "5. Financial numbers come from the fact sheet, not the web.\n"
-        "6. Label each finding as in-period or post-period.\n"
-        "7. You are given a THEMED research plan with question IDs (e.g. A1, B2). "
+        "6. Financial numbers come from the fact sheet, not the web.\n"
+        "7. Label each finding as in-period or post-period.\n"
+        "8. You are given a THEMED research plan with question IDs (e.g. A1, B2). "
         "Every question has an LLM-issued question_id and theme. Address the plan "
         "questions in priority order; tag each finding with the question ID(s) it "
         "answers under `writer_hint`. Do not introduce free-text questions.\n"
-        "8. After you have gathered sufficient evidence, output ONLY valid YAML "
+        "9. After you have gathered sufficient evidence, output ONLY valid YAML "
         "in this exact structure (no markdown, no extra text before or after):\n\n"
         "findings:\n"
         "  - event: \"...\"\n"
@@ -434,20 +444,16 @@ def _run_pi_agent(
     )
 
     raw_content = result.get("content", "")
-    try:
-        stripped = raw_content.strip()
-        if stripped.startswith("```"):
-            lines = stripped.split("\n")
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            stripped = "\n".join(lines)
-        brief = yaml.safe_load(stripped) or {}
-    except Exception:  # noqa: BLE001 — any parse failure falls back to an empty brief
-        brief = {}
+    if not str(raw_content or "").strip():
+        raise RuntimeError(
+            f"research agent returned no content for {ticker} {quarter} {year}"
+        )
+    brief_context = f"research brief {ticker} {quarter} {year}"
+    brief = yaml_io.loads_with_repair(raw_content, context=brief_context)
     if not isinstance(brief, dict):
-        brief = {}
+        raise yaml_io.YamlLoadError(
+            brief_context, f"expected a mapping, got {type(brief).__name__}"
+        )
 
     pi_meta = dict(result.get("pi_meta", {}) or {})
     tool_calls = dict(pi_meta.get("tool_calls", {}) or {})
@@ -461,6 +467,13 @@ def _run_pi_agent(
     source_audit = _validate_brief_sources(
         brief, result.get("tool_trace", []), no_tool_calls=no_tool_calls,
     )
+
+    triggers_fired = bool(events.strip()) and events.strip() != "(No material events detected)"
+    if triggers_fired and not brief.get("findings"):
+        raise RuntimeError(
+            f"research triggers fired but the brief has no findings for "
+            f"{ticker} {quarter} {year}"
+        )
 
     budget_warnings: list[str] = []
     if search_count > max_search_calls:

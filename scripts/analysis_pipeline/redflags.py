@@ -19,6 +19,7 @@ import yaml
 
 import opencode_client
 import research
+import yaml_io
 from schema import FactSheet
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -44,16 +45,26 @@ def audit_research_sources(ticker: str, year: int, quarter: str) -> list[str]:
     trace_path = RESEARCH_DIR / f"{ticker}_{quarter}_{year}.research_trace.json"
     if not brief_path.exists():
         return []
-    try:
-        brief = yaml.safe_load(brief_path.read_text(encoding="utf-8")) or {}
-        trace = yaml.safe_load(trace_path.read_text(encoding="utf-8")) if trace_path.exists() else {}
-        trace = trace if isinstance(trace, dict) else {}
-        audit = research._validate_brief_sources(
-            brief, trace.get("tool_trace", []),
-            no_tool_calls=not trace.get("tool_trace"),
+    brief = yaml_io.load_file_with_repair(
+        brief_path, context=f"research brief {ticker} {quarter} {year}",
+    )
+    if not isinstance(brief, dict):
+        raise yaml_io.YamlLoadError(
+            f"research brief {ticker} {quarter} {year}",
+            f"expected a mapping, got {type(brief).__name__}",
         )
-    except (OSError, yaml.YAMLError, TypeError):
-        return ["- Research citation audit could not read the research artifact or trace."]
+    trace = (
+        yaml_io.load_file_with_repair(
+            trace_path, context=f"research trace {ticker} {quarter} {year}",
+        )
+        if trace_path.exists()
+        else {}
+    )
+    trace = trace if isinstance(trace, dict) else {}
+    audit = research._validate_brief_sources(
+        brief, trace.get("tool_trace", []),
+        no_tool_calls=not trace.get("tool_trace"),
+    )
 
     bullets: list[str] = []
     for item in audit.get("unverified_sources", []):
@@ -111,8 +122,14 @@ def run(ticker: str, year: int, quarter: str, dry_run: bool = False) -> dict:
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
     print(f"  [REDFLAGS] {model}")
     resp = opencode_client.chat(model, load_prompt(), payload, temperature=settings["temperature"],
-                                max_tokens=settings["max_tokens"])
+                                max_tokens=settings["max_tokens"],
+                                reasoning_effort=settings["reasoning_effort"])
     bullets = resp["content"].strip()
+    if len(bullets) < 40:
+        raise RuntimeError(
+            f"red-flag pass returned an empty or too-short result "
+            f"({len(bullets)} chars) for {ticker} {quarter} {year}"
+        )
     citation_bullets = audit_research_sources(ticker, year, quarter)
     if citation_bullets:
         bullets = (bullets + "\n" if bullets else "") + "\n".join(citation_bullets)
@@ -122,7 +139,8 @@ def run(ticker: str, year: int, quarter: str, dry_run: bool = False) -> dict:
     for line in bullets.splitlines():
         if line.strip():
             print("  " + line)
-    return {"status": "success", "output": str(out_path), "bullets": bullets, "usage": resp["usage"]}
+    return {"status": "success", "output": str(out_path), "bullets": bullets,
+            "usage": resp["usage"], "model": model}
 
 
 if __name__ == "__main__":
