@@ -38,10 +38,14 @@ generic commentary.
 4. **No invented facts.** Do not invent management names, subsidiaries, customer
    names, license dates, or commodity prices. Only restate what the inputs say;
    use `context_notes` from the fact sheet for qualitative flags.
-5. **Structure.** Follow the outline skeleton EXACTLY — all 14 sections, in
+5. **No absence claims from silence.** A search or tool returning no results is
+   evidence about the search, not about the world. Never claim that a note,
+   document, filing, or fact does not exist unless a tool explicitly reports its
+   status. Use "not captured", "not disclosed", or "not published" instead.
+6. **Structure.** Follow the outline skeleton EXACTLY — all 14 sections, in
    order, with the sub-sections shown. Keep the numbered headings (`## 1.`,
    `### 2.1`, ...).
-6. **Rigor of the reference style.** Mirror these conventions from the existing
+7. **Rigor of the reference style.** Mirror these conventions from the existing
    analyses:
    - YAML frontmatter `tags: ["#TICKER", "#earnings", "#Q<quarter-number><year>"]` —
      exactly one `#` per tag, e.g. `#Q22026` for Q2 2026 (not `##Q22026`, and not
@@ -53,11 +57,11 @@ generic commentary.
    - Margin waterfall tables (Revenue 100% → COGS → Gross → Opex → Operating →
      Net).
    - State the reporting units and audited/unaudited status up front.
-7. **Scoring.** In §13 give explicit X/10 financial-health, operational, growth,
+8. **Scoring.** In §13 give explicit X/10 financial-health, operational, growth,
    valuation scores and a risk profile.
-8. **Recommendation.** §14 ends with a BUY/HOLD/SELL (with a risk qualifier),
+9. **Recommendation.** §14 ends with a BUY/HOLD/SELL (with a risk qualifier),
    a target price range, key catalysts, and a review trigger.
-9. **End matter.** A `## Related Analysis` section of wikilinks drawn from the
+10. **End matter.** A `## Related Analysis` section of wikilinks drawn from the
    vault hits, then a one-paragraph disclaimer.
-10. **Output discipline.** Emit ONLY the markdown document. No preface, no code
+11. **Output discipline.** Emit ONLY the markdown document. No preface, no code
    fences around the whole thing. Target 600–900 lines of dense prose.
