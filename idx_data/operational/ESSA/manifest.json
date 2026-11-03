@@ -1,0 +1,69 @@
+{
+  "ticker": "ESSA",
+  "documents": [
+    {
+      "id": "essa_2026-07-30_filing",
+      "type": "filing",
+      "published": "2026-07-30",
+      "url": "https://indopremier.com/xdir/news/LAPORAN%20KEUANGAN/2026/q2/ESSA_Q2_2026.pdf",
+      "fetched_at": "2026-10-25T15:22:03Z",
+      "pages": 100,
+      "sha256": "2cb19654f5200653b4788e41bdd4fbae498a5f43e1380f04b46831113eb960d8",
+      "path": "idx_data/operational/ESSA/essa_2026-07-30_filing.pdf",
+      "status": "captured",
+      "error": null,
+      "bytes": 1905565,
+      "via": "curl_cffi impersonate=chrome131",
+      "text": "idx_data/operational/ESSA/essa_2026-07-30_filing.txt"
+    },
+    {
+      "id": "essa_listing_www_essa_co_id",
+      "type": "listing",
+      "published": "2026-10-25",
+      "url": "https://www.essa.co.id/en/news",
+      "fetched_at": "2026-10-25T14:24:37Z",
+      "pages": null,
+      "sha256": null,
+      "path": null,
+      "status": "not_captured",
+      "error": "HTTP 404",
+      "http_status": 404
+    }
+  ],
+  "scans": [
+    {
+      "at": "2026-10-25T14:19:37Z",
+      "listing_url": "https://www.essa.co.id/en/news",
+      "http_status": 404,
+      "discovered": 0,
+      "attempted": 0,
+      "captured": 0,
+      "not_captured": 0,
+      "rejected": 0,
+      "error": "HTTP 404"
+    },
+    {
+      "at": "2026-10-25T14:23:04Z",
+      "listing_url": "https://www.essa.co.id/en/news",
+      "http_status": 404,
+      "discovered": 0,
+      "attempted": 0,
+      "captured": 0,
+      "not_captured": 0,
+      "rejected": 0,
+      "error": "HTTP 404"
+    },
+    {
+      "at": "2026-10-25T14:24:37Z",
+      "listing_url": "https://www.essa.co.id/en/news",
+      "http_status": 404,
+      "discovered": 0,
+      "attempted": 0,
+      "captured": 0,
+      "not_captured": 0,
+      "rejected": 0,
+      "error": "HTTP 404"
+    }
+  ],
+  "updated_at": "2026-10-25T15:22:03Z"
+}

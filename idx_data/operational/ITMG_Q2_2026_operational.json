@@ -1,0 +1,514 @@
+{
+  "ticker": "ITMG",
+  "period": "Q2",
+  "year": "2026",
+  "document": {
+    "id": "itmg_2026-08-10_news_release",
+    "type": "press_release",
+    "published": "2026-08-10",
+    "url": "https://itmg.co.id/files/media/News%20Release%20on%20Financial%20Results%20and%20Performance%206M26.pdf",
+    "pages": 8,
+    "bytes": 430296,
+    "language": "en+id",
+    "fetched_with": "curl_cffi impersonate=chrome131",
+    "status": "captured",
+    "sha256": "107da97c4629b5529dd58a6839582d689a27a9167f70c1e2f5c6738318de3416",
+    "path": "idx_data/operational/ITMG/itmg_2026-08-10_news_release.pdf",
+    "selected_pages": {
+      "en": [
+        1,
+        2,
+        3,
+        7,
+        8
+      ],
+      "id": [
+        4,
+        5,
+        6
+      ]
+    },
+    "extraction_warnings": []
+  },
+  "documents": [
+    {
+      "id": "itmg_2026-08-10_news_release",
+      "type": "press_release",
+      "published": "2026-08-10",
+      "url": "https://itmg.co.id/files/media/News%20Release%20on%20Financial%20Results%20and%20Performance%206M26.pdf",
+      "pages": 8,
+      "status": "captured"
+    }
+  ],
+  "operational": {
+    "production": [
+      {
+        "metric": "coal_production",
+        "scope": "Q2-2026",
+        "value": 5.3,
+        "unit": "Mt",
+        "page": 1
+      },
+      {
+        "metric": "coal_production",
+        "scope": "6M-2026",
+        "value": 9.9,
+        "unit": "Mt",
+        "prior": 10.4,
+        "page": 1
+      }
+    ],
+    "sales": [
+      {
+        "metric": "coal_sales_volume",
+        "scope": "6M-2026",
+        "value": 12.3,
+        "unit": "Mt",
+        "prior": 11.7,
+        "page": 1
+      }
+    ],
+    "price": [
+      {
+        "metric": "asp",
+        "scope": "6M-2026",
+        "value": 81.0,
+        "unit": "USD/t",
+        "prior": 78.0,
+        "page": 1
+      }
+    ],
+    "balance_sheet": [
+      {
+        "metric": "total_assets",
+        "value": 2417.0,
+        "unit": "USD m",
+        "page": 2
+      },
+      {
+        "metric": "cash_and_equivalents",
+        "value": 738.0,
+        "unit": "USD m",
+        "page": 2
+      },
+      {
+        "metric": "short_term_deposits",
+        "value": 66.0,
+        "unit": "USD m",
+        "page": 2
+      },
+      {
+        "metric": "total_liabilities",
+        "value": 506.0,
+        "unit": "USD m",
+        "page": 2
+      },
+      {
+        "metric": "total_equity",
+        "value": 1910.0,
+        "unit": "USD m",
+        "page": 2
+      }
+    ],
+    "other": [
+      {
+        "metric": "royalties_to_government",
+        "value": 111.0,
+        "unit": "USD m",
+        "page": 2
+      },
+      {
+        "metric": "treasury_share_purchase",
+        "value": 27.0,
+        "unit": "USD m",
+        "page": 2
+      }
+    ],
+    "management_stated_drivers": [
+      {
+        "driver": "higher sales volume and higher ASP",
+        "affects": "revenue",
+        "quote": "The higher revenue was supported by 5% higher sales volume and 4% increase in ASP year-on-year.",
+        "page": 1
+      },
+      {
+        "driver": "higher strip ratio and fuel costs",
+        "affects": "cost_of_revenue",
+        "quote": "Cost of revenue increased by 7% in 6M26 mainly driven by higher coal mining and transportation costs, resulted from higher strip ratio and higher fuel costs in line with rising global oil prices during the period.",
+        "page": 1
+      },
+      {
+        "driver": "increased sales volume",
+        "affects": "selling_expenses",
+        "quote": "Selling expenses rose from $81 million to $88 million in line with increased sales volume.",
+        "page": 1
+      },
+      {
+        "driver": "increase of sales volume",
+        "affects": "royalties",
+        "quote": "royalties to the government increased by 7% year-on-year to $111 million in 6M26, mainly due to increase of sales volume",
+        "page": 2
+      },
+      {
+        "driver": "higher profit before income tax",
+        "affects": "net_profit",
+        "quote": "Income tax expenses increased to $49 million in 6M26 from $43 million in 6M25 in line with higher profit before income tax.",
+        "page": 2
+      },
+      {
+        "driver": "lower tax refunds and higher supplier payments",
+        "affects": "operating_cash_flow",
+        "quote": "primarily driven by lower tax refund receipts of $169 million and higher payment to suppliers in line with higher cost of revenue",
+        "page": 2
+      },
+      {
+        "driver": "higher realization of matured short-term deposits",
+        "affects": "investing_cash_flow",
+        "quote": "mainly due to higher realization of short-term deposits which are matured.",
+        "page": 2
+      },
+      {
+        "driver": "lower dividend payment offset by treasury share purchase",
+        "affects": "financing_cash_flow",
+        "quote": "mainly due to lower dividend payment offset by treasury shares purchase and higher repayment of bank loans and lease liabilities.",
+        "page": 2
+      }
+    ],
+    "entries": [
+      {
+        "metric": "coal_production",
+        "scope": "Q2-2026",
+        "value": 5.3,
+        "unit": "Mt",
+        "prior": null,
+        "page": 1,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "quoted_in_source",
+          "reconciled_to": null
+        },
+        "quote": "HIGHLIGHTS • Financial performance: ITMG recorded a 13% increase in coal production compared to the previous quarter, with production at 5.3 Mt in the second quarter of 2026."
+      },
+      {
+        "metric": "coal_production",
+        "scope": "6M-2026",
+        "value": 9.9,
+        "unit": "Mt",
+        "prior": 10.4,
+        "page": 1,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "quoted_in_source",
+          "reconciled_to": null
+        },
+        "quote": "This resulted in 6M26 production volumes of 9.9 Mt, slightly lower than 10.4 Mt in 6M25."
+      },
+      {
+        "metric": "coal_sales_volume",
+        "scope": "6M-2026",
+        "value": 12.3,
+        "unit": "Mt",
+        "prior": 11.7,
+        "page": 1,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "quoted_in_source",
+          "reconciled_to": null
+        },
+        "quote": "Meanwhile, total sales volume increased to 12.3 Mt in 6M26 from 11.7 Mt in the same period last year."
+      },
+      {
+        "metric": "asp",
+        "scope": "6M-2026",
+        "value": 81.0,
+        "unit": "USD/t",
+        "prior": 78.0,
+        "page": 1,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "quoted_in_source",
+          "reconciled_to": null
+        },
+        "quote": "In addition, the average selling price (ASP) also increased from $78/ton in 6M25 to $81/ton in 6M26, which drove a 9% year-on-year revenue growth."
+      },
+      {
+        "metric": "total_assets",
+        "scope": "6M-2026",
+        "value": 2417.0,
+        "unit": "USD m",
+        "prior": null,
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "reconciled",
+          "reconciled_to": "balance_sheet.total_assets (1210000:128)"
+        },
+        "quote": "As of 30 June 2026, total assets stood at $2,417 million, relatively similar to the amount at the end of 2025."
+      },
+      {
+        "metric": "cash_and_equivalents",
+        "scope": "6M-2026",
+        "value": 738.0,
+        "unit": "USD m",
+        "prior": null,
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "quoted_in_source",
+          "reconciled_to": null
+        },
+        "quote": "Cash and cash equivalents were recorded at $738 million while short-term deposits reached $66 million, with the combined balance representing 33% of total assets."
+      },
+      {
+        "metric": "short_term_deposits",
+        "scope": "6M-2026",
+        "value": 66.0,
+        "unit": "USD m",
+        "prior": null,
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "quoted_in_source",
+          "reconciled_to": null
+        },
+        "quote": "Cash and cash equivalents were recorded at $738 million while short-term deposits reached $66 million, with the combined balance representing 33% of total assets."
+      },
+      {
+        "metric": "total_liabilities",
+        "scope": "6M-2026",
+        "value": 506.0,
+        "unit": "USD m",
+        "prior": 498.0,
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "reconciled",
+          "reconciled_to": "balance_sheet.total_liabilities (1210000:247)"
+        },
+        "quote": "Total liabilities slightly increased to $506 million at the end of June 2026 from $498 million at the end of 2025."
+      },
+      {
+        "metric": "total_equity",
+        "scope": "6M-2026",
+        "value": 1910.0,
+        "unit": "USD m",
+        "prior": 1908.0,
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "reconciled",
+          "reconciled_to": "balance_sheet.total_equity (1210000:272)"
+        },
+        "quote": "Total equity also rose slightly to $1,910 million from $1,908 million at the end of 2025 mainly due to higher retained earnings which increased to $1,521 million from $1,478 million, partially offset by $27 million of treasury share purchase in 6M26."
+      },
+      {
+        "metric": "royalties_to_government",
+        "scope": "6M-2026",
+        "value": 111.0,
+        "unit": "USD m",
+        "prior": null,
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "quoted_in_source",
+          "reconciled_to": null
+        },
+        "quote": "Meanwhile, royalties to the government increased by 7% year-on-year to $111 million in 6M26, mainly due to increase of sales volume."
+      },
+      {
+        "metric": "treasury_share_purchase",
+        "scope": "6M-2026",
+        "value": 27.0,
+        "unit": "USD m",
+        "prior": null,
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "quoted_in_source",
+          "reconciled_to": null
+        },
+        "quote": "Total equity also rose slightly to $1,910 million from $1,908 million at the end of 2025 mainly due to higher retained earnings which increased to $1,521 million from $1,478 million, partially offset by $27 million of treasury share purchase in 6M26."
+      },
+      {
+        "metric": "revenue",
+        "scope": "6M-2026",
+        "value": 1000.0,
+        "unit": "USD m",
+        "prior": null,
+        "page": 1,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "reconciled",
+          "reconciled_to": "income_statement.revenue (1311000:6)"
+        },
+        "quote": "The Company recorded 6M26 revenue of $1,000 million, an increase of 9% as compared to 6M25."
+      },
+      {
+        "metric": "net_profit",
+        "scope": "6M-2026",
+        "value": 110.0,
+        "unit": "USD m",
+        "prior": null,
+        "page": 1,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "reconciled",
+          "reconciled_to": "income_statement.net_profit (1311000:30)"
+        },
+        "quote": "The Company reported a net profit of $110 million for the six-month period ended 30 June 2026."
+      },
+      {
+        "metric": "operating_cash_flow",
+        "scope": "6M-2026",
+        "value": 62.0,
+        "unit": "USD m",
+        "prior": 281.0,
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "published_at": "2026-08-10",
+        "status": "preliminary",
+        "verification": {
+          "method": "reconciled",
+          "reconciled_to": "cash_flow.ocf (1510000:47)"
+        },
+        "quote": "The Company's reported net cash inflow from operating activities of $62 million in 6M26, lower than $281 million in 6M25, primarily driven by lower tax refund receipts of $169 million and higher payment to suppliers in line with higher cost of revenue."
+      }
+    ],
+    "drivers": [
+      {
+        "driver": "higher sales volume and higher ASP",
+        "affects": "revenue",
+        "quote": "The higher revenue was supported by 5% higher sales volume and 4% increase in ASP year-on-year.",
+        "page": 1,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "type": "management_stated",
+        "source": "llm"
+      },
+      {
+        "driver": "higher strip ratio and fuel costs",
+        "affects": "cost_of_revenue",
+        "quote": "Cost of revenue increased by 7% in 6M26 mainly driven by higher coal mining and transportation costs, resulted from higher strip ratio and higher fuel costs in line with rising global oil prices during the period.",
+        "page": 1,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "type": "management_stated",
+        "source": "llm"
+      },
+      {
+        "driver": "increased sales volume",
+        "affects": "selling_expenses",
+        "quote": "Selling expenses rose from $81 million to $88 million in line with increased sales volume.",
+        "page": 1,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "type": "management_stated",
+        "source": "llm"
+      },
+      {
+        "driver": "increase of sales volume",
+        "affects": "royalties",
+        "quote": "royalties to the government increased by 7% year-on-year to $111 million in 6M26, mainly due to increase of sales volume",
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "type": "management_stated",
+        "source": "llm"
+      },
+      {
+        "driver": "higher profit before income tax",
+        "affects": "net_profit",
+        "quote": "Income tax expenses increased to $49 million in 6M26 from $43 million in 6M25 in line with higher profit before income tax.",
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "type": "management_stated",
+        "source": "llm"
+      },
+      {
+        "driver": "lower tax refunds and higher supplier payments",
+        "affects": "operating_cash_flow",
+        "quote": "primarily driven by lower tax refund receipts of $169 million and higher payment to suppliers in line with higher cost of revenue",
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "type": "management_stated",
+        "source": "llm"
+      },
+      {
+        "driver": "higher realization of matured short-term deposits",
+        "affects": "investing_cash_flow",
+        "quote": "mainly due to higher realization of short-term deposits which are matured.",
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "type": "management_stated",
+        "source": "llm"
+      },
+      {
+        "driver": "lower dividend payment offset by treasury share purchase",
+        "affects": "financing_cash_flow",
+        "quote": "mainly due to lower dividend payment offset by treasury shares purchase and higher repayment of bank loans and lease liabilities.",
+        "page": 2,
+        "source_doc": "itmg_2026-08-10_news_release",
+        "type": "management_stated",
+        "source": "llm"
+      }
+    ]
+  },
+  "reconciliation": {
+    "revenue": {
+      "release": 1000.0,
+      "xbrl": 1000.491
+    },
+    "net_profit": {
+      "release": 110.0,
+      "xbrl": 109.514
+    },
+    "operating_cf": {
+      "release": 62.0,
+      "xbrl": 62.376
+    },
+    "total_equity": {
+      "release": 1910.0,
+      "xbrl": 1910.488
+    },
+    "total_assets": {
+      "release": 2417.0,
+      "xbrl": 2416.716
+    }
+  },
+  "derived": {
+    "inventory_drawdown_mt": 2.4,
+    "implied_revenue_usd_m": 996.3,
+    "production_yoy_pct": -4.8,
+    "sales_yoy_pct": 5.1,
+    "asp_yoy_pct": 3.8
+  },
+  "completeness": {
+    "operational": "complete",
+    "as_of": "2026-10-25",
+    "documents_captured": 1,
+    "driver_pass": "llm",
+    "gaps": []
+  }
+}

@@ -1,0 +1,209 @@
+{
+  "ticker": "PTBA",
+  "period": "Q2",
+  "year": "2026",
+  "document": {
+    "id": "ptba_2026-09-01_press_release",
+    "type": "press_release",
+    "published": "2026-09-01",
+    "url": "https://www.ptba.co.id/api/storage/1784859084645-47800390-f5fa-4824-8925-55ee59c8ab9f.pdf",
+    "pages": 4,
+    "bytes": 80089,
+    "language": "en+id",
+    "fetched_with": "curl_cffi impersonate=chrome131",
+    "status": "captured",
+    "sha256": "f6026a5948734f01973275933c456c25f2d54993a5a54fd56dd3f4d9fb76b5f6",
+    "path": "idx_data/operational/PTBA/ptba_2026-09-01_press_release.pdf",
+    "selected_pages": {
+      "en": [
+        3,
+        4
+      ],
+      "id": [
+        1,
+        2
+      ]
+    },
+    "extraction_warnings": []
+  },
+  "documents": [
+    {
+      "id": "ptba_2026-09-01_press_release",
+      "type": "press_release",
+      "published": "2026-09-01",
+      "url": "https://www.ptba.co.id/api/storage/1784859084645-47800390-f5fa-4824-8925-55ee59c8ab9f.pdf",
+      "pages": 4,
+      "status": "captured"
+    }
+  ],
+  "operational": {
+    "production": [
+      {
+        "metric": "coal_production",
+        "scope": "6M-2026",
+        "value": 19.45,
+        "unit": "Mt",
+        "page": 3
+      }
+    ],
+    "sales": [
+      {
+        "metric": "coal_sales_volume",
+        "scope": "6M-2026",
+        "value": 21.1,
+        "unit": "Mt",
+        "page": 3
+      }
+    ],
+    "price": [],
+    "balance_sheet": [],
+    "other": [
+      {
+        "metric": "strip_ratio",
+        "value": 5.26,
+        "unit": "x",
+        "page": 3
+      }
+    ],
+    "management_stated_drivers": [
+      {
+        "driver": "favorable coal market and stronger prices",
+        "affects": "revenue",
+        "quote": "Amid favorable coal market conditions and stronger prices compared to the previous year, the Company continued to maintain operational reliability, strengthen its supply chain, and optimize the fulfillment of both domestic and export market demand.",
+        "page": 3
+      },
+      {
+        "driver": "optimal inventory levels",
+        "affects": "revenue",
+        "quote": "Supported by optimal inventory levels, the Company achieved coal sales of 21.10 million tons.",
+        "page": 3
+      },
+      {
+        "driver": "strong export demand",
+        "affects": "revenue",
+        "quote": "Export sales increased by around 5% compared to the same period last year, supported by strong demand from key export destinations, including Vietnam, Bangladesh, Cambodia, India, and Thailand.",
+        "page": 3
+      },
+      {
+        "driver": "selective mining practices",
+        "affects": "cost_of_revenue",
+        "quote": "the Company continues to implement selective mining practices to maintain the effectiveness and efficiency of its mining operations",
+        "page": 3
+      },
+      {
+        "driver": "capex on logistics infrastructure",
+        "affects": "investing_cash_flow",
+        "quote": "PTBA continued to realize its capital expenditure (capex), primarily allocated to the development of logistics infrastructure, including the Tanjung Enim-Kramasan coal transportation project and the Banko In-Pit Conveyor development, both of which are expected to enhance the Company's operational performance over the long term.",
+        "page": 3
+      }
+    ],
+    "entries": [
+      {
+        "metric": "coal_production",
+        "scope": "6M-2026",
+        "value": 19.45,
+        "unit": "Mt",
+        "prior": null,
+        "page": 3,
+        "source_doc": "ptba_2026-09-01_press_release",
+        "published_at": "2026-09-01",
+        "status": "preliminary",
+        "verification": {
+          "method": "quoted_in_source",
+          "reconciled_to": null
+        },
+        "quote": "During the first half of 2026, PTBA recorded coal production of 19.45 million tons."
+      },
+      {
+        "metric": "coal_sales_volume",
+        "scope": "6M-2026",
+        "value": 21.1,
+        "unit": "Mt",
+        "prior": null,
+        "page": 3,
+        "source_doc": "ptba_2026-09-01_press_release",
+        "published_at": "2026-09-01",
+        "status": "preliminary",
+        "verification": {
+          "method": "quoted_in_source",
+          "reconciled_to": null
+        },
+        "quote": "Supported by optimal inventory levels, the Company achieved coal sales of 21.10 million tons."
+      },
+      {
+        "metric": "strip_ratio",
+        "scope": "6M-2026",
+        "value": 5.26,
+        "unit": "x",
+        "prior": null,
+        "page": 3,
+        "source_doc": "ptba_2026-09-01_press_release",
+        "published_at": "2026-09-01",
+        "status": "preliminary",
+        "verification": {
+          "method": "quoted_in_source",
+          "reconciled_to": null
+        },
+        "quote": "As of the first half of 2026, PTBA recorded a stripping ratio of 5.26x, remaining within the Company's annual target of 5.63x."
+      }
+    ],
+    "drivers": [
+      {
+        "driver": "favorable coal market and stronger prices",
+        "affects": "revenue",
+        "quote": "Amid favorable coal market conditions and stronger prices compared to the previous year, the Company continued to maintain operational reliability, strengthen its supply chain, and optimize the fulfillment of both domestic and export market demand.",
+        "page": 3,
+        "source_doc": "ptba_2026-09-01_press_release",
+        "type": "management_stated",
+        "source": "llm"
+      },
+      {
+        "driver": "optimal inventory levels",
+        "affects": "revenue",
+        "quote": "Supported by optimal inventory levels, the Company achieved coal sales of 21.10 million tons.",
+        "page": 3,
+        "source_doc": "ptba_2026-09-01_press_release",
+        "type": "management_stated",
+        "source": "llm"
+      },
+      {
+        "driver": "strong export demand",
+        "affects": "revenue",
+        "quote": "Export sales increased by around 5% compared to the same period last year, supported by strong demand from key export destinations, including Vietnam, Bangladesh, Cambodia, India, and Thailand.",
+        "page": 3,
+        "source_doc": "ptba_2026-09-01_press_release",
+        "type": "management_stated",
+        "source": "llm"
+      },
+      {
+        "driver": "selective mining practices",
+        "affects": "cost_of_revenue",
+        "quote": "the Company continues to implement selective mining practices to maintain the effectiveness and efficiency of its mining operations",
+        "page": 3,
+        "source_doc": "ptba_2026-09-01_press_release",
+        "type": "management_stated",
+        "source": "llm"
+      },
+      {
+        "driver": "capex on logistics infrastructure",
+        "affects": "investing_cash_flow",
+        "quote": "PTBA continued to realize its capital expenditure (capex), primarily allocated to the development of logistics infrastructure, including the Tanjung Enim-Kramasan coal transportation project and the Banko In-Pit Conveyor development, both of which are expected to enhance the Company's operational performance over the long term.",
+        "page": 3,
+        "source_doc": "ptba_2026-09-01_press_release",
+        "type": "management_stated",
+        "source": "llm"
+      }
+    ]
+  },
+  "reconciliation": {},
+  "derived": {
+    "inventory_drawdown_mt": 1.7
+  },
+  "completeness": {
+    "operational": "complete",
+    "as_of": "2026-10-25",
+    "documents_captured": 1,
+    "driver_pass": "llm",
+    "gaps": []
+  }
+}
