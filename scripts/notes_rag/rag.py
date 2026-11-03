@@ -18,6 +18,7 @@ import hashlib
 import json
 import re
 import sys
+import time
 from pathlib import Path
 from urllib.parse import quote
 
@@ -133,7 +134,30 @@ def period_of(stem: str) -> str | None:
     return None
 
 
-def connect() -> duckdb.DuckDBPyConnection:
+def _connect_readonly(timeout_s: float = 30.0) -> duckdb.DuckDBPyConnection:
+    """Open the index read-only; wait out an in-flight writer instead of failing.
+
+    DuckDB allows either one read-write process or many read-only processes, so
+    a search started during ``rag.py index`` sees a lock conflict. Retrying
+    briefly turns that race into a short wait rather than a "locked" error.
+    The connection only LOADs fts (never INSTALLs, never creates tables).
+    """
+    if not DB_PATH.exists():
+        sys.exit("Index has not been built. Run: uv run scripts/notes_rag/rag.py index")
+    deadline = time.monotonic() + timeout_s
+    while True:
+        try:
+            con = duckdb.connect(str(DB_PATH), read_only=True)
+            con.execute("LOAD fts;")
+            return con
+        except (duckdb.IOException, duckdb.ConnectionException) as e:
+            if "lock" not in str(e).lower() or time.monotonic() >= deadline:
+                raise
+            time.sleep(0.25)
+
+
+def _connect_rw() -> duckdb.DuckDBPyConnection:
+    """Open the index read-write (single writer); may INSTALL + create tables."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect(str(DB_PATH))
     con.execute("INSTALL fts; LOAD fts;")
@@ -156,6 +180,21 @@ def connect() -> duckdb.DuckDBPyConnection:
     return con
 
 
+def connect(read_only: bool = False, *, timeout_s: float = 30.0) -> duckdb.DuckDBPyConnection:
+    """Open the chunk store: read-only for search/fetch, read-write for index."""
+    if read_only:
+        return _connect_readonly(timeout_s)
+    return _connect_rw()
+
+
+def connect_readonly(timeout_s: float = 30.0) -> duckdb.DuckDBPyConnection:
+    return _connect_readonly(timeout_s)
+
+
+def connect_rw() -> duckdb.DuckDBPyConnection:
+    return _connect_rw()
+
+
 def embed(texts: list[str]) -> list[list[float]]:
     out: list[list[float]] = []
     for i in range(0, len(texts), EMBED_BATCH):
@@ -165,7 +204,7 @@ def embed(texts: list[str]) -> list[list[float]]:
 
 
 def cmd_index(force: bool) -> None:
-    con = connect()
+    con = connect_rw()
     if force:
         con.execute("DELETE FROM chunks")
         con.execute("DELETE FROM files")
@@ -231,7 +270,7 @@ def cmd_index(force: bool) -> None:
 
 
 def cmd_search(args: argparse.Namespace) -> None:
-    con = connect()
+    con = connect_readonly()
     if con.execute("SELECT COUNT(*) FROM chunks").fetchone()[0] == 0:
         sys.exit("Index is empty. Run: uv run scripts/notes_rag/rag.py index")
 
@@ -326,7 +365,7 @@ def cmd_search(args: argparse.Namespace) -> None:
 
 
 def cmd_fetch(args: argparse.Namespace) -> None:
-    con = connect()
+    con = connect_readonly()
     row = con.execute(
         "SELECT id, path, title, folder, breadcrumb, text, tickers, period "
         "FROM chunks WHERE id = ?",
