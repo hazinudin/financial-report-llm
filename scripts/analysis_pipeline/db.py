@@ -23,7 +23,8 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 IDX_DATA_DIR = _PROJECT_ROOT / "idx_data"
 DEFAULT_DB_PATH = IDX_DATA_DIR / "pipeline.duckdb"
 
-STAGES = ("preprocess", "extract", "merge", "context", "research", "write", "redflags")
+STAGES = ("preprocess", "extract", "merge", "context", "research", "write", "redflags", "index")
+COST_STAGES = ("extract", "research_llm", "exa", "write", "redflags", "operational")
 
 
 def get_db(db_path: str | Path = DEFAULT_DB_PATH, read_only: bool = False) -> duckdb.DuckDBPyConnection:
@@ -56,10 +57,18 @@ class AnalysisDB:
                 stage_research    VARCHAR DEFAULT 'pending',
                 stage_write       VARCHAR DEFAULT 'pending',
                 stage_redflags    VARCHAR DEFAULT 'pending',
+                stage_index       VARCHAR DEFAULT 'pending',
                 model_extract     VARCHAR,
                 model_write       VARCHAR,
                 tokens_prompt     BIGINT,
                 tokens_completion BIGINT,
+                cost_usd          DOUBLE DEFAULT 0,
+                cost_extract      DOUBLE DEFAULT 0,
+                cost_research_llm DOUBLE DEFAULT 0,
+                cost_exa          DOUBLE DEFAULT 0,
+                cost_write        DOUBLE DEFAULT 0,
+                cost_redflags     DOUBLE DEFAULT 0,
+                cost_operational  DOUBLE DEFAULT 0,
                 error             VARCHAR,
                 output_path       VARCHAR,
                 updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -71,11 +80,18 @@ class AnalysisDB:
             "ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS stage_research VARCHAR DEFAULT 'pending'"
         )
         self.conn.execute(
+            "ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS stage_index VARCHAR DEFAULT 'pending'"
+        )
+        self.conn.execute(
             "ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS model_plan VARCHAR"
         )
         self.conn.execute(
             "ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS cost_usd DOUBLE DEFAULT 0"
         )
+        for column in COST_STAGES:
+            self.conn.execute(
+                f"ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS cost_{column} DOUBLE DEFAULT 0"
+            )
         self.conn.execute(
             "ALTER TABLE analysis_jobs ADD COLUMN IF NOT EXISTS plan_fallback BOOLEAN DEFAULT FALSE"
         )
@@ -145,15 +161,37 @@ class AnalysisDB:
             (prompt, completion, job_id),
         )
 
-    def add_cost(self, job_id: str, cost_usd: float = 0.0):
+    def add_cost(self, job_id: str, cost_usd: float = 0.0, *, stage: str | None = None):
+        """Add to the total cost, and to one per-stage bucket when given.
+
+        ``stage`` is one of ``COST_STAGES`` (``research_llm`` covers both the
+        planner and the search agent; Exa is tracked separately).
+        """
+        cost = float(cost_usd or 0.0)
+        if stage is not None and stage not in COST_STAGES:
+            raise ValueError(
+                f"Invalid cost stage: {stage}. Must be one of {COST_STAGES}"
+            )
+        if stage is None:
+            self.conn.execute(
+                """
+                UPDATE analysis_jobs
+                   SET cost_usd = COALESCE(cost_usd, 0) + ?,
+                       updated_at = now()
+                 WHERE job_id = ?
+                """,
+                (cost, job_id),
+            )
+            return
         self.conn.execute(
-            """
+            f"""
             UPDATE analysis_jobs
                SET cost_usd = COALESCE(cost_usd, 0) + ?,
+                   cost_{stage} = COALESCE(cost_{stage}, 0) + ?,
                    updated_at = now()
              WHERE job_id = ?
             """,
-            (float(cost_usd or 0.0), job_id),
+            (cost, cost, job_id),
         )
 
     def set_plan_fallback(self, job_id: str, fallback: bool):
@@ -208,10 +246,10 @@ class AnalysisDB:
         cols = [d[0] for d in res.description]
         print(
             f"\n{'Ticker':<8} {'Year':<6} {'Qtr':<5} "
-            f"{'Pre':<11} {'Extract':<11} {'Merge':<11} {'Context':<11} {'Research':<11} {'Write':<11} {'Redflags':<11} "
+            f"{'Pre':<11} {'Extract':<11} {'Merge':<11} {'Context':<11} {'Research':<11} {'Write':<11} {'Redflags':<11} {'Index':<11} "
             f"{'Tok(p/c)':<14} {'$':<8} {'Plan':<6} {'Output/Error'}"
         )
-        print("-" * 156)
+        print("-" * 168)
         for r in rows:
             d = dict(zip(cols, r))
             tp = d.get("tokens_prompt") or 0
@@ -227,7 +265,27 @@ class AnalysisDB:
                 f"{d.get('stage_merge','?'):<11} {d.get('stage_context','?'):<11} "
                 f"{d.get('stage_research','?'):<11} "
                 f"{d.get('stage_write','?'):<11} {d.get('stage_redflags','?'):<11} "
+                f"{d.get('stage_index','?'):<11} "
                 f"{tok:<14} {cost_str:<8} {plan_cell:<6} {str(out)[:34]}"
+            )
+        print(
+            f"\nCost breakdown (USD; token-derived values are estimates):\n"
+            f"{'Ticker':<8} {'Qtr':<5} {'Year':<6} "
+            f"{'Extract':>9} {'ResLLM':>9} {'Exa':>9} {'Write':>9} "
+            f"{'Redflags':>9} {'Oper':>9} {'Total':>9}"
+        )
+        print("-" * 92)
+        for r in rows:
+            d = dict(zip(cols, r))
+            print(
+                f"{d.get('ticker',''):<8} {d.get('quarter',''):<5} {d.get('year',''):<6} "
+                f"{float(d.get('cost_extract') or 0):>9.4f} "
+                f"{float(d.get('cost_research_llm') or 0):>9.4f} "
+                f"{float(d.get('cost_exa') or 0):>9.4f} "
+                f"{float(d.get('cost_write') or 0):>9.4f} "
+                f"{float(d.get('cost_redflags') or 0):>9.4f} "
+                f"{float(d.get('cost_operational') or 0):>9.4f} "
+                f"{float(d.get('cost_usd') or 0):>9.4f}"
             )
         total = len(rows)
         done = sum(

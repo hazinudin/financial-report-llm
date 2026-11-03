@@ -3,7 +3,7 @@ IDX Equity Analysis Pipeline
 ============================
 
 Automates equity-analysis markdown generation from docling-converted IDX reports
-(`results/{TICKER}_{Q}_{YEAR}.md`) using the OpenCode Go subscription as the
+(`results/{TICKER}_{Q}_{YEAR}.md`) using the Command Code Provider API as the
 model API, within a small-context, low-call architecture:
 
   Stage 0 preprocess   deterministic markdown reducer (drop policy boilerplate)
@@ -14,6 +14,7 @@ model API, within a small-context, low-call architecture:
   Stage 3b research    headless pi agent (exa_search + fetch_content) -> brief
   Stage 4 write        headless pi writer agent -> analysis/{TICKER} {Q} {Y}.md
   Stage 5 redflags     cheap-model contradiction pass (+ optional re-write)
+  Stage 6 index        incremental notes-vault index (scripts/notes_rag/rag.py index)
 
 All state is tracked in idx_data/pipeline.duckdb (analysis_jobs table).
 
@@ -38,12 +39,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from contextlib import contextmanager
 from pathlib import Path
 
 import yaml
 
+import pricing
 from db import AnalysisDB, STAGES, get_db
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -200,6 +203,15 @@ def run_job(
                 tok = res.get("tokens", {})
                 if tok and not dry_run:
                     db.add_tokens(job_id, tok.get("prompt", 0), tok.get("completion", 0))
+                    db.add_cost(
+                        job_id,
+                        pricing.token_cost(
+                            res.get("model"),
+                            tok.get("prompt", 0),
+                            tok.get("completion", 0),
+                        ),
+                        stage="extract",
+                    )
                 if res["status"] == "partial":
                     err = res.get("error")
                     mark( "extract", "failed", error=err)
@@ -270,11 +282,12 @@ def run_job(
                             plan_tok.get("completion_tokens", 0),
                         )
                     plan_meta = res.get("plan_pi_meta", {}) or {}
-                    db.add_cost(
-                        job_id,
-                        float(plan_tok.get("cost_usd", 0.0) or 0.0)
-                        + float(tok.get("cost_usd", 0.0) or 0.0),
+                    research_cost = float(plan_tok.get("cost_usd", 0.0) or 0.0) + float(
+                        tok.get("cost_usd", 0.0) or 0.0
                     )
+                    db.add_cost(job_id, research_cost, stage="research_llm")
+                    exa_cost = float((res.get("pi_meta") or {}).get("exa_cost_usd", 0.0) or 0.0)
+                    db.add_cost(job_id, exa_cost, stage="exa")
                     if plan_meta.get("model"):
                         db.set_models(job_id, plan=plan_meta["model"])
                     if "plan_fallback" in res:
@@ -303,7 +316,7 @@ def run_job(
                 tok = res.get("usage", {})
                 if tok and not dry_run:
                     db.add_tokens(job_id, tok.get("prompt_tokens", 0), tok.get("completion_tokens", 0))
-                    db.add_cost(job_id, float(tok.get("cost_usd", 0.0) or 0.0))
+                    db.add_cost(job_id, float(tok.get("cost_usd", 0.0) or 0.0), stage="write")
                 if not dry_run:
                     db.set_models(job_id, write=res.get("model"))
                     db.set_output(job_id, str(_PROJECT_ROOT / "analysis" / f"{ticker} {quarter} {year} Analysis.md"))
@@ -324,6 +337,14 @@ def run_job(
             tok = rres.get("usage", {})
             if tok and not dry_run:
                 db.add_tokens(job_id, tok.get("prompt_tokens", 0), tok.get("completion_tokens", 0))
+                redflags_cost = float(tok.get("cost_usd", 0.0) or 0.0)
+                if not redflags_cost:
+                    redflags_cost = pricing.token_cost(
+                        rres.get("model"),
+                        tok.get("prompt_tokens", 0),
+                        tok.get("completion_tokens", 0),
+                    )
+                db.add_cost(job_id, redflags_cost, stage="redflags")
             bullets = rres.get("bullets", "")
             if inject_redflags and bullets and not dry_run:
                 print(f"\n[{job_id}] re-running write with injected red flags...")
@@ -333,6 +354,7 @@ def run_job(
                 wt = wres.get("usage", {})
                 if wt:
                     db.add_tokens(job_id, wt.get("prompt_tokens", 0), wt.get("completion_tokens", 0))
+                    db.add_cost(job_id, float(wt.get("cost_usd", 0.0) or 0.0), stage="write")
                 db.set_output(job_id, wres.get("output", ""))
             mark( "redflags", "completed")
             summary["stages"]["redflags"] = rres["status"]
@@ -340,6 +362,34 @@ def run_job(
             mark( "redflags", "failed", error=str(e))
             summary["stages"]["redflags"] = "failed"
             print(f"\n[{job_id}] redflags FAILED: {e}")
+
+    # ── Stage 6: index (incremental notes-vault index) ──────────────
+    if want("index"):
+        if dry_run:
+            summary["stages"]["index"] = "dry"
+        elif should_skip("index"):
+            summary["stages"]["index"] = "skipped"
+        else:
+            mark( "index", "running")
+            try:
+                proc = subprocess.run(
+                    [sys.executable, "scripts/notes_rag/rag.py", "index"],
+                    cwd=_PROJECT_ROOT,
+                    capture_output=True,
+                    text=True,
+                )
+                if proc.returncode != 0:
+                    raise RuntimeError(
+                        f"rag.py index exited {proc.returncode}: "
+                        f"{(proc.stderr or proc.stdout or '').strip()[:2000]}"
+                    )
+                mark( "index", "completed")
+                summary["stages"]["index"] = "completed"
+                print(f"  [INDEX] {(proc.stdout or '').strip()}")
+            except Exception as e:  # noqa: BLE001 — prior chunks are left intact
+                mark( "index", "failed", error=str(e))
+                summary["stages"]["index"] = "failed"
+                print(f"\n[{job_id}] index FAILED: {e}")
 
     summary["output"] = out_path
     return summary
@@ -359,10 +409,12 @@ def main():
     parser.add_argument("--force", action="store_true", help="Re-run stages even if outputs exist.")
     parser.add_argument("--dry-run", action="store_true", help="Show what would happen without calling the model.")
     parser.add_argument("--status", action="store_true", help="Print the analysis-jobs dashboard and exit.")
-    parser.add_argument("--list-models", action="store_true", help="List model IDs available under the Go subscription and exit.")
+    parser.add_argument("--list-models", action="store_true", help="List model IDs served by analysis.llm.base_url and exit.")
     parser.add_argument("--retry-failed", action="store_true", help="Re-run jobs with failed stages.")
     parser.add_argument("--stage", type=str, default=None, choices=list(STAGES),
                         help="Limit --retry-failed to a stage, or start from a stage.")
+    parser.add_argument("--from-stage", type=str, default=None, choices=list(STAGES),
+                        help="Start a normal run at this stage (implies later stages).")
     parser.add_argument("--extract-only", action="store_true", help="Run only preprocess + extract.")
     parser.add_argument("--research-only", action="store_true", help="Run through research and stop before writing.")
     parser.add_argument("--write-only", action="store_true", help="Run only context + write (facts/ratios must exist).")
@@ -431,7 +483,7 @@ def main():
     elif args.write_only:
         stages = {"context", "research", "write"}
     elif args.skip_research:
-        stages = {"preprocess", "extract", "merge", "context", "write", "redflags"}
+        stages = {"preprocess", "extract", "merge", "context", "write", "redflags", "index"}
 
     combos = [(t, y, q) for t in tickers for y in years for q in quarters]
     print("=" * 60)
@@ -441,6 +493,7 @@ def main():
         for t, y, q in combos:
             print(f"\n==== {t} {q} {y} ====")
             run_job(t, y, q, db, force=args.force, dry_run=args.dry_run, stages=stages,
+                    from_stage=args.from_stage or args.stage,
                     market_data_path=args.market_data, workers=args.workers,
                     inject_redflags=args.redflags and args.inject_redflags,
                     skip_search=args.no_search,
