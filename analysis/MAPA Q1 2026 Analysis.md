@@ -29,7 +29,7 @@ The interim report does not disclose a volume-versus-price split, segment-level 
 
 ### 2.3 Revenue Composition Observations
 
-Customer concentration, domestic versus external revenue splits, and segment composition are not disclosed in the canonical fact sheet. The customer list is empty, and the segment array is null. What can be inferred from the subsidiary table is that MAPA operates a multi-brand, multi-geography structure—Indonesia, Vietnam, Malaysia, and Singapore—but revenue attribution to each jurisdiction or brand is unavailable. Without concentration metrics, the dependency on any single wholesale account or geographic market cannot be quantified.
+Customer concentration, domestic versus external revenue splits, and segment composition are not disclosed in the canonical fact sheet; the three-month geographic revenue table, however, is available in the filing's Note 32 (printed page 69 / PDF page 72). The customer list is empty, and the segment array is null. What can be inferred from the subsidiary table is that MAPA operates a multi-brand, multi-geography structure—Indonesia, Vietnam, Malaysia, and Singapore—but the canonical fact sheet does not attribute revenue to each jurisdiction or brand. Without concentration metrics, the dependency on any single wholesale account or geographic market cannot be quantified.
 
 ### 2.4 Revenue Sustainability and Forward Outlook
 

@@ -34,7 +34,7 @@ External research indicates that MAP Group (the parent ecosystem) targeted 550â€
 
 ### 2.3 Revenue Composition Observations
 
-No single customer exceeded 10% of net revenues in H1 2026 or H1 2025 (Note 24). No single merchandise supplier exceeded 10% of total revenue (Note 25). Geographically, Indonesia accounted for Rp 7,711,678 million (76.2% of net revenue) and held Rp 4,608,871 million of non-current assets (excluding deferred tax) out of a group total of Rp 6,509,438 million (Note 34). The remainder is spread across Vietnam, Thailand, Malaysia, Singapore, the Philippines, and India.
+No single customer exceeded 10% of net revenues in H1 2026 or H1 2025 (Note 24). No single merchandise supplier exceeded 10% of total revenue (Note 25). Geographically, Indonesia accounted for Rp 7,711,678 million (76.2% of net revenue) and held Rp 4,608,871 million of non-current assets (excluding deferred tax) out of a group total of Rp 6,509,438 million (Note 34). The remainder is spread across Vietnam, Thailand, Malaysia, Singapore, the Philippines, and Cambodia.
 
 Segment composition is heavily retail-centric, with non-retail (wholesale/distribution) acting as a small adjunct. The customer list in the canonical fact sheet is empty, so granular customer-mix or concentration metrics beyond the >10% threshold are not disclosed.
 
