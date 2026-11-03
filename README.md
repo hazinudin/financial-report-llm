@@ -226,14 +226,96 @@ design documentation.
 
 ### Prerequisites
 
-Set `OPENCODE_API_KEY` in `.env` (gitignored). Model IDs are configured in
-`config.yaml` under `analysis.models`. Run `--list-models` after key setup to
-confirm available IDs.
+The model provider is **Command Code** (`https://api.commandcode.ai/provider/v1`),
+configured in `config.yaml`:
+
+- `analysis.llm` — base URL, `api_key_env`, timeout for the HTTP stages
+  (extract, red-flags).
+- `analysis.models` — one model ID per stage. **These must be Command Code IDs
+  (`vendor/model`, e.g. `deepseek/deepseek-v4.1-flash`).** The older opencode-go
+  IDs had no prefix; the chat endpoint rejects a bare ID with
+  `Model "…" is not supported on this endpoint` even though `--list-models`
+  prints it un-prefixed.
+- `analysis.write.pi` / `analysis.plan.pi` / `analysis.research.pi` / `chat.pi` —
+  `provider: commandcode` + an explicit `model:` for the headless pi agents.
+
+Credentials (see `.env.example`):
+
+```bash
+cp .env.example .env   # then fill in
+```
+
+- `COMMAND_CODE_API_KEY` — required. Read by the HTTP stages via
+  `analysis.llm.api_key_env`, and inherited by the pi subprocesses (the
+  `pi-commandcode-provider` extension), so a server needs no interactive
+  `pi` `/login`. Locally it may be omitted when a login already exists in
+  `~/.pi/agent/auth.json`; the client falls back to it.
+- `EXA_API_KEY` — Stage 3b (external research) web discovery only.
 
 Stages 3b (external research) and 4 (writer) additionally require:
 
 - `pi` CLI ≥ 1.1 on `PATH`
 - Node ≥ 22.19
 
-Stage 3b also requires `EXA_API_KEY` in `.env` (gitignored); Stage 4 uses no
-new `.env` keys.
+Confirm the catalog with `pi --list-models commandcode` (pi stages) and
+`uv run scripts/analysis_pipeline/pipeline.py --list-models` (HTTP stages).
+
+### Deploying to a server
+
+No database, queue, or daemon: the pipeline is a CLI over local files plus
+DuckDB, so a deploy is a checkout, a virtualenv, `pi`, and `.env`.
+
+```bash
+git clone <repo> && cd financial-report-llm
+uv sync                                   # .venv from uv.lock
+npm i -g @earendil-works/pi-coding-agent  # pi ≥ 1.1 (Node ≥ 22.19)
+cp .env.example .env                      # COMMAND_CODE_API_KEY, EXA_API_KEY
+pi --list-models commandcode              # must list models (proves the key)
+uv run scripts/analysis_pipeline/pipeline.py --dry-run \
+  --tickers DKFT --years 2026 --quarters Q1
+```
+
+- Pi packages (exa search, web access, the Command Code provider) are pinned in
+  `.pi/settings.json` and installed on first run; pipeline runs pass `--approve`
+  because project packages only load after project trust.
+- `.pi/xdg/` must be writable — `pi_agent.py` points `XDG_CONFIG_HOME` there so
+  the research runner picks up `.pi/xdg/pi/web-search.json`.
+- Runtime state is local: `idx_data/pipeline.duckdb` (job state + statements)
+  and `idx_data/notes_rag.duckdb` (vault index) are single-writer DuckDB files.
+  Do not run two pipeline/`chat-app` writers against the same copy — for a shared
+  server, keep DuckDB on the host and give each concurrent consumer its own
+  process (DuckDB handles multi-process reads, not concurrent writers).
+- Secrets live only in `.env`; nothing else in the tree needs credentials.
+
+## Research chat (`chat-app/`)
+
+A local, verified chat over the fact sheets, captured operational documents, and
+the notes vault. It is a separate product surface: `chat-app/` reads the
+pipeline artifacts and never writes pipeline job state.
+
+```bash
+PYTHONPATH=chat-app uv run uvicorn chat_app.web:app --host 127.0.0.1 --port 8765
+```
+
+Every displayed number is produced by a typed tool and passes a deterministic
+number audit; unverifiable answers are refused. Missing operational data returns
+`not_yet_published`, `not_disclosed`, `not_captured`, or `unsupported` with
+evidence — never "does not exist".
+
+Start here:
+
+- [`chat-app/RUNBOOK.md`](chat-app/RUNBOOK.md) — start the UI, ingest a document,
+  extract, enrich, replay a trace, roll back a bad extract.
+- [`chat-app/CONTRACTS.md`](chat-app/CONTRACTS.md) — tool, agent, envelope, and
+  web API contracts.
+- [`chatbot-plan/MVP-PLAN.md`](chatbot-plan/MVP-PLAN.md) — scope, acceptance
+  criteria, and the build plan.
+
+Quick checks:
+
+```bash
+uv run pytest tests/ chat-app/tests -q
+PYTHONPATH=chat-app uv run python -m chat_app.cli --list
+PYTHONPATH=chat-app uv run python -m chat_app.eval \
+  --questions chat-app/eval/questions.yaml --dry-run
+```

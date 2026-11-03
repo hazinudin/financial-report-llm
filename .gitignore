@@ -19,3 +19,6 @@ idx_data/analysis/
 # pi runtime artifacts (packages are pinned in .pi/settings.json, not the tree)
 .pi/npm/node_modules/
 .pi/xdg/pi/web-search-cache/
+
+# Chat runtime artifacts (traces, ingest temporaries)
+idx_data/chat/
