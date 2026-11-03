@@ -1,0 +1,470 @@
+# WS7 acceptance question set (MVP-PLAN §4.3-4.8, §7, WS7).
+#
+# Exactly 25 questions: 8 probe + 3 user + 4 operational + 4 traps +
+# 3 document + 3 wide-scope.
+#
+# Each question is a deterministic contract:
+#   mode             desk | document
+#   document_id      required in document mode; a real note id on disk
+#   selection        optional quoted passage for document chat
+#   ticker/period/year  optional focus (ignored by document mode, echoed by desk)
+#   must_include     substrings, or regexes when the pattern uses regex syntax
+#   must_not_claim   regexes/substrings that must not appear in answer+claims
+#   expect_state     optional missing[] state (not_yet_published|not_disclosed|
+#                    not_captured|unsupported|not_in_document)
+#   expect_label     optional claim label that must appear with a citation
+#   expect_citations citation obligations:
+#                      required: every non-hypothesis claim and the envelope cite
+#                      document: at least one analysis_note with
+#                                document+section+line+quote
+#                      tickers:  every listed ticker appears in a citation
+#   expect_coverage  desk-only: the envelope carries a coverage block naming the
+#                    compared tickers (required for every wide-scope question)
+#   expect_refusal   a refused/error run is acceptable for this question
+#
+# Probe/user/operational/trap values are grounded in the current artifacts:
+# idx_data/analysis/facts, idx_data/operational (ITMG Q2 oracle + canonical JSON),
+# and notes_rag.duckdb. Document questions pin real notes under analysis/.
+# Wide-scope questions exercise compare_supported's bounded matrix, not a screen.
+
+# ---------------------------------------------------------------------------
+# Probe (8): substrate correctness and the plan's seed questions
+# ---------------------------------------------------------------------------
+
+- id: probe_itmg_q2_production
+  category: probe
+  mode: desk
+  question: "How much coal did ITMG produce in Q2 2026, and how does that compare with the prior quarter? Cite the source page."
+  ticker: ITMG
+  period: Q2
+  year: 2026
+  must_include: ["5.3", '13\s*(%|percent)|15(?:\.2)?\s*(%|percent)|0[.,]?7|higher|increase|rose']
+  must_not_claim: ["does not exist", "no data available"]
+  expect_state: null
+  expect_label: fact
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "ITMG Q2 2026: 5.3 Mt, +13% QoQ, page 1 of itmg_2026-08-10_news_release."
+
+- id: probe_itmg_q2_cogs_driver
+  category: probe
+  mode: desk
+  question: "ITMG's 6M 2026 cost of revenue rose 7% year on year. Derive the Q2 2026 quarter COGS from the cumulative filings and explain what management says drove the increase."
+  ticker: ITMG
+  period: Q2
+  year: 2026
+  must_include: ["379", 'strip(?:ping)?[- ]ratio']
+  must_not_claim: ["does not exist", "no data available"]
+  expect_state: null
+  expect_label: management_stated
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "6M COGS 744,014 minus Q1 364,824 = 379,190 USD thousand (period_derive). Management quote: higher strip ratio and higher fuel costs, page 1."
+
+- id: probe_itmg_q2_revenue_derivation
+  category: probe
+  mode: desk
+  question: "ITMG's 6M 2026 revenue was US$1,000,491 thousand. What was Q2 2026 revenue, and show the cumulative-to-quarter arithmetic."
+  ticker: ITMG
+  period: Q2
+  year: 2026
+  must_include: ['502[,.]?914|502\.9', '1[,.]?000[,.]?491|1\.0\s*(bn|billion)', '497[,.]?577|497\.6']
+  must_not_claim: ["does not exist", "no data available"]
+  expect_state: null
+  expect_label: fact
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "period_derive: 1,000,491 - 497,577 = 502,914 USD thousand, formula tw2 - tw1."
+
+- id: probe_bbca_gross_margin
+  category: probe
+  mode: desk
+  question: "What was BBCA's Q2 2026 gross margin?"
+  ticker: BBCA
+  period: Q2
+  year: 2026
+  must_include: ['no (cost of (sales|revenue)|cogs|gross profit)|does not (report|disclose|break out)|cannot (compute|calculate)|not (applicable|meaningful|reported|available)']
+  must_not_claim: ['gross margin (of|was|is|came in at)\s*[0-9]', 'gross profit (of|was)\s*[0-9]', 'cogs (of|was)\s*[0-9]']
+  expect_state: null
+  expect_label: null
+  expect_citations:
+    required: false
+  expect_refusal: true
+  notes: "Bank taxonomy: no cost-of-sales/gross-profit lines. The correct answer refuses to compute a gross margin; company_facts emits the same caveat."
+
+- id: probe_ptba_related_party_sales
+  category: probe
+  mode: desk
+  question: "What were PTBA's related-party sales in Q2 2026, and what share of consolidated revenue did they represent? Use the notes."
+  ticker: PTBA
+  period: Q2
+  year: 2026
+  must_include: ['9[,.]?398[,.]?907|9\.4\s*(tn|trillion)', '43\s*(%|percent)']
+  must_not_claim: ["no data available", "does not exist"]
+  expect_state: null
+  expect_label: null
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "PTBA Q2 2026 Analysis.md, Note 30b: related-party sales Rp9,398,907mn = 43% of consolidated revenue (H1 2025: 48%). Notes DB has 124 PTBA ticker chunks."
+
+- id: probe_essa_top2_customers
+  category: probe
+  mode: desk
+  question: "How concentrated is ESSA's customer base? Name the top two customers and state what share of H1 2026 sales they represent. Cite the notes."
+  ticker: ESSA
+  period: Q2
+  year: 2026
+  must_include: ["Genesis", 'two customers|2 customers|top two|top-2', '100\s*(%|percent)']
+  must_not_claim: ["no data available", "does not exist"]
+  expect_state: null
+  expect_label: null
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "ESSA Q2 2026 Analysis.md: two customers accounted for 100% of H1 2026 sales; Genesis Corporation bought US$166,256,202 of ammonia (89.2% of segment external sales)."
+
+- id: probe_ptps_q2_net_profit
+  category: probe
+  mode: desk
+  question: "PTPS's Q2 2026 net profit is sometimes described as a decline. What do the filings show, and how much of the operating-to-net gap is explained by tax versus items that are not separately disclosed? Label any hypothesis."
+  ticker: PTPS
+  period: Q2
+  year: 2026
+  must_include: ['3\.\d+\s*(%|percent)|rose|increas|higher|grew|positive', "tax", '15[,.]?86', 'not (separately )?disclosed|not broken out|cannot be (determined|verified)|hypothes|other income|no residual']
+  must_not_claim: ['net profit (fell|declined|was down|decreased|dropped|was lower)']
+  expect_state: null
+  expect_label: fact
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "H1 2026 net profit IDR 15,864,178,933 vs 15,401,831,788 (+3.0%); operating profit fell 7.1%; tax IDR 1.72bn vs 3.65bn. Other-income composition is not separately disclosed, so any attribution beyond tax must be labelled hypothesis."
+
+- id: probe_ptps_q1_cogs_premise
+  category: probe
+  mode: desk
+  question: "A reader says PTPS's Q1 2026 cost of revenue rose. Correct the premise using the year-on-year comparison, and state what happened to COGS as a share of revenue."
+  ticker: PTPS
+  period: Q1
+  year: 2026
+  must_include: ['7[.,]?55|7[.,]?5522|0[.,]?9027|10[.,]?7', 'larger portion|higher|rose|share of revenue|cost ratio']
+  must_not_claim: ['cogs (rose|increased|was up)', 'cost of (sales|revenue) (rose|increased|was up)']
+  expect_state: null
+  expect_label: fact
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "Q1 2026 COGS IDR 7,552,236,971 vs Q1 2025 8,454,898,968 = -10.7%; COGS/revenue rose to 74.5% from 43.1%."
+
+# ---------------------------------------------------------------------------
+# User (3): realistic reader questions, including a state and a refusal
+# ---------------------------------------------------------------------------
+
+- id: user_ptba_q2_production
+  category: user
+  mode: desk
+  question: "How much coal did PTBA produce in Q2 2026? Be explicit about the disclosed scope."
+  ticker: PTBA
+  period: Q2
+  year: 2026
+  must_include: ['19[,.](?:45)?|19\.45', "6M|H1|first half|semester|H1 2026"]
+  must_not_claim: ['coal production (does not exist|is not available|no data)', "does not exist", "no data available"]
+  expect_state: null
+  expect_label: null
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "PTBA Q2 2026 press release (captured 2026-09-01) reports 1H26 coal production of 19.45 Mt. Q2 standalone is not broken out; the answer must state the 6M scope and must not claim absence."
+
+- id: user_anjt_currency_conversion
+  category: user
+  mode: desk
+  question: "Convert ANJT's Q2 2026 revenue from IDR to USD using the current exchange rate."
+  ticker: ANJT
+  period: Q2
+  year: 2026
+  must_include: ['unsupported|not in the supported set|outside the supported set|not supported|coverage does not include']
+  must_not_claim: ['(converted|equivalent) (to|in) usd', 'exchange rate of [0-9]', 'anjt.{0,60}(rp|idr)\s?[0-9]']
+  expect_state: unsupported
+  expect_label: null
+  expect_citations:
+    required: false
+  expect_refusal: true
+  notes: "ANJT is outside the 24-ticker supported set. A currency conversion would be unauditable; refuse and name the supported set."
+
+- id: user_isat_q2_revenue_growth
+  category: user
+  mode: desk
+  question: "How fast did ISAT's revenue grow in the six months to June 2026 (Q2 2026 cumulative) compared with the prior-year period?"
+  ticker: ISAT
+  period: Q2
+  year: 2026
+  must_include: ['30[,.]?653[,.]?145|30\.65|30\.7', '13(?:\.\d+)?\s*(%|percent)']
+  must_not_claim: ["does not exist", "no data available"]
+  expect_state: null
+  expect_label: fact
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "H1 2026 revenue IDR 30,653,145mn vs H1 2025 27,109,586mn = +13.1% year on year."
+
+# ---------------------------------------------------------------------------
+# Operational (4): Class B facts, pages, and the management-stated driver
+# ---------------------------------------------------------------------------
+
+- id: operational_itmg_q2_production_page
+  category: operational
+  mode: desk
+  question: "ITMG Q2 2026 coal production: give the tonnage, the quarter-on-quarter change, and the source page."
+  ticker: ITMG
+  period: Q2
+  year: 2026
+  must_include: ["5.3", '13\s*(%|percent)|15(?:\.2)?\s*(%|percent)|0[.,]?7|higher|increase|rose', 'page\s*1|p\.?\s*1']
+  must_not_claim: ["does not exist", "no data available"]
+  expect_state: null
+  expect_label: fact
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "5.3 Mt, +13% QoQ, page 1. The page reference is part of the answer, not only the citation metadata."
+
+- id: operational_itmg_6m_production
+  category: operational
+  mode: desk
+  question: "ITMG's 6M 2026 coal production versus 6M 2025: give both figures and the direction."
+  ticker: ITMG
+  period: Q2
+  year: 2026
+  must_include: ["9.9", "10.4"]
+  must_not_claim: ["does not exist", "no data available"]
+  expect_state: null
+  expect_label: fact
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "6M 2026 production 9.9 Mt vs 10.4 Mt in 6M 2025, slightly lower (-4.8%), page 1."
+
+- id: operational_itmg_asp
+  category: operational
+  mode: desk
+  question: "What was ITMG's 6M 2026 average selling price, and how did it compare with 6M 2025?"
+  ticker: ITMG
+  period: Q2
+  year: 2026
+  must_include: ["81", "78"]
+  must_not_claim: ["does not exist", "no data available"]
+  expect_state: null
+  expect_label: fact
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "ASP US$81/t in 6M 2026 vs US$78/t in 6M 2025 (+3.8%, rounded to 4% in the release), page 1."
+
+- id: operational_itmg_strip_ratio_driver
+  category: operational
+  mode: desk
+  question: "What management-stated driver explains ITMG's higher cost of revenue in 6M 2026? Quote the driver and cite the page."
+  ticker: ITMG
+  period: Q2
+  year: 2026
+  must_include: ['strip(?:ping)?[- ]ratio', "fuel"]
+  must_not_claim: ["does not exist", "no data available"]
+  expect_state: null
+  expect_label: management_stated
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "Quote: 'higher coal mining and transportation costs, resulted from higher strip ratio and higher fuel costs'; page 1."
+
+# ---------------------------------------------------------------------------
+# Traps (3): structural refusals and the false-absence trap
+# ---------------------------------------------------------------------------
+
+- id: trap_bbca_cogs
+  category: trap
+  mode: desk
+  question: "BBCA's Q2 2026 COGS and gross margin: what are they?"
+  ticker: BBCA
+  period: Q2
+  year: 2026
+  must_include: ['no (cost of (sales|revenue)|cogs|gross profit)|does not (report|disclose|break out)|cannot (compute|calculate)|not (applicable|meaningful|reported|available)']
+  must_not_claim: ['gross margin (of|was|is|came in at)\s*[0-9]', 'gross profit (of|was)\s*[0-9]', 'cogs (of|was)\s*[0-9]']
+  expect_state: null
+  expect_label: null
+  expect_citations:
+    required: false
+  expect_refusal: true
+  notes: "Same bank-shape trap as the probe; asserts refusal on the explicit COGS framing. Never fabricate a bank COGS or gross margin."
+
+- id: trap_unsupported_aaaa
+  category: trap
+  mode: desk
+  question: "What was AAAA's Q2 2026 revenue?"
+  ticker: AAAA
+  period: Q2
+  year: 2026
+  must_include: ['unsupported|not in the supported set|outside the supported set|not supported|coverage does not include']
+  must_not_claim: ['revenue (of|was)\s*[0-9]', 'aaaa.{0,40}(rp|idr|usd)\s?[0-9]']
+  expect_state: unsupported
+  expect_label: null
+  expect_citations:
+    required: false
+  expect_refusal: true
+  notes: "AAAA is not a supported ticker. The answer must say unsupported and list alternatives, not invent a revenue figure."
+
+- id: trap_ptba_q1_notes_absence
+  category: trap
+  mode: desk
+  question: "Are PTBA's Q1 2026 notes missing from the vault? If they can be retrieved, what do they say about related-party sales?"
+  ticker: PTBA
+  period: Q1
+  year: 2026
+  must_include: ["related", "PLN|MIND ID|KAI|Pertamina"]
+  must_not_claim: ['notes? (are|is) missing', 'no (ptba\s+)?q1 (2026\s+)?(notes|analysis) (exist|are available)', "does not exist", "no data available"]
+  expect_state: null
+  expect_label: null
+  expect_citations:
+    required: true
+  expect_refusal: false
+  notes: "PTBA Q1 2026 Analysis.md is indexed (124 PTBA ticker chunks). Related-party sales Rp4,557,498mn = 46% of consolidated revenue. The U1 fix: a missing search result is never evidence of absence."
+
+- id: trap_mapa_q2_geographic_revenue
+  category: trap
+  mode: desk
+  question: "How does MAPA's geographic revenue change from Q1 to Q2 in 2026?"
+  ticker: MAPA
+  period: Q2
+  year: 2026
+  must_include: ['3[,.]?775', '10[,.]?122', '5[,.]?168', 'Indonesia', 'Philippines', 'Thailand', 'Malaysia', 'Cambodia', 'Q1 2026', 'Q2 2026', 'derived|H1|six.month']
+  must_not_claim: ['no Q1 base|cannot be measured|Q1.{0,40}(not|no) (data|disclose)|does not exist']
+  expect_state: null
+  expect_label: fact
+  expect_citations:
+    required: true
+    tickers: [MAPA]
+  expect_coverage: true
+  expect_refusal: false
+  notes: "Q1 2026 geography is the 3M filing, Note 32, PDF p.72 (Indonesia Rp3,775,872mn; total Rp4,954,727mn). Q2 2026 is the 6M filing, Note 34, PDF p.75 (Indonesia Rp7,711,678mn; total Rp10,122,756mn). Q2 standalone = H1 − Q1: total Rp5,168,029mn. Country QoQ: Indonesia +4.2%, Philippines +18.0%, Thailand −12.2%, Malaysia −16.7%, total +4.3%. No ranking. Regression: the canonical fact sheet lacks geography, which previously produced a false 'no Q1 base'."
+
+# ---------------------------------------------------------------------------
+# Document (3): pinned notes, analysis_note provenance, note silence
+# ---------------------------------------------------------------------------
+
+- id: doc_itmg_q2_cash_flow
+  category: document
+  mode: document
+  document_id: itmg-q2-2026-analysis
+  ticker: ITMG
+  period: Q2
+  year: 2026
+  selection:
+    section: "1. Executive Summary"
+    line: 16
+    quote: "We treat this as a timing artifact rather than operating deterioration."
+  question: "The selected passage treats the cash-flow collapse as a timing artifact. Is that the analyst's inference or management's explanation, and what does the note say caused the collapse? Cite the section."
+  must_include: ['timing artifact', 'refund', '169', 'management']
+  must_not_claim: ['management (?:said|stated|attributes|explained).{0,100}timing artifact', "does not exist", "no data available"]
+  expect_state: null
+  expect_label: analysis_note
+  expect_citations:
+    required: true
+    document: true
+  expect_refusal: false
+  notes: "ITMG Q2 2026 Analysis.md §1/§5.1: 'We treat this as a timing artifact rather than operating deterioration'; management's release instead points to the non-repeat of ~US$169m H1 2025 tax refunds. The passage is analyst inference and must be analysis_note, never management_stated."
+
+- id: doc_ptba_q2_cost_argument
+  category: document
+  mode: document
+  document_id: ptba-q2-2026-analysis
+  ticker: PTBA
+  period: Q2
+  year: 2026
+  question: "Summarise the PTBA Q2 2026 note's cost and margin argument and cite the section. Keep the note's interpretation separate from the filing's reported numbers."
+  must_include: ['19\.28', '829', 'weak (?:H1 2025 )?base|price-led|cost']
+  must_not_claim: ['management (?:said|stated|attributes).{0,100}(?:weak (?:H1 2025 )?base|price-led)', "does not exist", "no data available"]
+  expect_state: null
+  expect_label: analysis_note
+  expect_citations:
+    required: true
+    document: true
+  expect_refusal: false
+  notes: "PTBA Q2 2026 Analysis.md §3.1: gross margin 19.28% (+829 bps) and the two-part argument: a weak H1 2025 base plus genuine 2026 price-led expansion. Both figures and the interpretation are note claims (analysis_note), not desk facts."
+
+- id: doc_ptps_q2_hypotheses_silence
+  category: document
+  mode: document
+  document_id: ptps-q2-2026-analysis
+  ticker: PTPS
+  period: Q2
+  year: 2026
+  question: "Which claims in the PTPS Q2 2026 note are hypotheses rather than facts, and does the note discuss strip ratio or mining costs? If the note is silent, say so explicitly."
+  must_include: ['strip(?:ping)?[- ]ratio', 'not (?:cover|covered|discuss|discussed|mention)|does not (?:cover|discuss|mention)|silent|no mention|not_in_document', 'hypothes|may|could|likely|interpret|outlook']
+  must_not_claim: ['strip(?:ping)?[- ]ratio[^.]{0,80}not[_ ]disclosed', 'not[_ ]disclosed[^.]{0,80}strip(?:ping)?[- ]ratio', "does not exist", "no data available", 'note (?:is|was) (?:missing|not available)']
+  expect_state: not_in_document
+  expect_label: hypothesis
+  expect_citations:
+    required: true
+    document: true
+  expect_refusal: false
+  notes: "PTPS is a palm-oil producer; the note has no strip-ratio or mining-cost discussion, so the correct state is not_in_document, never not_disclosed or 'does not exist'. Its 2H CPO recovery/SEAL dividend language and the SJA mill outcome are hypotheses, not facts."
+
+# ---------------------------------------------------------------------------
+# Wide-scope (3): bounded matrices, coverage, and note-backed sector narrative
+# ---------------------------------------------------------------------------
+
+- id: wide_coal_q2_production
+  category: wide_scope
+  mode: desk
+  question: "Compare Q2 2026 coal production across ITMG, PTBA, PTPS and ESSA. Name every missing cell and its state, and state the coverage of the comparison."
+  ticker: null
+  period: Q2
+  year: 2026
+  must_include: ['5.3', '19[.,]?45', 'ITMG', 'PTBA', 'PTPS', 'ESSA', 'not[_ ]disclosed|not disclosed|not[_ ]captured|not captured', 'supported|coverage|caveat']
+  must_not_claim: ['(?:is|are) the best|top pick|ranked (?:first|1st)|outperform(?:s|ed)? the sector', 'does not exist', 'no data available']
+  expect_state: not_disclosed
+  expect_label: fact
+  expect_citations:
+    required: true
+    tickers: [ITMG, PTBA, PTPS, ESSA]
+  expect_coverage: true
+  expect_refusal: false
+  notes: "ITMG 5.3 Mt (Q2 standalone, page 1); PTBA 19.45 Mt is 1H26, not a Q2 standalone; PTPS and ESSA have captured filings but no tonnage breakout, so the cell state is not_disclosed (never zero, never a denial). Coverage is the four names actually called, not the sector."
+
+- id: wide_mapa_tapg_margins
+  category: wide_scope
+  mode: desk
+  question: "Compare MAPA's Q2 2026 revenue growth and gross margin with TAPG's latest supported period (Q1 2026). State each period, the supported-set coverage, and any metric that is not disclosed."
+  ticker: null
+  period: Q2
+  year: 2026
+  must_include: ['47\.25', '15\.1', 'MAPA', 'TAPG', 'Q2 2026', 'Q1 2026', 'not[_ ]disclosed|not disclosed|does not disclose|not reported', 'supported|coverage|caveat']
+  must_not_claim: ['TAPG.{0,60}gross margin (?:of|was|is)\s*[0-9]', '(?:is|are) the best|top pick|ranked (?:first|1st)|outperform(?:s|ed)? the sector', 'does not exist', 'no data available']
+  expect_state: not_disclosed
+  expect_label: fact
+  expect_citations:
+    required: true
+    tickers: [MAPA, TAPG]
+  expect_coverage: true
+  expect_refusal: false
+  notes: "MAPA Q2 2026: revenue +15.1% and gross margin 47.25%. TAPG's latest supported period is Q1 2026, whose extracted filing does not disclose consolidated revenue, COGS, gross profit or gross margin; the margin cell is not_disclosed, not an inferred number. No ranking."
+
+- id: wide_coal_sector_2h2026
+  category: wide_scope
+  mode: desk
+  question: "What do the analysis notes say about the coal sector in 2H 2026? Keep the answer to supported names, cite the notes, and do not present it as an IDX-wide screen."
+  ticker: null
+  period: Q2
+  year: 2026
+  must_include: ['2H 2026|second half', 'ITMG', 'PTBA', 'supported|coverage|caveat', 'note|analysis']
+  must_not_claim: ['(?:covers|represents|reflects) (?:the )?(?:entire|whole|all of the) (?:IDX|Indonesian|coal) (?:sector|market)', '(?:is|are) the best|top pick|ranked (?:first|1st)|outperform(?:s|ed)? the sector', 'does not exist', 'no data available']
+  expect_state: null
+  expect_label: analysis_note
+  expect_citations:
+    required: true
+    tickers: [ITMG, PTBA]
+  expect_coverage: true
+  expect_refusal: false
+  notes: "Sector narrative over the supported set: ITMG Q2 2026 and PTBA Q2 2026 notes discuss HBA/DMO, the 2H policy regime and cost pressure. A quoted note view is analysis_note with document+section; the desk must not adopt it or imply IDX-wide coverage."

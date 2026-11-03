@@ -1,0 +1,407 @@
+{
+  "as_of": "2026-10-27",
+  "source": {
+    "facts": "idx_data/analysis/facts",
+    "notes": "idx_data/notes_rag.duckdb",
+    "generated_by": "python -m chat_app.eval --snapshot"
+  },
+  "tickers": [
+    "ADMR",
+    "ADRO",
+    "ARCI",
+    "BBCA",
+    "BEST",
+    "DKFT",
+    "ELSA",
+    "ESSA",
+    "GZCO",
+    "INKP",
+    "ISAT",
+    "ITMG",
+    "KLBF",
+    "MAPA",
+    "MEDC",
+    "MHKI",
+    "MSTI",
+    "PGAS",
+    "PTBA",
+    "PTPS",
+    "SRSN",
+    "TAPG",
+    "TINS",
+    "TPMA"
+  ],
+  "counts": {
+    "tickers": 24,
+    "periods": 38,
+    "facts": 38,
+    "ratios": 38,
+    "operational_periods": 4,
+    "notes_chunks": 3044,
+    "notes_tickers": 27,
+    "supported_notes_tickers": 24
+  },
+  "layer_coverage": {
+    "facts": {
+      "periods": 38,
+      "tickers": 24
+    },
+    "ratios": {
+      "periods": 38,
+      "tickers": 24
+    },
+    "operational": {
+      "periods": 4,
+      "tickers": 4,
+      "items": [
+        "ESSA Q2 2026",
+        "ITMG Q2 2026",
+        "PTBA Q2 2026",
+        "PTPS Q2 2026"
+      ]
+    },
+    "notes": {
+      "available": true,
+      "chunks": 3044,
+      "tickers": 27,
+      "supported_tickers": 24,
+      "supported_chunks": 2675,
+      "missing_supported_tickers": [],
+      "by_ticker": {
+        "ADMR": 170,
+        "ADRO": 132,
+        "ARCI": 172,
+        "BBCA": 124,
+        "BEST": 111,
+        "CITA": 22,
+        "DKFT": 93,
+        "ELSA": 230,
+        "ESSA": 209,
+        "GZCO": 55,
+        "INDR": 27,
+        "INKP": 54,
+        "ISAT": 100,
+        "ITMG": 127,
+        "KLBF": 37,
+        "MAPA": 111,
+        "MEDC": 94,
+        "MHKI": 139,
+        "MSTI": 106,
+        "PGAS": 52,
+        "PTBA": 124,
+        "PTPS": 184,
+        "SEAL": 63,
+        "SRSN": 107,
+        "TAPG": 66,
+        "TINS": 112,
+        "TPMA": 56
+      }
+    }
+  },
+  "periods": [
+    {
+      "ticker": "ADMR",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ADMR_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "ADMR",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ADMR_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "ADRO",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ADRO_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "ADRO",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ADRO_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "ARCI",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ARCI_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "ARCI",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ARCI_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "BBCA",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/BBCA_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "BBCA",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/BBCA_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "BEST",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/BEST_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "BEST",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/BEST_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "DKFT",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/DKFT_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "ELSA",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ELSA_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "ELSA",
+      "period": "Q3",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ELSA_Q3_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "ESSA",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ESSA_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": true
+    },
+    {
+      "ticker": "GZCO",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/GZCO_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "INKP",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/INKP_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "ISAT",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ISAT_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "ISAT",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ISAT_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "ITMG",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ITMG_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "ITMG",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/ITMG_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": true
+    },
+    {
+      "ticker": "KLBF",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/KLBF_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "MAPA",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/MAPA_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "MAPA",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/MAPA_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "MEDC",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/MEDC_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "MHKI",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/MHKI_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "MSTI",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/MSTI_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "MSTI",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/MSTI_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "PGAS",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/PGAS_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "PTBA",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/PTBA_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "PTBA",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/PTBA_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": true
+    },
+    {
+      "ticker": "PTPS",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/PTPS_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "PTPS",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/PTPS_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": true
+    },
+    {
+      "ticker": "SRSN",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/SRSN_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "SRSN",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/SRSN_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "TAPG",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/TAPG_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "TINS",
+      "period": "Q1",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/TINS_Q1_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "TINS",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/TINS_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    },
+    {
+      "ticker": "TPMA",
+      "period": "Q2",
+      "year": 2026,
+      "fact": "idx_data/analysis/facts/TPMA_Q2_2026.yaml",
+      "has_ratios": true,
+      "has_operational": false
+    }
+  ]
+}
