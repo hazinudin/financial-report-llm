@@ -178,3 +178,127 @@ analysis:
           - samuel.co.id
           - miraeasset.co.id
           - indopremier.com
+
+# ── IDX research chat (chat-app/) ─────────────────────────────────────
+# Local, single-operator web chat over fact sheets + operational documents.
+# The typed tool CLI is the only implementation; the pi extension is a thin
+# execFile wrapper. duckdb_query is deliberately NOT in the allowlist.
+chat:
+  pi:
+    provider: commandcode
+    model: deepseek/deepseek-v4.1-flash
+    # thinking is routed per question (see `thinking:` below). Setting an
+    # explicit `thinking` here, or under `modes.<mode>`, overrides the router.
+    timeout_sec: 180
+    approve: true
+    load_skills: false
+    load_context_files: false
+    save_session: false
+    tools:
+      - company_facts
+      - metric_series
+      - period_derive
+      - documents_status
+      - operational_lookup
+      - analysis_context
+      - read_document
+      - notes_search
+      - notes_fetch
+  max_concurrent: 2
+  max_history_turns: 4
+  max_tool_calls: 8
+  max_answer_chars: 6000
+  # ── Request routing ─────────────────────────────────────────────────
+  # A simple single-name extraction takes the fast path: small tool list and
+  # thinking off. Comparison/analysis questions may use high thinking; high is
+  # never used for a simple lookup (measured: +60% wall clock, no answer gain).
+  fast_path:
+    enabled: true
+    max_tool_calls: 4
+  thinking:
+    default: "off"
+    complex: "high"
+    complex_markers: [compare, versus, vs, across, sector, peer, why, explain, analyse, analyze, thesis, outlook, risk, scenario, catalyst]
+  # ── Trace-audited answering: prose only, claims from the tool trace ──
+  # ON by default for both modes. The model writes Markdown only; the runner
+  # derives claims/citations/missing/coverage from the tool trace (note claims
+  # get document+section+line+quote from the note ledger) and runs the same
+  # verify_envelope gate. If the derived envelope fails the audit, the request
+  # falls back to the single-pass YAML envelope path (never a refusal by itself).
+  trace_audit:
+    enabled: true
+    fallback: true
+  # ── Two-phase answering: prose first, claims second (opt-in) ────────
+  # OFF by default: the single-pass envelope path is unchanged until measured.
+  # Phase 1 writes only the Markdown answer (tools allowed). Phase 2 gets that
+  # prose plus compact tool evidence and returns only claims/missing/coverage;
+  # the server merges them and runs the normal audit. Any phase failing falls
+  # back to the single-pass loop (never a refusal on its own).
+  two_phase:
+    enabled: false
+    max_evidence_chars: 20000
+    claims_thinking: "off"
+    claims_model: null   # null => same model as the answer pass
+  # Estimates only; the trace records measured tokens and the price used.
+  pricing:
+    # Keyed by the exact model string in the trace (vendor-qualified under
+    # commandcode). Measured from a 1,319-in/1-out probe: $0.0003969.
+    deepseek/deepseek-v4.1-flash: {input_per_mtok: 0.30, output_per_mtok: 1.20}
+  # ── Mode-specific surfaces (MVP-PLAN §4.7, WS5.1) ──────────────────
+  # document: note pinned as primary context; prefetch is the runner-side read.
+  # desk: wide-scope comparisons/narrative over the supported set only.
+  # No session/skills/context files in either mode (see chat.pi above).
+  modes:
+    document:
+      prompt: chat_app/prompts/document_system.md
+      timeout_sec: 180
+      prefetch: pinned_document   # full note ≤64 KB, else outline + sections
+      tools:
+        - analysis_document
+        - analysis_search
+        - company_facts
+        - metric_series
+        - period_derive
+        - documents_status
+        - operational_lookup
+        - read_document
+        - notes_search
+        - notes_fetch
+    desk:
+      prompt: chat_app/prompts/desk_system.md
+      timeout_sec: 180
+      prefetch: list_companies    # coverage banner; no note prefetch
+      tools:
+        - list_companies
+        - list_documents
+        - compare_supported
+        - company_facts
+        - metric_series
+        - period_derive
+        - documents_status
+        - operational_lookup
+        - analysis_document
+        - analysis_search
+        - analysis_context
+        - notes_search
+        - notes_fetch
+        - read_document
+  ingest:
+    # curl_cffi impersonation profile used by the fetcher.
+    impersonate: chrome131
+    timeout_sec: 60
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    # Four-ticker v0 scan targets. Add IR/news listing pages here.
+    targets:
+      ITMG:
+        listing_urls:
+          - https://itmg.co.id/en/news
+      PTBA:
+        listing_urls:
+          - https://www.ptba.co.id/en/news
+      PTPS:
+        listing_urls:
+          - https://www.ptps.co.id/en/news
+      ESSA:
+        listing_urls:
+          - https://www.essa.co.id/en/news

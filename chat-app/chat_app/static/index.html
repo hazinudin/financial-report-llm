@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IDX Research Desk — read the note, audit the number</title>
+  <meta name="description" content="A local research app over Indonesian equity filings and analysis notes. Two surfaces: a full document reader with a pinned note chat, and a wide-scope research desk. Every number is audited; unverified answers are refused.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..600&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2316130e'/%3E%3Ctext x='32' y='43' font-family='Georgia,serif' font-size='30' fill='%23f3efe4' text-anchor='middle'%3ERD%3C/text%3E%3C/svg%3E">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("idx-desk-theme");
+        if (saved === "light" || saved === "dark") {
+          document.documentElement.setAttribute("data-theme", saved);
+        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      } catch (error) { /* first paint falls back to paper */ }
+    })();
+  </script>
+</head>
+<body data-surface="documents">
+  <a class="skip-link" href="#app">Skip to the surface</a>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="topbar" id="topbar">
+    <a class="topbar__brand" href="#/documents" aria-label="IDX Research Desk — analysis library">
+      <span class="monogram monogram--small" aria-hidden="true">RD</span>
+      <span class="topbar__brand-copy">
+        <span class="wordmark">IDX Research Desk</span>
+        <span class="topbar__sub">Filings first. Prose second.</span>
+      </span>
+    </a>
+
+    <nav class="topbar__nav" aria-label="Surfaces">
+      <a class="nav-link" data-nav="documents" href="#/documents">Library</a>
+      <a class="nav-link" data-nav="desk" href="#/desk">Desk</a>
+    </nav>
+
+    <div class="topbar__status" aria-label="Coverage feed">
+      <span class="status-dot" id="feed-dot" data-state="loading" aria-hidden="true"></span>
+      <p id="coverage-line">Wiring the coverage feed…</p>
+      <button class="text-button topbar__retry" id="coverage-retry" type="button" hidden>Retry</button>
+    </div>
+
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+      <span class="theme-toggle__dot" aria-hidden="true"></span>
+      <span id="theme-label">Lights down</span>
+    </button>
+  </header>
+
+  <main id="app" tabindex="-1"></main>
+
+  <noscript>
+    <div class="noscript">
+      <h1>This desk needs JavaScript.</h1>
+      <p>The reader, the hash routes and the document chat are rendered in the browser. Enable JavaScript for 127.0.0.1, then reload.</p>
+    </div>
+  </noscript>
+
+  <div class="scrim" id="scrim" hidden></div>
+
+  <aside class="inspector" id="inspector" role="dialog" aria-modal="true" aria-labelledby="inspector-title" hidden>
+    <div class="inspector__top">
+      <p class="eyebrow"><span class="eyebrow__no">07</span>Evidence</p>
+      <button class="icon-button" id="inspector-close" type="button" aria-label="Close evidence panel">Close <span aria-hidden="true">×</span></button>
+    </div>
+    <div class="inspector__head">
+      <h2 id="inspector-title">Citation</h2>
+      <p class="inspector__sub" id="inspector-sub">Source trail for this claim.</p>
+    </div>
+    <div class="inspector__body">
+      <section aria-labelledby="cite-heading">
+        <h3 id="cite-heading" class="inspector__label">Citation</h3>
+        <dl class="cite-detail" id="cite-detail"></dl>
+        <div class="inspector__note-link" id="inspector-note-link"></div>
+      </section>
+      <section aria-labelledby="trace-heading">
+        <h3 id="trace-heading" class="inspector__label">Run audit</h3>
+        <div id="inspector-trace" class="trace"><p class="trace__quiet">Reading trace…</p></div>
+      </section>
+    </div>
+    <div class="inspector__foot">
+      <button id="copy-citation" class="button-quiet" type="button">Copy citation</button>
+      <span id="copy-status" class="copy-status" role="status" aria-live="polite"></span>
+    </div>
+  </aside>
+
+  <p class="sr-only" id="announcer" role="status" aria-live="polite"></p>
+
+  <script src="/static/shared.js" defer></script>
+  <script src="/static/document.js" defer></script>
+  <script src="/static/desk.js" defer></script>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
