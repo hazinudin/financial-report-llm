@@ -254,52 +254,97 @@ def _normalize_audited(audit_status: str) -> Optional[bool]:
     return None
 
 
-def _label_index(rows: list[tuple]) -> dict[str, tuple[Optional[float], Optional[float]]]:
-    """lowercased label_en -> (value_current, value_prior). When a label repeats
-    (taxonomy template rows), prefer the row that has a current value."""
-    idx: dict[str, tuple[Optional[float], Optional[float]]] = {}
-    for lbl, vc, vp in rows:
+def _label_index(rows: list[tuple]) -> dict[str, tuple[Optional[float], Optional[float], Optional[int]]]:
+    """lowercased label_en -> (value_current, value_prior, row_number). When a
+    label repeats (taxonomy template rows), prefer the row that has a current
+    value."""
+    idx: dict[str, tuple[Optional[float], Optional[float], Optional[int]]] = {}
+    for row in rows:
+        lbl, vc, vp = row[0], row[1], row[2]
+        row_number = row[3] if len(row) > 3 else None
         if not lbl:
             continue
         key = str(lbl).strip().lower()
         if key not in idx or (idx[key][0] is None and vc is not None):
-            idx[key] = (vc, vp)
+            idx[key] = (vc, vp, row_number)
     return idx
 
 
-def _resolve(idx: dict[str, tuple], spec: dict[str, Any]) -> tuple[Optional[float], Optional[float]]:
+def _resolve(
+    idx: dict[str, tuple],
+    spec: dict[str, Any],
+) -> tuple[Optional[float], Optional[float], dict[str, Any]]:
+    """Resolve a canonical key.
+
+    Returns ``(current, prior, provenance)`` where provenance names the source
+    row(s) for the current column. `sum` mappings keep every component row.
+    """
     mode = spec.get("mode", "first")
     labels = spec["labels"]
 
-    def pick(col: int) -> Optional[float]:
+    def pick(col: int) -> tuple[Optional[float], list[tuple[str, int | None]]]:
         if mode == "sum":
-            vals = [idx[l][col] for l in labels if l in idx and idx[l][col] is not None]
-            return float(sum(vals)) if vals else None
-        for l in labels:
-            if l in idx and idx[l][col] is not None:
-                return idx[l][col]
-        return None
+            picked = [
+                (label, idx[label][col], idx[label][2] if len(idx[label]) > 2 else None)
+                for label in labels if label in idx and idx[label][col] is not None
+            ]
+            total = float(sum(p[1] for p in picked)) if picked else None
+            return total, [(p[0], p[2]) for p in picked]
+        for label in labels:
+            if label in idx and idx[label][col] is not None:
+                return idx[label][col], [(label, idx[label][2] if len(idx[label]) > 2 else None)]
+        return None, []
 
-    cur, pri = pick(0), pick(1)
+    cur, cur_rows = pick(0)
+    pri, _ = pick(1)
     minus = spec.get("minus") or []
     if minus:
         mcur = sum(idx[l][0] for l in minus if l in idx and idx[l][0] is not None)
         mpri = sum(idx[l][1] for l in minus if l in idx and idx[l][1] is not None)
         if mcur:
             cur = (cur or 0.0) - mcur
+            cur_rows += [(l, idx[l][2] if len(idx[l]) > 2 else None) for l in minus]
         if mpri:
             pri = (pri or 0.0) - mpri
-    return cur, pri
+    provenance: dict[str, Any] = {}
+    if cur_rows:
+        label, row = cur_rows[0]
+        provenance = {"label_en": label, "row": row}
+        if len(cur_rows) > 1:
+            provenance["components"] = [
+                {"label_en": component, "row": component_row}
+                for component, component_row in cur_rows
+            ]
+    return cur, pri, provenance
 
 
-def _build_statement(idx: dict[str, tuple], mapping: dict[str, dict], periods: list[str]) -> Statement:
+def _build_statement(
+    idx: dict[str, tuple],
+    mapping: dict[str, dict],
+    periods: list[str],
+    *,
+    sheet_code: str | None = None,
+    period_type: str = "cumulative",
+) -> Statement:
     lines: dict[str, Optional[float]] = {}
     prior: dict[str, Optional[float]] = {}
+    provenance: dict[str, dict[str, Any]] = {}
     for key, spec in mapping.items():
-        cur, pri = _resolve(idx, spec)
+        cur, pri, prov = _resolve(idx, spec)
         lines[key] = cur
         prior[key] = pri
-    return Statement(periods=list(periods), lines=lines, prior_lines=prior)
+        if cur is not None:
+            provenance[key] = {
+                "sheet": sheet_code,
+                "row": prov.get("row"),
+                "label_en": prov.get("label_en"),
+                "column": "value_current",
+                "period_type": period_type,
+                **({"components": prov["components"]} if prov.get("components") else {}),
+            }
+    return Statement(
+        periods=list(periods), lines=lines, prior_lines=prior, provenance=provenance,
+    )
 
 
 def _fetch_sheet_rows(conn, ticker: str, year: int, period: str, sheet_codes: tuple[str, ...]) -> list[tuple]:
@@ -309,10 +354,14 @@ def _fetch_sheet_rows(conn, ticker: str, year: int, period: str, sheet_codes: tu
 def _fetch_sheet_rows_with_code(
     conn, ticker: str, year: int, period: str, sheet_codes: tuple[str, ...],
 ) -> tuple[Optional[str], list[tuple]]:
-    """Return (sheet_code, rows) for the first sheet that carries values."""
+    """Return (sheet_code, rows) for the first sheet that carries values.
+
+    Rows are ``(label_en, value_current, value_prior, row_number)`` so callers
+    can emit provenance back to ``sheet_code:row_number``.
+    """
     for code in sheet_codes:
         rows = conn.execute(
-            "SELECT label_en, value_current, value_prior FROM xlsx_statements "
+            "SELECT label_en, value_current, value_prior, row_number FROM xlsx_statements "
             "WHERE ticker=? AND year=? AND period=? AND sheet_code=? "
             "  AND (value_current IS NOT NULL OR value_prior IS NOT NULL) "
             "ORDER BY row_number",
@@ -364,9 +413,9 @@ def seed_from_xlsx(
             "FROM xlsx_meta WHERE ticker=? AND year=? AND period=?",
             (ticker, year, period),
         ).fetchone()
-        bs_rows = _fetch_sheet_rows(conn, ticker, year, period, BS_SHEETS)
+        bs_code, bs_rows = _fetch_sheet_rows_with_code(conn, ticker, year, period, BS_SHEETS)
         is_code, is_rows = _fetch_sheet_rows_with_code(conn, ticker, year, period, IS_SHEETS)
-        cf_rows = _fetch_sheet_rows(conn, ticker, year, period, CF_SHEETS)
+        cf_code, cf_rows = _fetch_sheet_rows_with_code(conn, ticker, year, period, CF_SHEETS)
     except Exception:
         return None
     finally:
@@ -392,10 +441,17 @@ def seed_from_xlsx(
     is_bank = is_code in BANK_IS_SHEETS
 
     income = _build_statement(
-        _label_index(is_rows), BANK_IS_MAP if is_bank else IS_MAP, ["current", "prior_yoy"],
+        _label_index(is_rows), BANK_IS_MAP if is_bank else IS_MAP,
+        ["current", "prior_yoy"], sheet_code=is_code, period_type="cumulative",
     )
-    balance = _build_statement(_label_index(bs_rows), BS_MAP, ["current", "prior_fy_end"])
-    cash = _build_statement(_label_index(cf_rows), CF_MAP, ["current", "prior_yoy"])
+    balance = _build_statement(
+        _label_index(bs_rows), BS_MAP, ["current", "prior_fy_end"],
+        sheet_code=bs_code, period_type="instant",
+    )
+    cash = _build_statement(
+        _label_index(cf_rows), CF_MAP, ["current", "prior_yoy"],
+        sheet_code=cf_code, period_type="cumulative",
+    )
 
     # Some IDX XBRL files store the prior-period EPS at the wrong decimal scale.
     # Correct it here so the canonical fact sheet (not just the ratio layer)

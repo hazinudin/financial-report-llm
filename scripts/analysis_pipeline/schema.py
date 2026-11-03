@@ -134,6 +134,20 @@ class Meta(_CoerceModel):
         return d
 
 
+class Provenance(_CoerceModel):
+    """Where a statement line came from in the source XBRL workbook.
+
+    Additive and optional: sheets produced before provenance existed validate
+    unchanged. `components` records the rows behind a `sum` mapping.
+    """
+    sheet: Optional[str] = None
+    row: Optional[int] = None
+    label_en: Optional[str] = None
+    column: Optional[str] = Field(None, description="value_current | value_prior")
+    period_type: Optional[str] = Field(None, description="cumulative | instant")
+    components: list[dict[str, Any]] = Field(default_factory=list)
+
+
 class Statement(BaseModel):
     """A primary statement.
 
@@ -147,6 +161,7 @@ class Statement(BaseModel):
     periods: list[str] = Field(default_factory=list)
     lines: dict[str, Optional[float]] = Field(default_factory=dict)
     prior_lines: dict[str, Optional[float]] = Field(default_factory=dict)
+    provenance: dict[str, Provenance] = Field(default_factory=dict)
 
     @model_validator(mode="before")
     @classmethod
@@ -165,6 +180,16 @@ class Statement(BaseModel):
                 d[col] = {}
             elif isinstance(d[col], dict):
                 d[col] = {k: _coerce_float(v) for k, v in d[col].items()}
+        prov = d.get("provenance")
+        if prov is None:
+            d["provenance"] = {}
+        elif isinstance(prov, dict):
+            d["provenance"] = {
+                k: (v if isinstance(v, (dict, BaseModel)) else {})
+                for k, v in prov.items()
+            }
+        else:
+            d["provenance"] = {}
         return d
 
 
@@ -267,6 +292,108 @@ class Details(BaseModel):
         return d
 
 
+class Verification(_CoerceModel):
+    method: Optional[str] = Field(None, description="reconciled | quoted_in_source")
+    reconciled_to: Optional[str] = None
+    detail: Optional[str] = None
+
+
+class OperationalEntry(_CoerceModel):
+    metric: Optional[str] = None
+    scope: Optional[str] = None
+    value: Optional[float] = None
+    unit: Optional[str] = None
+    prior: Optional[float] = None
+    source_doc: Optional[str] = None
+    page: Optional[int] = None
+    published_at: Optional[str] = None
+    status: Optional[str] = Field(None, description="preliminary | final | rejected")
+    verification: Verification = Field(default_factory=Verification)
+    quote: Optional[str] = None
+
+
+class OperationalDriver(_CoerceModel):
+    driver: Optional[str] = None
+    affects: Optional[str] = None
+    quote: Optional[str] = None
+    page: Optional[int] = None
+    source_doc: Optional[str] = None
+    type: Optional[str] = Field("management_stated", description="management_stated | fact | hypothesis")
+
+
+class OperationalBlock(BaseModel):
+    entries: list[OperationalEntry] = Field(default_factory=list)
+    drivers: list[OperationalDriver] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce(cls, data: Any) -> Any:
+        if data is None:
+            return {}
+        if not isinstance(data, dict):
+            return data
+        d = dict(data)
+        for key in ("entries", "drivers"):
+            value = d.get(key)
+            if value is None:
+                d[key] = []
+            elif isinstance(value, dict):
+                d[key] = [value]
+            elif isinstance(value, list):
+                d[key] = [e for e in value if isinstance(e, (dict, BaseModel))]
+            else:
+                d[key] = []
+        return d
+
+
+class DocumentRecord(_CoerceModel):
+    id: Optional[str] = None
+    type: Optional[str] = None
+    published: Optional[str] = None
+    url: Optional[str] = None
+    fetched_at: Optional[str] = None
+    pages: Optional[int] = None
+    sha256: Optional[str] = None
+    path: Optional[str] = None
+    status: Optional[str] = Field(None, description="captured | not_captured | rejected")
+    error: Optional[str] = None
+    extraction_warnings: list[str] = Field(default_factory=list)
+
+
+class Gap(_CoerceModel):
+    item: Optional[str] = None
+    state: Optional[str] = None
+    detail: Optional[str] = None
+
+
+class Completeness(BaseModel):
+    financials: Optional[str] = Field(None, description="complete | partial | missing")
+    operational: Optional[str] = Field(None, description="complete | partial | not_captured")
+    notes: Optional[str] = Field(None, description="indexed | missing | stale")
+    analysis: Optional[str] = Field(None, description="present | missing")
+    expected_documents: list[str] = Field(default_factory=list)
+    as_of: Optional[str] = None
+    gaps: list[Gap] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce(cls, data: Any) -> Any:
+        if data is None:
+            return {}
+        if not isinstance(data, dict):
+            return data
+        d = dict(data)
+        for key in ("expected_documents", "gaps"):
+            value = d.get(key)
+            if value is None:
+                d[key] = []
+            elif isinstance(value, dict):
+                d[key] = [value]
+            elif not isinstance(value, list):
+                d[key] = []
+        return d
+
+
 class FactSheet(BaseModel):
     meta: Meta = Field(default_factory=Meta)
     income_statement: Statement = Field(default_factory=lambda: Statement(periods=["current", "prior_yoy"]))
@@ -274,6 +401,9 @@ class FactSheet(BaseModel):
     cash_flow: Statement = Field(default_factory=Statement)
     details: Details = Field(default_factory=Details)
     context_notes: list[str] = Field(default_factory=list)
+    operational: OperationalBlock = Field(default_factory=OperationalBlock)
+    documents: list[DocumentRecord] = Field(default_factory=list)
+    completeness: Completeness = Field(default_factory=Completeness)
 
     @model_validator(mode="before")
     @classmethod
@@ -295,6 +425,17 @@ class FactSheet(BaseModel):
             d["context_notes"] = [_stringify(n) for n in cn if n is not None]
         else:
             d["context_notes"] = [_stringify(cn)]
+        docs = d.get("documents")
+        if docs is None:
+            d["documents"] = []
+        elif isinstance(docs, dict):
+            d["documents"] = [docs]
+        elif not isinstance(docs, list):
+            d["documents"] = []
+        if d.get("operational") is None:
+            d["operational"] = {}
+        if d.get("completeness") is None:
+            d["completeness"] = {}
         return d
 
 
