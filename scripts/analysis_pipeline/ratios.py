@@ -7,9 +7,14 @@ inputs used, emitted to {T}_{Q}_{Y}.ratios.yaml for auditability.
 
 Units: monetary values are taken at the scale recorded in `meta.units`. Ratios
 and growth rates are scale-invariant; absolute per-share/EV figures assume
-`meta.units` is consistent across columns (the report guarantees this). Quarter
-figures are annualized with a factor of 4 where a rate notion requires it, and
-the annualization is recorded in the formula string.
+`meta.units` is consistent across columns (the report guarantees this).
+
+Interim IDX filings report **cumulative** year-to-date flows, not single-quarter
+flows: Q1 = 3 months, Q2/H1 = 6 months, Q3 = 9 months, Q4/audit = 12 months.
+Flow-based rates (ROE, ROA, asset turnover, DSO/DIO/DPO, annualized EPS) are
+therefore scaled by `12 / period_months` — ×4 for Q1, ×2 for H1, ×4/3 for 9M,
+×1 for a full year — and the factor used is recorded in the formula string and
+in the ratio inputs.
 """
 
 from __future__ import annotations
@@ -31,6 +36,22 @@ class Ratio(BaseModel):
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 FACTS_DIR = _PROJECT_ROOT / "idx_data" / "analysis" / "facts"
 
+# Flow-period length in months, keyed by the pipeline quarter label. IDX
+# interims are cumulative (Q2 = H1, Q3 = 9M), so annualization is 12 / months.
+_PERIOD_MONTHS = {"Q1": 3, "Q2": 6, "Q3": 9, "Q4": 12, "AUDIT": 12, "FY": 12}
+_ANN_LABEL = {3: "4", 6: "2", 9: "4/3", 12: "1"}
+
+
+def period_months(quarter: str | None) -> int:
+    """Months covered by the flow statements for a quarter label.
+
+    Unknown or missing labels fall back to a full year so no rate is inflated
+    by an unverified factor.
+    """
+    if not quarter:
+        return 12
+    return _PERIOD_MONTHS.get(str(quarter).strip().upper(), 12)
+
 
 def _val(stmt, key: str | None, col: str = "lines") -> float | None:
     if key is None:
@@ -46,13 +67,31 @@ def _val(stmt, key: str | None, col: str = "lines") -> float | None:
 
 
 class R:
-    def __init__(self, sheet: FactSheet, market: dict | None = None):
+    def __init__(self, sheet: FactSheet, market: dict | None = None,
+                 quarter: str | None = None):
         self.sheet = sheet
         self.is_ = sheet.income_statement
         self.bs = sheet.balance_sheet
         self.cf = sheet.cash_flow
         self.md = market or {}
         self.out: dict[str, Ratio] = {}
+        self.period_months = period_months(quarter or sheet.meta.quarter)
+        self.ann_factor = 12 / self.period_months
+        self.ann_label = _ANN_LABEL.get(self.period_months, f"{self.ann_factor:g}")
+
+    def _ann(self, expr: str) -> str:
+        """Annualize a flow expression for this statement's period length."""
+        return expr if self.ann_factor == 1 else f"{expr}*{self.ann_label}"
+
+    def _annualized(self, name, flow, den, flow_label, den_label):
+        """flow*annualization / den, with the factor recorded for audit."""
+        formula = f"({self._ann(flow_label)})/{den_label}"
+        inputs = {flow_label: flow, den_label: den,
+                  "annualization_factor": self.ann_factor,
+                  "period_months": self.period_months}
+        if flow is None or not den:
+            return self.add(name, None, formula, inputs)
+        return self.add(name, self._safe(flow * self.ann_factor / den), formula, inputs)
 
     def cur(self, stmt, key):
         return _val(stmt, key, "lines")
@@ -168,21 +207,9 @@ class R:
         avg_eq = (eq + eq_p) / 2 if eq is not None and eq_p is not None else None
         avg_eqo = (eqo + eqo_p) / 2 if eqo is not None and eqo_p is not None else None
         avg_ta = (ta + ta_p) / 2 if ta is not None and ta_p is not None else None
-        if np is not None and avg_eq:
-            self.add("roe_total", self._safe(np * 4 / avg_eq), "(np*4)/avg_equity",
-                     {"net_profit": np, "avg_equity": avg_eq, "factor": 4})
-        else:
-            self.add("roe_total", None, "(np*4)/avg_equity", {"net_profit": np, "avg_equity": avg_eq})
-        if npo is not None and avg_eqo:
-            self.add("roe_owners", self._safe(npo * 4 / avg_eqo), "(np_owners*4)/avg_owners_equity",
-                     {"np_owners": npo, "avg_owners_equity": avg_eqo, "factor": 4})
-        else:
-            self.add("roe_owners", None, "(np_owners*4)/avg_owners_equity", {"np_owners": npo, "avg_owners_equity": avg_eqo})
-        if np is not None and avg_ta:
-            self.add("roa", self._safe(np * 4 / avg_ta), "(np*4)/avg_assets",
-                     {"net_profit": np, "avg_assets": avg_ta, "factor": 4})
-        else:
-            self.add("roa", None, "(np*4)/avg_assets", {"net_profit": np, "avg_assets": avg_ta})
+        self._annualized("roe_total", np, avg_eq, "net_profit", "avg_equity")
+        self._annualized("roe_owners", npo, avg_eqo, "np_owners", "avg_owners_equity")
+        self._annualized("roa", np, avg_ta, "net_profit", "avg_assets")
 
         # ── Liquidity ──
         self._ratio("current_ratio", ca, cl, "current_ratio")
@@ -212,11 +239,7 @@ class R:
         self._ratio("interest_coverage", op, iexp, "int_cov")
 
         # ── Efficiency (annualized) ──
-        if rev is not None and avg_ta:
-            self.add("asset_turnover", self._safe(rev * 4 / avg_ta), "(revenue*4)/avg_assets",
-                     {"revenue": rev, "avg_assets": avg_ta, "factor": 4})
-        else:
-            self.add("asset_turnover", None, "(revenue*4)/avg_assets", {"revenue": rev, "avg_assets": avg_ta})
+        self._annualized("asset_turnover", rev, avg_ta, "revenue", "avg_assets")
         self._dso_dio_dpo(rev, recv, inv, tp)
         ocf_for_ccc = ocf
         self._pct("collections_ratio", coll, rev, "coll/rev")
@@ -258,24 +281,26 @@ class R:
 
     def _dso_dio_dpo(self, rev, recv, inv, tp):
         if rev and rev != 0:
-            daily = rev / 91.25  # one quarter ≈ 91.25 days; DSO = recv/daily (quarter), annualized equivalent via /revenue*365*4 same thing
-            # use annualized basis for consistency with the golden analysis: recv/(revenue/365*4)
-            denom = rev / 365 * 4 if rev else None
+            # Annualized revenue basis: rev * (12/months) / 365.
+            denom = rev * self.ann_factor / 365
+            basis = {"basis": "annualized", "annualization_factor": self.ann_factor,
+                     "period_months": self.period_months}
+            rev_formula = self._ann("revenue/365")
             if denom and recv is not None:
-                self.add("dso", self._safe(recv / denom), "receivables / (revenue/365*4)",
-                         {"receivables": recv, "revenue": rev, "basis": "annualized"})
+                self.add("dso", self._safe(recv / denom), f"receivables / ({rev_formula})",
+                         {"receivables": recv, "revenue": rev, **basis})
             else:
-                self.add("dso", None, "receivables / (revenue/365*4)", {"receivables": recv, "revenue": rev})
+                self.add("dso", None, f"receivables / ({rev_formula})", {"receivables": recv, "revenue": rev, **basis})
             if denom and inv is not None:
-                self.add("dio", self._safe(inv / denom), "inventories / (revenue/365*4)",
-                         {"inventories": inv, "revenue": rev})
+                self.add("dio", self._safe(inv / denom), f"inventories / ({rev_formula})",
+                         {"inventories": inv, "revenue": rev, **basis})
             else:
-                self.add("dio", None, "inventories / (revenue/365*4)", {"inventories": inv, "revenue": rev})
+                self.add("dio", None, f"inventories / ({rev_formula})", {"inventories": inv, "revenue": rev, **basis})
             if denom and tp is not None:
-                self.add("dpo", self._safe(tp / denom), "payables / (revenue/365*4)",
-                         {"payables": tp, "revenue": rev})
+                self.add("dpo", self._safe(tp / denom), f"payables / ({rev_formula})",
+                         {"payables": tp, "revenue": rev, **basis})
             else:
-                self.add("dpo", None, "payables / (revenue/365*4)", {"payables": tp, "revenue": rev})
+                self.add("dpo", None, f"payables / ({rev_formula})", {"payables": tp, "revenue": rev, **basis})
             dso = self.out["dso"].value; dio = self.out["dio"].value; dpo = self.out["dpo"].value
             if dso is not None and dio is not None and dpo is not None:
                 self.add("ccc", self._safe(dso + dio - dpo), "dso + dio - dpo",
@@ -296,12 +321,16 @@ class R:
             return
         if market_cap is None and shares and price:
             market_cap = shares * price
-        ann_eps = (eps * 4) if eps is not None else None
+        ann_eps = (eps * self.ann_factor) if eps is not None else None
+        eps_formula = self._ann("eps")
         if price and ann_eps and ann_eps != 0:
-            self.add("pe_annualized", self._safe(price / ann_eps), "price / (eps*4)",
-                     {"price": price, "annualized_eps": ann_eps})
+            self.add("pe_annualized", self._safe(price / ann_eps), f"price / ({eps_formula})",
+                     {"price": price, "annualized_eps": ann_eps,
+                      "annualization_factor": self.ann_factor, "period_months": self.period_months})
         else:
-            self.add("pe_annualized", None, "price / (eps*4)", {"price": price, "annualized_eps": ann_eps})
+            self.add("pe_annualized", None, f"price / ({eps_formula})",
+                     {"price": price, "annualized_eps": ann_eps,
+                      "annualization_factor": self.ann_factor, "period_months": self.period_months})
         if price and shares:
             bvps = eqo / shares if eqo and shares else None
             if bvps:
@@ -314,15 +343,17 @@ class R:
         if market_cap is not None and net_debt is not None:
             ev = market_cap - net_debt  # net_debt already cash&sec - loans => subtract net_debt = add net cash
             self.add("ev", self._safe(ev), "market_cap - net_debt", {"market_cap": market_cap, "net_debt": net_debt})
-            ebitda = (op * 4) if op is not None else None  # EBIT proxy, annualized
+            ebitda = (op * self.ann_factor) if op is not None else None  # EBIT proxy, annualized
+            ebit_formula = self._ann("operating_profit")
             if ev is not None and ebitda and ebitda != 0:
-                self.add("ev_ebitda", self._safe(ev / ebitda), "ev / (operating_profit*4)",
-                         {"ev": ev, "ebitda_proxy": ebitda})
+                self.add("ev_ebitda", self._safe(ev / ebitda), f"ev / ({ebit_formula})",
+                         {"ev": ev, "ebitda_proxy": ebitda,
+                          "annualization_factor": self.ann_factor, "period_months": self.period_months})
             else:
-                self.add("ev_ebitda", None, "ev / (operating_profit*4)", {"ev": ev, "ebitda_proxy": ebitda})
+                self.add("ev_ebitda", None, f"ev / ({ebit_formula})", {"ev": ev, "ebitda_proxy": ebitda})
         else:
             self.add("ev", None, "market_cap - net_debt", {"market_cap": market_cap, "net_debt": net_debt})
-            self.add("ev_ebitda", None, "ev / (operating_profit*4)", {})
+            self.add("ev_ebitda", None, f"ev / ({self._ann('operating_profit')})", {})
 
 
 def run(ticker: str, year: int, quarter: str, market_data: dict | None = None,
@@ -339,7 +370,7 @@ def run(ticker: str, year: int, quarter: str, market_data: dict | None = None,
         raise FileNotFoundError(f"Canonical fact sheet not found: {canonical_path}. Run merge first.")
     sheet = FactSheet.model_validate(yaml.safe_load(canonical_path.read_text(encoding="utf-8")))
 
-    ratios = R(sheet, market_data or {}).compute()
+    ratios = R(sheet, market_data or {}, quarter=quarter).compute()
     if dry_run:
         n = sum(1 for r in ratios.values() if r["value"] is not None)
         print(f"  [DRY] would compute {len(ratios)} ratios ({n} resolved) -> {out_path.name}")

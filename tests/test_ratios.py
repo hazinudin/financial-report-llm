@@ -67,5 +67,75 @@ class PriorEpsGuardTests(unittest.TestCase):
         self.assertNotIn("source_correction", result["eps_growth"]["inputs"])
 
 
+def _flow_sheet(quarter: str) -> FactSheet:
+    """Sheet with the lines needed for annualized flow ratios."""
+    return FactSheet.model_validate({
+        "meta": {"ticker": "TST", "quarter": quarter, "year": 2026,
+                 "currency": "IDR", "units": "million"},
+        "income_statement": {
+            "periods": ["current", "prior_yoy"],
+            "lines": {"revenue": 900.0, "net_profit": 90.0, "np_owners": 90.0,
+                      "eps_basic": 9.0},
+            "prior_lines": {"revenue": 800.0, "net_profit": 80.0, "np_owners": 80.0,
+                            "eps_basic": 8.0},
+        },
+        "balance_sheet": {
+            "periods": ["current", "prior_fy_end"],
+            "lines": {"total_assets": 1_800.0, "total_equity": 900.0,
+                      "equity_owners": 900.0, "trade_receivables_net": 150.0,
+                      "inventories": 50.0, "trade_payables": 100.0},
+            "prior_lines": {"total_assets": 1_800.0, "total_equity": 900.0,
+                            "equity_owners": 900.0},
+        },
+        "cash_flow": {"periods": ["current", "prior_yoy"], "lines": {}},
+    })
+
+
+class InterimAnnualizationTests(unittest.TestCase):
+    """IDX interims are cumulative: Q2 = H1, Q3 = 9M. A flat ×4 is wrong."""
+
+    def test_period_months_mapping(self):
+        self.assertEqual(ratios.period_months("Q1"), 3)
+        self.assertEqual(ratios.period_months("q2"), 6)
+        self.assertEqual(ratios.period_months("Q3"), 9)
+        self.assertEqual(ratios.period_months("Q4"), 12)
+        self.assertEqual(ratios.period_months("audit"), 12)
+        self.assertEqual(ratios.period_months(None), 12)
+
+    def test_nine_month_flows_use_factor_four_thirds(self):
+        result = ratios.R(_flow_sheet("Q3")).compute()
+        # 90 * 4/3 / avg_equity(900) = 0.133333
+        self.assertAlmostEqual(result["roe_total"]["value"], 0.133333, places=6)
+        self.assertAlmostEqual(result["roe_total"]["inputs"]["annualization_factor"], 4 / 3)
+        self.assertAlmostEqual(result["roa"]["value"], 90 * (4 / 3) / 1800, places=6)
+        self.assertAlmostEqual(result["asset_turnover"]["value"], 900 * (4 / 3) / 1800, places=6)
+        self.assertIn("4/3", result["roe_total"]["formula"])
+        self.assertEqual(result["roe_total"]["inputs"]["period_months"], 9)
+
+    def test_half_year_flows_use_factor_two(self):
+        result = ratios.R(_flow_sheet("Q2")).compute()
+        self.assertAlmostEqual(result["roe_total"]["value"], 0.2, places=6)  # 90*2/900
+
+    def test_first_quarter_flows_use_factor_four(self):
+        result = ratios.R(_flow_sheet("Q1")).compute()
+        self.assertAlmostEqual(result["roe_total"]["value"], 0.4, places=6)  # 90*4/900
+
+    def test_full_year_flows_are_not_scaled(self):
+        result = ratios.R(_flow_sheet("Q4")).compute()
+        self.assertAlmostEqual(result["roe_total"]["value"], 0.1, places=6)  # 90/900
+        self.assertEqual(result["roe_total"]["formula"], "(net_profit)/avg_equity")
+
+    def test_dso_uses_period_matched_annualized_revenue(self):
+        result = ratios.R(_flow_sheet("Q3")).compute()
+        # 150 / (900 * 4/3 / 365) = 45.625 days
+        self.assertAlmostEqual(result["dso"]["value"], 45.625, places=3)
+        self.assertAlmostEqual(result["dpo"]["value"], 100 / (900 * (4 / 3) / 365), places=3)
+
+    def test_valuation_multiples_use_period_matched_annualization(self):
+        result = ratios.R(_flow_sheet("Q3"), {"price": 120.0}).compute()
+        # EPS 9 annualized to 12 for 9M => 12; P/E = 10
+        self.assertAlmostEqual(result["pe_annualized"]["value"], 10.0, places=6)
+
+
 if __name__ == "__main__":
     unittest.main()
