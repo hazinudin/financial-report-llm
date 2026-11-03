@@ -13,6 +13,9 @@ wheels/
 # OS metadata
 .DS_Store
 
+# Downloaded IDX source PDFs (regenerable: report_pipeline download/collect)
+raw/
+
 # Analysis pipeline runtime artifacts (deterministic + LLM outputs)
 idx_data/analysis/
 
